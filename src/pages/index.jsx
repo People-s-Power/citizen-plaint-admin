@@ -9,6 +9,7 @@ export default function Home() {
   const [active, setActive] = useState("summary");
   const [counts, setCounts] = useState([]);
   const [users, setUsers] = useState([]);
+  const [reports, setReports] = useState([]);
 
   useEffect(() => {
     try {
@@ -23,6 +24,14 @@ export default function Home() {
       axios.get("/user").then((res) => {
         // console.log(res.data.data);
         setUsers(res.data.data.users);
+      });
+    } catch (err) {
+      console.log(err);
+    }
+    try {
+      axios.get("/report").then((res) => {
+        console.log(res.data.data);
+        setReports(res.data.data.reports);
       });
     } catch (err) {
       console.log(err);
@@ -85,7 +94,7 @@ export default function Home() {
                 case "user":
                   return <User users={users} />;
                 case "report":
-                  return <Report />;
+                  return <Report report={reports} />;
               }
             })()}
           </div>

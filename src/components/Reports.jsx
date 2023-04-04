@@ -2,10 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Dropdown } from "rsuite";
 import axios from "axios";
 
-const Reports = () => {
-  const [reports, setReports] = useState([]);
-
-  useEffect(() => {
+const Reports = ({ report }) => {
+  const [reports, setReports] = useState(report);
+  const getReport = () => {
     try {
       axios.get("/report").then((res) => {
         console.log(res.data.data);
@@ -14,7 +13,7 @@ const Reports = () => {
     } catch (err) {
       console.log(err);
     }
-  }, [resolve]);
+  };
 
   const resolve = (id, resolve) => {
     try {
@@ -24,11 +23,17 @@ const Reports = () => {
         })
         .then((res) => {
           console.log(res.data);
+          getReport();
         });
     } catch (err) {
       console.log(err);
     }
   };
+
+  useEffect(() => {
+    getReport();
+  }, []);
+
   return (
     <div>
       <div>
@@ -37,9 +42,9 @@ const Reports = () => {
             <tr>
               <th className="p-3">DATE</th>
               <th className="p-3">Author</th>
-              <th>Status</th>
-              <th>Report</th>
-              <th>Action</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Report</th>
+              <th className="p-3">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -71,11 +76,11 @@ const Reports = () => {
                     ></button>
                   )}
                 </td>
-                <td>
+                <td className="p-3">
                   {report.body.substring(0, 10)}
                   {report.body.length > 20 ? "..." : null}
                 </td>
-                <td className="">
+                <td className="p-3">
                   <Dropdown
                     placement="bottomEnd"
                     title={

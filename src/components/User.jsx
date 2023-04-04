@@ -1,5 +1,5 @@
 import React from "react";
-import { Dropdown, Checkbox,  } from "rsuite";
+import { Dropdown, Checkbox } from "rsuite";
 
 const User = ({ users }) => {
   return (
@@ -12,11 +12,11 @@ const User = ({ users }) => {
                 <Checkbox> </Checkbox>
               </th>
               <th className="p-3">User</th>
-              <th>Status</th>
-              <th>User Description</th>
-              <th>Location</th>
-              <th>Interest</th>
-              <th>Action</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">User Description</th>
+              <th className="p-3">Location</th>
+              <th className="p-3">Interest</th>
+              <th className="p-3">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -44,15 +44,15 @@ const User = ({ users }) => {
                     <button className="rounded-full bg-[#970808] p-3"></button>
                   )}
                 </td>
-                <td>
+                <td className="p-3">
                   {user.description.substring(0, 20)}
                   {user.description.length > 20 ? "..." : null}
                 </td>
                 <td>
                   {user.city}, {user.country}
                 </td>
-                <td>{user.interests[0]}</td>
-                <td className="">
+                <td className="p-3">{user.interests[0]}</td>
+                <td className="p-3">
                   <Dropdown
                     placement="bottomEnd"
                     title={
