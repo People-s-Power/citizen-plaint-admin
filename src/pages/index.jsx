@@ -2,18 +2,21 @@ import Head from "next/head";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import FrontLayout from "@/components/Layout";
+import Summary from "@/components/Summary";
 
 export default function Home() {
   const [active, setActive] = useState("summary");
   const [counts, setCounts] = useState([]);
 
   useEffect(() => {
-    // axios
-    //   .get("https://shark-app-28vbj.ondigitalocean.app/v1/admin/count")
-    //   .then((res) => {
-    //     setCounts(res.data);
-    //     console.log(res.data);
-    //   });
+    try {
+      axios.get("/count").then((res) => {
+        console.log(res.data.data);
+        setCounts(res.data.data);
+      });
+    } catch (err) {
+      console.log(err);
+    }
   }, []);
 
   return (
@@ -24,8 +27,8 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <FrontLayout className="py-10">
-        <div className="mx-40 mt-4">
+      <FrontLayout>
+        <div className="mx-40 pt-6">
           <div className="flex w-1/2 mx-auto justify-between">
             <div
               onClick={() => setActive("summary")}
@@ -68,11 +71,11 @@ export default function Home() {
               Report
             </div>
           </div>
-          <div>
+          <div className="pt-4">
             {(() => {
               switch (active) {
                 case "summary":
-                  return <div>Hello</div>;
+                  return <Summary summary={counts} />;
                 case "content":
                   return <div>Hello content</div>;
                 case "user":

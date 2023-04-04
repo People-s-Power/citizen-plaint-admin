@@ -12,6 +12,8 @@ module.exports = {
     extend: {},
     colors: {
       warning: "#FFC107",
+      gold: "#C98821",
+      white: "#FFFFFF",
     }
   },
   plugins: [],

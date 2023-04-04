@@ -1,8 +1,17 @@
-import React, { Fragment, ReactChild } from "react";
+import React, { Fragment, useEffect } from "react";
 import HeaderComp from "../components/HeaderComp";
+import { getCookie } from "cookies-next";
 
 const FrontLayout = ({ children }) => {
+  const token = getCookie("token");
   const text = `CITIZEN PLAINT`;
+
+  useEffect(() => {
+    // console.log(token);
+    if (token === undefined) {
+      window.location.href = "/auth";
+    }
+  }, []);
   return (
     <Fragment>
       <title>{text}</title>
