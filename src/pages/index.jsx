@@ -4,12 +4,29 @@ import FrontLayout from "@/components/Layout";
 import Summary from "@/components/Summary";
 import User from "@/components/User";
 import Report from "@/components/Reports";
+import Content from "@/components/Content"
 
 export default function Home() {
   const [active, setActive] = useState("summary");
   const [counts, setCounts] = useState([]);
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
+  const [contents, setContents] = useState([])
+  const [manage, setManage] = useState("petition")
+
+  const getAll = () => {
+    try {
+      axios.get("/" + manage).then((res) => {
+        console.log(res.data.data);
+        setContents(res.data.data[manage + 's'] || res.data.data.petitons || res.data.data.victory);
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  useEffect(() => {
+    getAll()
+  }, [manage])
 
   useEffect(() => {
     try {
@@ -30,7 +47,7 @@ export default function Home() {
     }
     try {
       axios.get("/report").then((res) => {
-        console.log(res.data.data);
+        // console.log(res.data.data);
         setReports(res.data.data.reports);
       });
     } catch (err) {
@@ -90,7 +107,19 @@ export default function Home() {
                 case "summary":
                   return <Summary summary={counts} />;
                 case "content":
-                  return <div>Hello content</div>;
+                  return <div>
+                    <div className="">
+                      <select onChange={(e) => setManage(e.target.value)} className="float-right p-2 border my-5">
+                        <option value="petition">Petition</option>
+                        <option value="post" >Post</option>
+                        <option value="event">Events</option>
+                        <option value="advert">Advert</option>
+                        <option value="victory">Victory</option>
+                        <option value="update">Update</option>
+                      </select>
+                    </div>
+                    <Content contents={contents} />
+                  </div>;
                 case "user":
                   return <User users={users} />;
                 case "report":

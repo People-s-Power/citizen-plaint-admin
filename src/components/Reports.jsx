@@ -77,8 +77,8 @@ const Reports = ({ report }) => {
                   )}
                 </td>
                 <td className="p-3">
-                  {report.body.substring(0, 10)}
-                  {report.body.length > 20 ? "..." : null}
+                  {report.body.substring(0, 40)}
+                  {report.body.length > 40 ? "..." : null}
                 </td>
                 <td className="p-3">
                   <Dropdown
