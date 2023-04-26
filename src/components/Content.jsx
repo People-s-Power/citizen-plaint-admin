@@ -1,10 +1,19 @@
 import React from "react";
 import { Dropdown, Checkbox } from "rsuite";
 
-const Content = ({ contents }) => {
+const Content = ({ contents, users }) => {
+  const getAuthor = (id) => {
+    var name
+    users.map((user) => {
+      if (user._id === id) {
+        name = user.name
+      }
+    })
+    return name
+  }
+
   return (
     <div>
-
       <div>
         <table className="table-auto w-full ">
           <thead className="bg-gold text-white text-left rounded-md">
@@ -32,7 +41,7 @@ const Content = ({ contents }) => {
                   <img className="w-10 h-10 mr-2" src={user.image[0]} alt="" />
                   <span>{user.title || user.name || user.caption}</span>
                 </td>
-                <td className="p-3">{user.author?.name}</td>
+                <td className="p-3">{getAuthor(user.author)}</td>
                 <td className="p-3">
                   {user.status === "Active" ? (
                     <button className="rounded-full bg-[#00401C] p-1">

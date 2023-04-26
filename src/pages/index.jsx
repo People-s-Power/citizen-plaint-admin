@@ -118,7 +118,7 @@ export default function Home() {
                         <option value="update">Update</option>
                       </select>
                     </div>
-                    <Content contents={contents} />
+                    <Content contents={contents} users={users} />
                   </div>;
                 case "user":
                   return <User users={users} />;
