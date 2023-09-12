@@ -3,13 +3,15 @@ import axios from "axios";
 import { setCookie } from "cookies-next";
 
 const auth = () => {
-  const [email, setEmail] = useState("kingifean@gmail.com");
-  const [password, setPassword] = useState("RWEs323$%ddfdf");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false)
   const submit = async () => {
     if (email === "" || password === "") {
       return;
     }
     try {
+      setLoading(true)
       const { data } = await axios.post(
         "https://shark-app-28vbj.ondigitalocean.app/v1/admin/login",
         {
@@ -22,6 +24,7 @@ const auth = () => {
       window.location.href = "/";
     } catch (e) {
       console.log(e);
+      setLoading(false)
     }
   };
   return (
@@ -47,7 +50,7 @@ const auth = () => {
           onClick={() => submit()}
           className="bg-warning p-3 w-full my-3 text-white text-lg"
         >
-          Login
+          {loading ? 'loading...' : 'Login'}
         </button>
       </div>
     </Fragment>
