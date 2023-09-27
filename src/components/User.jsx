@@ -6,6 +6,7 @@ const User = ({ users }) => {
   const [modal, setModal] = useState(false)
   const [allUsers, setAllUser] = useState(users)
 
+  const allChecked = []
   const search = (value) => {
     if (value === "") return setAllUser(users)
     const matchingStrings = []
@@ -46,11 +47,12 @@ const User = ({ users }) => {
               <tr key={index}>
                 <td className="p-3">
                   <input type="checkbox" onChange={e => {
-                    console.log(e.target.checked)
+                    if (e.target.checked === true) {
+                      allChecked.push(user)
+                    } else {
+                      allChecked.splice(allChecked.indexOf(user), 1)
+                    }
                   }} />
-                  {/* <Checkbox value onChange={value => {
-                    console.log(value)
-                  }}> </Checkbox> */}
                 </td>
                 <td className="p-3">{user.name}</td>
                 <td className="p-3">
