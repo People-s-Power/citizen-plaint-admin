@@ -6,15 +6,24 @@ const User = ({ users }) => {
   const [modal, setModal] = useState(false)
   const [allUsers, setAllUser] = useState(users)
 
-  // className="cursor-pointer" onClick={() => setModal(true)}
+  const search = (value) => {
+    if (value === "") return setAllUser(users)
+    const matchingStrings = []
+    for (const string of allUsers) {
+      if (string.name.toLowerCase().includes(value)) {
+        matchingStrings.push(string);
+      }
+    }
+    setAllUser(matchingStrings)
+  }
 
   return (
     <div>
       <div className="flex my-3">
-        <input type="text" placeholder="Search"  className="p-3 rounded-md border w-[30%]" />
+        <input onChange={e => search(e.target.value)} type="text" placeholder="Search" className="p-3 rounded-md border w-[30%]" />
         <button className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Block</button>
         <button className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Activate</button>
-        <button className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Send Message</button>
+        <button onClick={() => setModal(true)} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Send Message</button>
 
       </div>
       <div>
@@ -22,7 +31,7 @@ const User = ({ users }) => {
           <thead className="bg-gold text-white text-left rounded-md">
             <tr>
               <th className="p-3">
-                <Checkbox> </Checkbox>
+                {/* <Checkbox > </Checkbox> */}
               </th>
               <th className="p-3">User</th>
               <th className="p-3">Status</th>
@@ -36,7 +45,12 @@ const User = ({ users }) => {
             {allUsers.map((user, index) => (
               <tr key={index}>
                 <td className="p-3">
-                  <Checkbox> </Checkbox>
+                  <input type="checkbox" onChange={e => {
+                    console.log(e.target.checked)
+                  }} />
+                  {/* <Checkbox value onChange={value => {
+                    console.log(value)
+                  }}> </Checkbox> */}
                 </td>
                 <td className="p-3">{user.name}</td>
                 <td className="p-3">

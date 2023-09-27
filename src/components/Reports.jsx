@@ -7,7 +7,7 @@ const Reports = ({ report }) => {
   const getReport = () => {
     try {
       axios.get("/report").then((res) => {
-        console.log(res.data.data);
+        // console.log(res.data.data);
         setReports(res.data.data.reports);
       });
     } catch (err) {
