@@ -1,7 +1,8 @@
 import React from "react";
-import { Dropdown, Checkbox } from "rsuite";
+import { Dropdown, ButtonToolbar } from "rsuite";
 
-const Content = ({ contents, users }) => {
+const Content = ({ contents, users, type }) => {
+
   const getAuthor = (id) => {
     var name
     users.map((user) => {
@@ -38,8 +39,8 @@ const Content = ({ contents, users }) => {
                   {user.createdAt.substring(0, 10)}
                 </td>
                 <td className="p-3 flex">
-                  <img className="w-10 h-10 mr-2" src={user.image[0]} alt="" />
-                  <span>{user.title || user.name || user.caption}</span>
+                  <img className="w-10 h-10 mr-2" src={user.asset[0]?.url} alt="" />
+                  <span>{user.title || user.name || user.caption || user.body.slice(0, 20)}</span>
                 </td>
                 <td className="p-3">{getAuthor(user.author)}</td>
                 <td className="p-3">
@@ -69,20 +70,24 @@ const Content = ({ contents, users }) => {
                   {user.endorsements?.length}
                 </td>
                 <td className="p-3">
-                  <Dropdown
-                    placement="bottomEnd"
-                    title={
-                      <img className="h-4 w-4" src="/images/edit.svg" alt="" />
-                    }
-                    noCaret
-                  >
-                    <Dropdown.Item>Promote</Dropdown.Item>
-                    <Dropdown.Item>Edit</Dropdown.Item>
-                    <Dropdown.Item>Share</Dropdown.Item>
-                    <Dropdown.Item>Delete</Dropdown.Item>
-                    <Dropdown.Item>Block</Dropdown.Item>
-                    <Dropdown.Item>Activate</Dropdown.Item>
-                  </Dropdown>
+                  <ButtonToolbar>
+                    <Dropdown
+                      placement="rightStart"
+                      title={
+                        <img className="h-4 w-4" src="/images/edit.svg" alt="" />
+                      }
+                      noCaret
+                    >
+                      <Dropdown.Item> <a href={`https://www.theplaint.org/promote?slug=${user._id}&view=true`} target="_blank">Promote</a> </Dropdown.Item>
+                      {/* <Dropdown.Item>Edit</Dropdown.Item> */}
+                      <Dropdown.Item> {type === 'petition' ?
+                        <a href={`https://www.theplaint.org/campaigns/${user.slug}`} target="_blank">Share</a> :
+                        <a href={`https://www.theplaint.org/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${user._id}`} target="_blank">Share</a>} </Dropdown.Item>
+                      {/* <Dropdown.Item>Delete</Dropdown.Item> */}
+                      <Dropdown.Item>Block</Dropdown.Item>
+                      <Dropdown.Item>Activate</Dropdown.Item>
+                    </Dropdown>
+                  </ButtonToolbar>
                 </td>
               </tr>
             ))}

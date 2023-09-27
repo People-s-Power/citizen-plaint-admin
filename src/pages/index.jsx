@@ -17,7 +17,7 @@ export default function Home() {
   const getAll = () => {
     try {
       axios.get("/" + manage).then((res) => {
-        console.log(res.data.data);
+        // console.log(res.data.data);
         setContents(res.data.data[manage + 's'] || res.data.data.petitons || res.data.data.victory);
       });
     } catch (err) {
@@ -118,7 +118,7 @@ export default function Home() {
                         <option value="update">Update</option>
                       </select>
                     </div>
-                    <Content contents={contents} users={users} />
+                    <Content contents={contents} type={manage} users={users} />
                   </div>;
                 case "user":
                   return <User users={users} />;

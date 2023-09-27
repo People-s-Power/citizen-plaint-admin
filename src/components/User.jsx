@@ -1,9 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dropdown, Checkbox } from "rsuite";
+import MessageModal from "./MessageModal";
 
 const User = ({ users }) => {
+  const [modal, setModal] = useState(false)
+  const [allUsers, setAllUser] = useState(users)
+
+  // className="cursor-pointer" onClick={() => setModal(true)}
+
   return (
     <div>
+      <div className="flex my-3">
+        <input type="text" placeholder="Search"  className="p-3 rounded-md border w-[30%]" />
+        <button className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Block</button>
+        <button className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Activate</button>
+        <button className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Send Message</button>
+
+      </div>
       <div>
         <table className="table-auto w-full ">
           <thead className="bg-gold text-white text-left rounded-md">
@@ -20,7 +33,7 @@ const User = ({ users }) => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user, index) => (
+            {allUsers.map((user, index) => (
               <tr key={index}>
                 <td className="p-3">
                   <Checkbox> </Checkbox>
@@ -60,7 +73,7 @@ const User = ({ users }) => {
                     }
                     noCaret
                   >
-                    <Dropdown.Item>Send Message</Dropdown.Item>
+                    <Dropdown.Item> <a href={`https://www.theplaint.org/messages?page=${user._id}`} target="_blank">Send Message</a> </Dropdown.Item>
                     <Dropdown.Item>Block User</Dropdown.Item>
                     <Dropdown.Item>Activate User</Dropdown.Item>
                   </Dropdown>
@@ -70,6 +83,7 @@ const User = ({ users }) => {
           </tbody>
         </table>
       </div>
+      <MessageModal open={modal} handleClose={() => setModal(false)} />
     </div>
   );
 };
