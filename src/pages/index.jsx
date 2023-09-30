@@ -17,7 +17,8 @@ export default function Home() {
   const { query } = useRouter()
 
   useEffect(() => {
-    setActive(query.page)
+    query.page !== undefined && setActive(query.page)
+    // console.log(query.page)
   }, [query.page])
 
 
