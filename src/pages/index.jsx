@@ -24,6 +24,22 @@ export default function Home() {
       console.log(err);
     }
   }
+  const editItem = async (id, status) => {
+    try {
+      const { data } = await axios.post(
+        `https://shark-app-28vbj.ondigitalocean.app/v1/${manage}/${id}`,
+        {
+          status
+        }
+      );
+      console.log(data);
+      alert(`${manage} is ${status}`)
+      getAll()
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   useEffect(() => {
     getAll()
   }, [manage])
@@ -118,7 +134,7 @@ export default function Home() {
                         <option value="update">Update</option>
                       </select>
                     </div>
-                    <Content contents={contents} type={manage} users={users} />
+                    <Content contents={contents} type={manage} users={users} editItem={editItem} />
                   </div>;
                 case "user":
                   return <User users={users} />;

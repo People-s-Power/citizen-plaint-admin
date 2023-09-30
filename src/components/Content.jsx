@@ -1,7 +1,8 @@
 import React from "react";
 import { Dropdown, ButtonToolbar } from "rsuite";
+import axios from "axios";
 
-const Content = ({ contents, users, type }) => {
+const Content = ({ contents, users, type, editItem }) => {
 
   const getAuthor = (id) => {
     var name
@@ -12,6 +13,8 @@ const Content = ({ contents, users, type }) => {
     })
     return name
   }
+
+
 
   return (
     <div>
@@ -84,8 +87,8 @@ const Content = ({ contents, users, type }) => {
                         <a href={`https://www.theplaint.org/campaigns/${user.slug}`} target="_blank">Share</a> :
                         <a href={`https://www.theplaint.org/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${user._id}`} target="_blank">Share</a>} </Dropdown.Item>
                       {/* <Dropdown.Item>Delete</Dropdown.Item> */}
-                      <Dropdown.Item>Block</Dropdown.Item>
-                      <Dropdown.Item>Activate</Dropdown.Item>
+                      <Dropdown.Item> <p onClick={() => editItem(user._id, 'Blocked')} className="cursor-pointer">Block</p> </Dropdown.Item>
+                      <Dropdown.Item>  <p onClick={() => editItem(user._id, 'Active')} className="cursor-pointer">Activate</p></Dropdown.Item>
                     </Dropdown>
                   </ButtonToolbar>
                 </td>
