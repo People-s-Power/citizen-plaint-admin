@@ -7,7 +7,7 @@ const Reports = ({ report }) => {
   const getReport = () => {
     try {
       axios.get("/report").then((res) => {
-        // console.log(res.data.data);
+        console.log(res.data.data);
         setReports(res.data.data.reports);
       });
     } catch (err) {
@@ -88,8 +88,8 @@ const Reports = ({ report }) => {
                     }
                     noCaret
                   >
-                    <Dropdown.Item>Block </Dropdown.Item>
-                    <Dropdown.Item>Activate </Dropdown.Item>
+                    {/* <Dropdown.Item>UnResolve </Dropdown.Item> */}
+                    <Dropdown.Item> <p onClick={() => resolve(report._id, report.resolved)}>Resolve</p>  </Dropdown.Item>
                   </Dropdown>
                 </td>
               </tr>
