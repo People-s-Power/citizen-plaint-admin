@@ -1,16 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dropdown, Checkbox } from "rsuite";
 import MessageModal from "./MessageModal";
+import axios from "axios";
 
-const User = ({ users }) => {
+const User = () => {
   const [modal, setModal] = useState(false)
-  const [allUsers, setAllUser] = useState(users)
+  const [users, setUsers] = useState([]);
 
+  const getAll = () => {
+    try {
+      axios.get("/user").then((res) => {
+        // console.log(res.data.data);
+        setUsers(res.data.data.users);
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  useEffect(() => {
+    getAll()
+  }, [])
   const allChecked = []
+
   const search = (value) => {
-    if (value === "") return setAllUser(users)
+    if (value === "") return getAll()
     const matchingStrings = []
-    for (const string of allUsers) {
+    for (const string of users) {
       if (string.name.toLowerCase().includes(value)) {
         matchingStrings.push(string);
       }
@@ -18,12 +34,48 @@ const User = ({ users }) => {
     setAllUser(matchingStrings)
   }
 
+  const editUser = async (id, status) => {
+    try {
+      const { data } = await axios.put(
+        `https://shark-app-28vbj.ondigitalocean.app/v1/user/single/${id}`,
+        {
+          isActive: !status
+        }
+      );
+      console.log(data);
+      alert(`User is ${status ? 'Unactive' : 'Active'}`)
+      getAll()
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const multiEdit = (type) => {
+    if (allChecked.length >= 1) {
+      allChecked.map(async (checked) => {
+        try {
+          const { data } = await axios.put(
+            `https://shark-app-28vbj.ondigitalocean.app/v1/user/single/${checked._id}`,
+            {
+              isActive: !checked.isActive
+            }
+          );
+          // console.log(data);
+        } catch (e) {
+          console.log(e)
+        }
+      })
+      alert(`Users ${type} successfully `)
+      getAll()
+    }
+  }
+
   return (
     <div>
       <div className="flex my-3">
         <input onChange={e => search(e.target.value)} type="text" placeholder="Search" className="p-3 rounded-md border w-[30%]" />
-        <button className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Block</button>
-        <button className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Activate</button>
+        <button onClick={() => multiEdit('Blocked')} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Block</button>
+        <button onClick={() => multiEdit('Activated')} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Activate</button>
         <button onClick={() => setModal(true)} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Send Message</button>
 
       </div>
@@ -43,7 +95,7 @@ const User = ({ users }) => {
             </tr>
           </thead>
           <tbody>
-            {allUsers.map((user, index) => (
+            {users.map((user, index) => (
               <tr key={index}>
                 <td className="p-3">
                   <input type="checkbox" onChange={e => {
@@ -90,8 +142,8 @@ const User = ({ users }) => {
                     noCaret
                   >
                     <Dropdown.Item> <a href={`https://www.theplaint.org/messages?page=${user._id}`} target="_blank">Send Message</a> </Dropdown.Item>
-                    <Dropdown.Item>Block User</Dropdown.Item>
-                    <Dropdown.Item>Activate User</Dropdown.Item>
+                    <Dropdown.Item> <p onClick={() => editUser(user._id, user.isActive)} className="cursor-pointer">Block User</p> </Dropdown.Item>
+                    <Dropdown.Item> <p onClick={() => editUser(user._id, user.isActive)} className="cursor-pointer">Activate User</p></Dropdown.Item>
                   </Dropdown>
                 </td>
               </tr>

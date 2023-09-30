@@ -5,6 +5,7 @@ import Summary from "@/components/Summary";
 import User from "@/components/User";
 import Report from "@/components/Reports";
 import Content from "@/components/Content"
+import router, { useRouter } from "next/router"
 
 export default function Home() {
   const [active, setActive] = useState("summary");
@@ -13,6 +14,12 @@ export default function Home() {
   const [reports, setReports] = useState([]);
   const [contents, setContents] = useState([])
   const [manage, setManage] = useState("petition")
+  const { query } = useRouter()
+
+  useEffect(() => {
+    setActive(query.page)
+  }, [query.page])
+
 
   const getAll = () => {
     try {
@@ -77,7 +84,7 @@ export default function Home() {
         <div className="mx-40 pt-6">
           <div className="flex w-1/2 mx-auto justify-between">
             <div
-              onClick={() => setActive("summary")}
+              onClick={() => router.push("?page=summary")}
               className={
                 active === "summary"
                   ? "border-b border-warning cursor-pointer"
@@ -87,7 +94,7 @@ export default function Home() {
               Summary
             </div>
             <div
-              onClick={() => setActive("content")}
+              onClick={() => router.push("?page=content")}
               className={
                 active === "content"
                   ? "border-b border-warning cursor-pointer"
@@ -97,7 +104,7 @@ export default function Home() {
               Manage Content
             </div>
             <div
-              onClick={() => setActive("user")}
+              onClick={() => router.push("?page=user")}
               className={
                 active === "user"
                   ? "border-b border-warning cursor-pointer"
@@ -107,7 +114,7 @@ export default function Home() {
               User
             </div>
             <div
-              onClick={() => setActive("report")}
+              onClick={() => router.push("?page=report")}
               className={
                 active === "report"
                   ? "border-b border-warning cursor-pointer"
@@ -137,7 +144,7 @@ export default function Home() {
                     <Content contents={contents} type={manage} users={users} editItem={editItem} />
                   </div>;
                 case "user":
-                  return <User users={users} />;
+                  return <User />;
                 case "report":
                   return <Report report={reports} />;
               }
