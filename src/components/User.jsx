@@ -2,11 +2,39 @@ import React, { useEffect, useState } from "react";
 import { Dropdown, Checkbox } from "rsuite";
 import MessageModal from "./MessageModal";
 import axios from "axios";
+import Select from "react-select"
 
 const User = () => {
   const [modal, setModal] = useState(false)
   const [users, setUsers] = useState([]);
   const [checkedAll, setCheckedAll] = useState(false);
+  const [categoryValue, setCategoryValue] = useState("")
+
+  const [countries, setCountries] = useState([])
+  const [country, setCountry] = useState("")
+
+  const category = [
+    { value: "human right awareness", label: "Human right awareness" },
+    { value: "social policy", label: "Social Policy" },
+    { value: "criminal justice", label: "Criminal Justice" },
+    { value: "human right action", label: "Human Right Action" },
+    { value: "environment", label: "Environment" },
+    { value: "health", label: "Health" },
+    { value: "disability", label: "Disability" },
+    { value: "equality", label: "Equality" },
+    { value: "others", label: "Others" },
+  ]
+  useEffect(() => {
+    // Get countries
+    axios
+      .get(window.location.origin + "/api/getCountries")
+      .then((res) => {
+        const calculated = res.data.map((country) => ({ label: country, value: country }))
+        setCountries(calculated)
+      })
+      .catch((err) => console.log(err))
+  }, [])
+
 
   const getAll = () => {
     try {
@@ -106,12 +134,29 @@ const User = () => {
 
   return (
     <div>
-      <div className="flex my-3">
-        <input onChange={e => search(e.target.value)} type="text" placeholder="Search" className="p-3 rounded-md border w-[30%]" />
-        <button onClick={() => multiBlock()} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Block</button>
-        <button onClick={() => multiActivate()} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Activate</button>
-        <button onClick={() => setModal(true)} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Send Message</button>
+      <div className="flex justify-between my-3">
+        <div className="flex w-[70%]">
+          <input onChange={e => search(e.target.value)} type="text" placeholder="Search" className="p-3 rounded-md mr-4 border w-[30%]" />
+          <button onClick={() => multiBlock()} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-4">Block</button>
+          <button onClick={() => multiActivate()} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-4">Activate</button>
+          <button onClick={() => setModal(true)} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-4">Send Message</button>
+        </div>
+        <div className="flex w-[35%]">
+          <Select
+            isClearable={true}
+            className="mr-4"
+            onChange={(val) => setCategoryValue(val?.value)}
+            options={category}
+            placeholder="Select an Interest"
+          />
 
+          <Select options={countries}
+            isClearable={true}
+            className="mx-4"
+            onChange={(e) => { setCountry(e?.value) }}
+            placeholder="Select a Country"
+          />
+        </div>
       </div>
       <div>
         <table className="table-auto w-full ">
@@ -137,7 +182,7 @@ const User = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user, index) => (
+            {users.map((user, index) => country === "" || categoryValue === "" || country === user.country || user.interests.includes(categoryValue) ? (
               <tr key={index}>
                 <td className="p-3">
                   <input type="checkbox" {...conditionalAttributes} onChange={e => {
@@ -177,8 +222,8 @@ const User = () => {
                 <td className="p-3">{user.interests[0]}</td>
                 <td className="p-3">
                   <Dropdown
-                      placement="rightStart"
-                      title={
+                    placement="rightStart"
+                    title={
                       <img className="h-4 w-4" src="/images/edit.svg" alt="" />
                     }
                     noCaret
@@ -189,7 +234,7 @@ const User = () => {
                   </Dropdown>
                 </td>
               </tr>
-            ))}
+            ) : null)}
           </tbody>
         </table>
       </div>
