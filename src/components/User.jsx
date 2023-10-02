@@ -9,7 +9,6 @@ const User = () => {
   const [users, setUsers] = useState([]);
   const [checkedAll, setCheckedAll] = useState(false);
   const [categoryValue, setCategoryValue] = useState("")
-
   const [countries, setCountries] = useState([])
   const [country, setCountry] = useState("")
 
@@ -182,7 +181,7 @@ const User = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user, index) => country === "" || categoryValue === "" || country === user.country || user.interests.includes(categoryValue) ? (
+            {users.map((user, index) => country === "" || country === user.country && categoryValue === "" ||  user.interests.includes(categoryValue) ? (
               <tr key={index}>
                 <td className="p-3">
                   <input type="checkbox" {...conditionalAttributes} onChange={e => {

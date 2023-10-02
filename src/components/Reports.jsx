@@ -100,8 +100,8 @@ const Reports = () => {
                 </td>
                 <td className="p-3">
                   <Dropdown
-                      placement="rightStart"
-                      title={
+                    placement="rightStart"
+                    title={
                       <img className="h-4 w-4" src="/images/edit.svg" alt="" />
                     }
                     noCaret
@@ -126,11 +126,14 @@ const Reports = () => {
               <div className="flex justify-evenly my-6">
                 {
                   report.itemType === 'Petition' ?
-                    <a href={`https://www.theplaint.org/campaigns/${report.itemId}`} target="_blank">                <button className="p-2 rounded-md bg-[#F9A826] px-6">View</button>
+                    <a href={`https://www.theplaint.org/campaigns/${report.itemId}`} target="_blank">
+                      <button className="p-2 rounded-md bg-[#F9A826] px-6">View {report.itemType}</button>
                     </a> : report.itemType === "User" ?
-                      <a href={`https://www.theplaint.org/${report.itemType}?page=${report.itemId}`} target="_blank">                <button className="p-2 rounded-md bg-[#F9A826] px-6">View</button>
+                      <a href={`https://www.theplaint.org/${report.itemType}?page=${report.itemId}`} target="_blank">
+                        <button className="p-2 rounded-md bg-[#F9A826] px-6">View {report.itemType}</button>
                       </a>
-                      : <a href={`https://www.theplaint.org/${report.itemType}?page=${report.itemId}`} target="_blank">                <button className="p-2 rounded-md bg-[#F9A826] px-6">View</button>
+                      : <a href={`https://www.theplaint.org/${report.itemType}?page=${report.itemId}`} target="_blank">
+                        <button className="p-2 rounded-md bg-[#F9A826] px-6">View {report.itemType}</button>
                       </a>
                 }
                 <button onClick={() => handleClose()} className="p-2 rounded-md border px-6">Close</button>
