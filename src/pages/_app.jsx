@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import 'rsuite/dist/rsuite.min.css';
 
 const HTTP_URI = "https://shark-app-28vbj.ondigitalocean.app/v1";
 const token = getCookie("token");

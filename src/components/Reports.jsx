@@ -45,10 +45,10 @@ const Reports = () => {
       <div className="flex my-4 justify-end">
         <select onChange={(e) => setManage(e.target.value)} className=" p-2 border rounded-md">
           <option value="All">All</option>
+          <option value="User">User</option>
           <option value="Petition">Petition</option>
           <option value="Post" >Post</option>
           <option value="Event">Events</option>
-          <option value="User">User</option>
           <option value="Advert">Advert</option>
           <option value="Victory">Victory</option>
           <option value="Update">Update</option>
@@ -100,8 +100,8 @@ const Reports = () => {
                 </td>
                 <td className="p-3">
                   <Dropdown
-                    placement="bottomEnd"
-                    title={
+                      placement="rightStart"
+                      title={
                       <img className="h-4 w-4" src="/images/edit.svg" alt="" />
                     }
                     noCaret

@@ -177,8 +177,8 @@ const User = () => {
                 <td className="p-3">{user.interests[0]}</td>
                 <td className="p-3">
                   <Dropdown
-                    placement="bottomEnd"
-                    title={
+                      placement="rightStart"
+                      title={
                       <img className="h-4 w-4" src="/images/edit.svg" alt="" />
                     }
                     noCaret

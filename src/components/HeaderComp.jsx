@@ -5,7 +5,7 @@ const HeaderComp = () => {
     <div className="bg-[#F5F6FA] px-40 p-5">
       <div className="flex">
         <img src="/logo.png" alt="" />
-        <h1 className="font-bold my-auto ml-6">CITIZEN PLAINT</h1>
+        <h1 className="font-bold text-lg my-auto ml-6">CITIZEN PLAINT</h1>
       </div>
     </div>
   );
