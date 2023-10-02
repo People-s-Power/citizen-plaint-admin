@@ -48,6 +48,7 @@ const Reports = () => {
           <option value="Petition">Petition</option>
           <option value="Post" >Post</option>
           <option value="Event">Events</option>
+          <option value="User">User</option>
           <option value="Advert">Advert</option>
           <option value="Victory">Victory</option>
           <option value="Update">Update</option>
@@ -93,7 +94,7 @@ const Reports = () => {
                     ></button>
                   )}
                 </td>
-                <td onClick={() => { handleOpen(), setReport(report) }} className="p-3">
+                <td onClick={() => { handleOpen(), setReport(report) }} className="p-3 cursor-pointer">
                   {report.body.substring(0, 40)}
                   {report.body.length > 40 ? "..." : null}
                 </td>
@@ -105,8 +106,11 @@ const Reports = () => {
                     }
                     noCaret
                   >
-                    <Dropdown.Item> <p onClick={() => resolve(report._id, report.resolved)}>UnResolve</p> </Dropdown.Item>
-                    <Dropdown.Item> <p onClick={() => resolve(report._id, report.resolved)}>Resolve</p>  </Dropdown.Item>
+                    <Dropdown.Item>
+                    </Dropdown.Item>
+
+                    <Dropdown.Item> <p className="cursor-pointer" onClick={() => resolve(report._id, report.resolved)}>UnResolve</p> </Dropdown.Item>
+                    <Dropdown.Item> <p className="cursor-pointer" onClick={() => resolve(report._id, report.resolved)}>Resolve</p>  </Dropdown.Item>
                     <Dropdown.Item> <a href={`https://www.theplaint.org/messages?page=${report.authorId}`} target="_blank">Send Message</a> </Dropdown.Item>
                   </Dropdown>
                 </td>
@@ -115,12 +119,20 @@ const Reports = () => {
           </tbody>
         </table>
         <div>
-          {open && <div className="absolute top-40 left-[35%] right-[35%] p-8 rounded-md bg-white w-[30%]">
+          {open && <div className="absolute top-40 left-[30%] right-[30%] p-8 rounded-md bg-white w-[40%]">
             <div className="text-center">
               <h3 className="font-bold my-4">Report</h3>
               {report?.body}
               <div className="flex justify-evenly my-6">
-                <button className="p-2 rounded-md bg-[#F9A826] px-6" onClick={() => resolve(report._id, report.resolved)}>Resolve</button>
+                {
+                  report.itemType === 'Petition' ?
+                    <a href={`https://www.theplaint.org/campaigns/${report.itemId}`} target="_blank">                <button className="p-2 rounded-md bg-[#F9A826] px-6">View</button>
+                    </a> : report.itemType === "User" ?
+                      <a href={`https://www.theplaint.org/${report.itemType}?page=${report.itemId}`} target="_blank">                <button className="p-2 rounded-md bg-[#F9A826] px-6">View</button>
+                      </a>
+                      : <a href={`https://www.theplaint.org/${report.itemType}?page=${report.itemId}`} target="_blank">                <button className="p-2 rounded-md bg-[#F9A826] px-6">View</button>
+                      </a>
+                }
                 <button onClick={() => handleClose()} className="p-2 rounded-md border px-6">Close</button>
               </div>
             </div>

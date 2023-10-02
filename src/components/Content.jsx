@@ -4,6 +4,7 @@ import axios from "axios";
 
 const Content = ({ contents, users, type, editItem }) => {
 
+  // console.log(contents)
   const getAuthor = (id) => {
     var name
     users.map((user) => {
@@ -18,6 +19,7 @@ const Content = ({ contents, users, type, editItem }) => {
 
   return (
     <div>
+      {/* <input type="text" className="p-2" placeholder="Search" /> */}
       <div>
         <table className="table-auto w-full ">
           <thead className="bg-gold text-white text-left rounded-md">
@@ -29,7 +31,7 @@ const Content = ({ contents, users, type, editItem }) => {
               <th className="p-3">Title</th>
               <th className="p-3">Author</th>
               <th className="p-3">Status</th>
-              {/* <th className="p-3">Promotion Amount | Target</th> */}
+              <th className="p-3">Promotion Amount | Target</th>
               <th className="p-3">Views</th>
               <th className="p-3">Endorsement</th>
               <th className="p-3">Action</th>
@@ -64,8 +66,8 @@ const Content = ({ contents, users, type, editItem }) => {
                     <button className="rounded-full bg-[#970808] p-3"></button>
                   )}
                 </td>
-                {/* <td className="p-3">
-                </td> */}
+                <td className="p-3">
+                </td>
                 <td className="p-3">
                   {user.views?.length}
                 </td>
