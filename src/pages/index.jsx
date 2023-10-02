@@ -132,8 +132,9 @@ export default function Home() {
                   return <Summary summary={counts} />;
                 case "content":
                   return <div>
-                    <div className="">
-                      <select onChange={(e) => setManage(e.target.value)} className="float-right p-2 border my-5">
+                    <div className="flex justify-between my-5">
+                      <input type="text" className="p-2 rounded-md border w-[30%]" placeholder="Search" />
+                      <select onChange={(e) => setManage(e.target.value)} className=" p-2 border rounded-md">
                         <option value="petition">Petition</option>
                         <option value="post" >Post</option>
                         <option value="event">Events</option>
@@ -147,7 +148,7 @@ export default function Home() {
                 case "user":
                   return <User />;
                 case "report":
-                  return <Report report={reports} />;
+                  return <Report />;
               }
             })()}
           </div>

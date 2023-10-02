@@ -6,6 +6,7 @@ import axios from "axios";
 const User = () => {
   const [modal, setModal] = useState(false)
   const [users, setUsers] = useState([]);
+  const [checkedAll, setCheckedAll] = useState(false);
 
   const getAll = () => {
     try {
@@ -21,7 +22,8 @@ const User = () => {
   useEffect(() => {
     getAll()
   }, [])
-  const allChecked = []
+
+  const [allChecked, setAllChecked] = useState([])
 
   const search = (value) => {
     if (value === "") return getAll()
@@ -50,14 +52,15 @@ const User = () => {
     }
   }
 
-  const multiEdit = (type) => {
+  const multiBlock = (type) => {
+    console.log(allChecked)
     if (allChecked.length >= 1) {
       allChecked.map(async (checked) => {
         try {
           const { data } = await axios.put(
             `https://shark-app-28vbj.ondigitalocean.app/v1/user/single/${checked._id}`,
             {
-              isActive: !checked.isActive
+              isActive: false
             }
           );
           // console.log(data);
@@ -65,17 +68,48 @@ const User = () => {
           console.log(e)
         }
       })
-      alert(`Users ${type} successfully `)
+      alert(`Users Blocked successfully `)
       getAll()
+    } else {
+      alert("Select Users")
     }
   }
+
+  const multiActivate = (type) => {
+    console.log(allChecked)
+    if (allChecked.length >= 1) {
+      allChecked.map(async (checked) => {
+        try {
+          const { data } = await axios.put(
+            `https://shark-app-28vbj.ondigitalocean.app/v1/user/single/${checked._id}`,
+            {
+              isActive: true
+            }
+          );
+          // console.log(data);
+        } catch (e) {
+          console.log(e)
+        }
+      })
+      alert(`Users Activated successfully `)
+      getAll()
+    } else {
+      alert("Select Users")
+    }
+  }
+
+  const conditionalAttributes = {
+    // Add attributes conditionally
+    ...(checkedAll && { checked: true }),
+    // You can add more attributes here as needed
+  };
 
   return (
     <div>
       <div className="flex my-3">
         <input onChange={e => search(e.target.value)} type="text" placeholder="Search" className="p-3 rounded-md border w-[30%]" />
-        <button onClick={() => multiEdit('Blocked')} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Block</button>
-        <button onClick={() => multiEdit('Activated')} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Activate</button>
+        <button onClick={() => multiBlock()} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Block</button>
+        <button onClick={() => multiActivate()} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Activate</button>
         <button onClick={() => setModal(true)} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-6">Send Message</button>
 
       </div>
@@ -84,7 +118,15 @@ const User = () => {
           <thead className="bg-gold text-white text-left rounded-md">
             <tr>
               <th className="p-3">
-                {/* <Checkbox > </Checkbox> */}
+                <input type="checkbox" onChange={e => {
+                  if (e.target.checked === true) {
+                    allChecked.push(...users)
+                    // console.log(users)
+                  } else {
+                    // allChecked = []
+                  }
+                  setCheckedAll(e.target.checked)
+                }} />
               </th>
               <th className="p-3">User</th>
               <th className="p-3">Status</th>
@@ -98,7 +140,7 @@ const User = () => {
             {users.map((user, index) => (
               <tr key={index}>
                 <td className="p-3">
-                  <input type="checkbox" onChange={e => {
+                  <input type="checkbox" {...conditionalAttributes} onChange={e => {
                     if (e.target.checked === true) {
                       allChecked.push(user)
                     } else {
@@ -126,8 +168,8 @@ const User = () => {
                   )}
                 </td>
                 <td className="p-3">
-                  {user.description.substring(0, 20)}
-                  {user.description.length > 20 ? "..." : null}
+                  {user.description?.substring(0, 20)}
+                  {user.description?.length > 20 ? "..." : null}
                 </td>
                 <td>
                   {user.city}, {user.country}

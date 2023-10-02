@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Dropdown } from "rsuite";
+import { Dropdown, } from "rsuite";
 import axios from "axios";
 
-const Reports = ({ report }) => {
-  const [reports, setReports] = useState(report);
+const Reports = () => {
+  const [reports, setReports] = useState();
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  const [report, setReport] = useState()
+  const [manage, setManage] = useState("All")
+
   const getReport = () => {
     try {
       axios.get("/report").then((res) => {
@@ -22,7 +28,7 @@ const Reports = ({ report }) => {
           resolved: !resolve,
         })
         .then((res) => {
-          console.log(res.data);
+          // console.log(res.data);
           getReport();
         });
     } catch (err) {
@@ -36,6 +42,17 @@ const Reports = ({ report }) => {
 
   return (
     <div>
+      <div className="flex my-4 justify-end">
+        <select onChange={(e) => setManage(e.target.value)} className=" p-2 border rounded-md">
+          <option value="All">All</option>
+          <option value="Petition">Petition</option>
+          <option value="Post" >Post</option>
+          <option value="Event">Events</option>
+          <option value="Advert">Advert</option>
+          <option value="Victory">Victory</option>
+          <option value="Update">Update</option>
+        </select>
+      </div>
       <div>
         <table className="table-auto w-full ">
           <thead className="bg-gold text-white text-left rounded-md">
@@ -48,7 +65,7 @@ const Reports = ({ report }) => {
             </tr>
           </thead>
           <tbody>
-            {reports.map((report, index) => (
+            {reports?.map((report, index) => report.itemType === manage || manage === "All" ? (
               <tr key={index}>
                 <td className="p-3">{report.createdAt.substring(0, 10)}</td>
                 <td className="p-3">{report.authorName}</td>
@@ -76,7 +93,7 @@ const Reports = ({ report }) => {
                     ></button>
                   )}
                 </td>
-                <td className="p-3">
+                <td onClick={() => { handleOpen(), setReport(report) }} className="p-3">
                   {report.body.substring(0, 40)}
                   {report.body.length > 40 ? "..." : null}
                 </td>
@@ -88,14 +105,27 @@ const Reports = ({ report }) => {
                     }
                     noCaret
                   >
-                    {/* <Dropdown.Item>UnResolve </Dropdown.Item> */}
+                    <Dropdown.Item> <p onClick={() => resolve(report._id, report.resolved)}>UnResolve</p> </Dropdown.Item>
                     <Dropdown.Item> <p onClick={() => resolve(report._id, report.resolved)}>Resolve</p>  </Dropdown.Item>
+                    <Dropdown.Item> <a href={`https://www.theplaint.org/messages?page=${report.authorId}`} target="_blank">Send Message</a> </Dropdown.Item>
                   </Dropdown>
                 </td>
               </tr>
-            ))}
+            ) : null)}
           </tbody>
         </table>
+        <div>
+          {open && <div className="absolute top-40 left-[35%] right-[35%] p-8 rounded-md bg-white w-[30%]">
+            <div className="text-center">
+              <h3 className="font-bold my-4">Report</h3>
+              {report?.body}
+              <div className="flex justify-evenly my-6">
+                <button className="p-2 rounded-md bg-[#F9A826] px-6" onClick={() => resolve(report._id, report.resolved)}>Resolve</button>
+                <button onClick={() => handleClose()} className="p-2 rounded-md border px-6">Close</button>
+              </div>
+            </div>
+          </div>}
+        </div>
       </div>
     </div>
   );
