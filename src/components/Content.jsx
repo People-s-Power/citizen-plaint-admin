@@ -67,6 +67,7 @@ const Content = ({ contents, users, type, editItem }) => {
                   )}
                 </td>
                 <td className="p-3">
+                  {user?.numberOfPaidViewsCount}
                 </td>
                 <td className="p-3">
                   {user.views?.length}

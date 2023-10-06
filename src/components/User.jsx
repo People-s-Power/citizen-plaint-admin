@@ -8,9 +8,9 @@ const User = () => {
   const [modal, setModal] = useState(false)
   const [users, setUsers] = useState([]);
   const [checkedAll, setCheckedAll] = useState(false);
-  const [categoryValue, setCategoryValue] = useState("")
+  const [categoryValue, setCategoryValue] = useState()
   const [countries, setCountries] = useState([])
-  const [country, setCountry] = useState("")
+  const [country, setCountry] = useState()
 
   const category = [
     { value: "human right awareness", label: "Human right awareness" },
@@ -181,7 +181,7 @@ const User = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user, index) => country === "" || country === user.country && categoryValue === "" ||  user.interests.includes(categoryValue) ? (
+            {users.map((user, index) => categoryValue === undefined &&  country === undefined || user.interests.includes(categoryValue) || user.country === country ? (
               <tr key={index}>
                 <td className="p-3">
                   <input type="checkbox" {...conditionalAttributes} onChange={e => {
