@@ -31,7 +31,7 @@ const Content = ({ contents, users, type, editItem }) => {
               <th className="p-3">Title</th>
               <th className="p-3">Author</th>
               <th className="p-3">Status</th>
-              <th className="p-3">Promotion Amount | Target</th>
+              <th className="p-3 w-44 text-center">Promotion <br /> Amount | Target</th>
               <th className="p-3">Views</th>
               <th className="p-3">Endorsement</th>
               <th className="p-3">Action</th>
@@ -43,11 +43,18 @@ const Content = ({ contents, users, type, editItem }) => {
                 <td className="p-3">
                   {user.createdAt.substring(0, 10)}
                 </td>
-                <td className="p-3 flex">
-                  <img className="w-10 h-10 mr-2" src={user.asset[0]?.url} alt="" />
-                  <span>{user.title || user.name || user.caption || user.body.slice(0, 20)}</span>
+                <td className="p-3">
+                  {type === 'petition' ?
+                    <a className="flex text-[#000]" href={`https://www.theplaint.org/campaigns/${user.slug}`} target="_blank">
+                      <img className="w-10 h-10 mr-2" src={user.asset[0]?.url} alt="" />
+                      <span >{user.title || user.name || user.caption || user.body.slice(0, 20)}</span>
+                    </a> :
+                    <a className="flex text-[#000]" href={`https://www.theplaint.org/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${user._id}`} target="_blank">
+                      <img className="w-10 h-10 mr-2" src={user.asset[0]?.url} alt="" />
+                      <span >{user.title || user.name || user.caption || user.body.slice(0, 20)}</span></a>
+                  }
                 </td>
-                <td className="p-3">{getAuthor(user.author)}</td>
+                <td className="p-3"> <a className="text-[#000]" target="_blank" href={`https://www.theplaint.org/user?page=${user.author}`}>{getAuthor(user.author)}</a> </td>
                 <td className="p-3">
                   {user.status === "Active" ? (
                     <button className="rounded-full bg-[#00401C] p-1">
@@ -66,7 +73,7 @@ const Content = ({ contents, users, type, editItem }) => {
                     <button className="rounded-full bg-[#970808] p-3"></button>
                   )}
                 </td>
-                <td className="p-3">
+                <td className="p-3 text-center">
                   {user?.numberOfPaidViewsCount}
                 </td>
                 <td className="p-3">
@@ -86,9 +93,21 @@ const Content = ({ contents, users, type, editItem }) => {
                     >
                       <Dropdown.Item> <a href={`https://www.theplaint.org/promote?slug=${user._id}&view=true`} target="_blank">Promote</a> </Dropdown.Item>
                       {/* <Dropdown.Item>Edit</Dropdown.Item> */}
-                      <Dropdown.Item> {type === 'petition' ?
-                        <a href={`https://www.theplaint.org/campaigns/${user.slug}`} target="_blank">Share</a> :
-                        <a href={`https://www.theplaint.org/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${user._id}`} target="_blank">Share</a>} </Dropdown.Item>
+                      <Dropdown.Item>
+
+                        <Dropdown title="Share">
+                          <Dropdown.Item>
+                            {type === 'petition' ?
+                              <a href={`https://www.theplaint.org/campaigns/${user.slug}`} target="_blank">theplaint.org</a> :
+                              <a href={`https://www.theplaint.org/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${user._id}`} target="_blank">theplaint.org</a>}
+                          </Dropdown.Item>
+                          <Dropdown.Item>
+                            {type === 'petition' ?
+                              <a href={`https://www.theplaint.com/campaigns/${user.slug}`} target="_blank">theplaint.com</a> :
+                              <a href={`https://www.theplaint.com/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${user._id}`} target="_blank">theplaint.com</a>}
+                          </Dropdown.Item>
+                        </Dropdown>
+                      </Dropdown.Item>
                       {/* <Dropdown.Item>Delete</Dropdown.Item> */}
                       <Dropdown.Item> <p onClick={() => editItem(user._id, 'Blocked')} className="cursor-pointer">Block</p> </Dropdown.Item>
                       <Dropdown.Item>  <p onClick={() => editItem(user._id, 'Active')} className="cursor-pointer">Activate</p></Dropdown.Item>

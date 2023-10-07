@@ -140,7 +140,15 @@ const User = () => {
           <button onClick={() => multiActivate()} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-4">Activate</button>
           <button onClick={() => setModal(true)} className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-4">Send Message</button>
         </div>
-        <div className="flex w-[35%]">
+        <div className="flex w-[50%]">
+          <select className="border mr-4 p-3 border-[#000000] rounded-md">
+            <option className="hidden " value="">Selct a user category</option>
+            <option value="Campaigner">Campaigner</option>
+            <option value="Organization">Organization</option>
+            <option value="Staff">Staff</option>
+            <option value="Admin">Admin</option>
+            <option value="Editor">Editor</option>
+          </select>
           <Select
             isClearable={true}
             className="mr-4"
@@ -181,7 +189,7 @@ const User = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user, index) => categoryValue === undefined &&  country === undefined || user.interests.includes(categoryValue) || user.country === country ? (
+            {users.map((user, index) => categoryValue === undefined && country === undefined || user.interests.includes(categoryValue) || user.country === country ? (
               <tr key={index}>
                 <td className="p-3">
                   <input type="checkbox" {...conditionalAttributes} onChange={e => {
@@ -192,7 +200,8 @@ const User = () => {
                     }
                   }} />
                 </td>
-                <td className="p-3">{user.name}</td>
+                <td className="p-3">
+                  <a className="text-[#000]" href={`https://www.theplaint.org/user?page=${user._id}`} target="_blank">{user.name}</a> </td>
                 <td className="p-3">
                   {user.isActive ? (
                     <button className="rounded-full bg-[#00401C] p-1">
