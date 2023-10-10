@@ -4,7 +4,7 @@ import axios from "axios";
 
 const Content = ({ contents, users, type, editItem }) => {
 
-  // console.log(contents)
+  console.log(contents)
   const getAuthor = (id) => {
     var name
     users.map((user) => {
@@ -74,7 +74,7 @@ const Content = ({ contents, users, type, editItem }) => {
                   )}
                 </td>
                 <td className="p-3 text-center">
-                  {user?.numberOfPaidViewsCount}
+                  {user.views.length + "  |  " + user?.numberOfPaidViewsCount}
                 </td>
                 <td className="p-3">
                   {user.views?.length}
