@@ -22,7 +22,7 @@ const auth = () => {
       );
       console.log(data);
       setCookie("token", data.meta.token);
-      window.location.href = "/";
+      window.location.href = "/admin";
     } catch (e) {
       console.log(e);
       setLoading(false)

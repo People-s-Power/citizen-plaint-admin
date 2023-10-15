@@ -31,7 +31,21 @@ const Professionals = () => {
   const [openAdvert, setOpenAdvert] = useState(false)
   const [openEvent, setOpenEvent] = useState(false)
   const [openVictory, setOpenVictory] = useState(false)
-  
+
+  const UploadTrigger = () => {
+    if (manage === "petition") {
+      setOpenPetition(true)
+    } else if (manage === "advert") {
+      setOpenAdvert(true)
+    } else if (manage === "post") {
+      setOpenPost(true)
+    } else if (manage === "event") {
+      setOpenEvent(true)
+    } else if (manage === "victory") {
+      setOpenVictory(true)
+    }
+  }
+
   const getUser = async () => {
     try {
       const { data } = await axios.get(
@@ -192,7 +206,7 @@ const Professionals = () => {
                             <option value="victory">Victory</option>
                             <option value="update">Update</option>
                           </select>
-                          {manage !== "update" && <button className='bg-warning px-6 py-1 rounded-md text-white'>
+                          {manage !== "update" && <button onClick={() => UploadTrigger()} className='bg-warning px-6 py-1 rounded-md text-white'>
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
                               <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
                             </svg>
