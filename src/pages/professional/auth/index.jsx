@@ -1,12 +1,13 @@
 import React, { Fragment, useState } from "react";
-import axios from "axios";
-import { setCookie } from "cookies-next";
 import Link from "next/link";
+import { setCookie } from "cookies-next";
+import axios from "axios";
 
-const auth = () => {
+const ProfAuth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false)
+
   const submit = async () => {
     if (email === "" || password === "") {
       return;
@@ -14,7 +15,7 @@ const auth = () => {
     try {
       setLoading(true)
       const { data } = await axios.post(
-        "https://shark-app-28vbj.ondigitalocean.app/v1/admin/login",
+        "/auth/login",
         {
           email: email,
           password: password,
@@ -22,17 +23,21 @@ const auth = () => {
       );
       console.log(data);
       setCookie("token", data.meta.token);
-      window.location.href = "/";
+      setCookie("user", data.data.user.id);
+      window.location.href = "/professional";
+      
     } catch (e) {
       console.log(e);
       setLoading(false)
     }
   };
+
   return (
     <Fragment>
-      <title>CITIZEN PLAINT | Login</title>
+      <title>CITIZEN PLAINT | Professional</title>
+
       <div className="mx-auto lg:w-1/2 text-center lg:my-40">
-        <h1 className="my-4 font-bold text-xl">Login</h1>
+        <h1 className="my-4 font-bold text-xl">Login as a Professional</h1>
         <input
           type="text"
           className="p-3 w-full my-3 bg-[#E5E5E5]"
@@ -53,12 +58,12 @@ const auth = () => {
         >
           {loading ? 'loading...' : 'Login'}
         </button>
-        <Link href={'/professional/auth'}>
-          <p className="text-left text-warning">Become a Professional</p>
+        <Link href={'/professional/auth/signup'}>
+          <p className="text-left text-warning">Sign Up Instead</p>
         </Link>
       </div>
     </Fragment>
   );
 };
 
-export default auth;
+export default ProfAuth;

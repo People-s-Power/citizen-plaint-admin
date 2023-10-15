@@ -1,37 +1,51 @@
 import React, { Fragment, useState } from "react";
-import axios from "axios";
+import Link from "next/link";
 import { setCookie } from "cookies-next";
+import axios from "axios";
 
-const auth = () => {
+const ProfAuth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false)
+  const [name, setName] = useState("")
+
   const submit = async () => {
-    if (email === "" || password === "") {
+    if (email === "" || password === "" || name === "") {
       return;
     }
     try {
       setLoading(true)
       const { data } = await axios.post(
-        "https://shark-app-28vbj.ondigitalocean.app/v1/admin/login",
+        "/auth",
         {
+          name: name,
           email: email,
           password: password,
+          accountType: "Staff"
         }
       );
       console.log(data);
       setCookie("token", data.meta.token);
-      window.location.href = "/";
+      window.location.href = "/professional/auth";
     } catch (e) {
       console.log(e);
       setLoading(false)
     }
   };
+
   return (
     <Fragment>
-      <title>CITIZEN PLAINT | Login</title>
+      <title>CITIZEN PLAINT | Professional</title>
+
       <div className="mx-auto lg:w-1/2 text-center lg:my-40">
-        <h1 className="my-4 font-bold text-xl">Login</h1>
+        <h1 className="my-4 font-bold text-xl">Sign Up as a Professional</h1>
+        <input
+          type="text"
+          className="p-3 w-full my-3 bg-[#E5E5E5]"
+          placeholder="Enter your Name"
+          onChange={(e) => setName(e.target.value)}
+          value={name}
+        />
         <input
           type="text"
           className="p-3 w-full my-3 bg-[#E5E5E5]"
@@ -50,11 +64,14 @@ const auth = () => {
           onClick={() => submit()}
           className="bg-warning p-3 w-full my-3 text-white text-lg"
         >
-          {loading ? 'loading...' : 'Login'}
+          {loading ? 'loading...' : 'Sign Up'}
         </button>
+        <Link href={'/professional/auth'}>
+          <p className="text-left text-warning">Login Instead?</p>
+        </Link>
       </div>
     </Fragment>
   );
 };
 
-export default auth;
+export default ProfAuth;
