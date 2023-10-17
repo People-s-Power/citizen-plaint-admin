@@ -21,6 +21,8 @@ const AssingProfessional = ({ users, sub, getSub }) => {
       });
     } catch (err) {
       console.log(err);
+      toast.warn(err?.response.data.message)
+
     }
   }
 

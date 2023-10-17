@@ -2,6 +2,8 @@ import React, { Fragment, useState } from "react";
 import axios from "axios";
 import { setCookie } from "cookies-next";
 import Link from "next/link";
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 const auth = () => {
   const [email, setEmail] = useState("");
@@ -26,6 +28,7 @@ const auth = () => {
     } catch (e) {
       console.log(e);
       setLoading(false)
+      toast.warn(e?.response.data.message)
     }
   };
   return (
@@ -57,6 +60,7 @@ const auth = () => {
           <p className="text-left text-warning">Become a Professional</p>
         </Link>
       </div>
+      <ToastContainer />
     </Fragment>
   );
 };

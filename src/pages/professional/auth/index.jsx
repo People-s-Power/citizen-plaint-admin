@@ -31,7 +31,7 @@ const ProfAuth = () => {
     } catch (e) {
       console.log(e);
       setLoading(false)
-      toast.warn(e.response.data.message)
+      toast.warn(e?.response.data.message)
     }
   };
 
