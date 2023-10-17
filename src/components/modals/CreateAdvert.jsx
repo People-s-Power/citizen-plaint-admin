@@ -9,7 +9,7 @@ import Select from "react-select"
 import { useRouter } from "next/router"
 
 const CreateAdvert = ({ open, handelClick, advert }) => {
-	const [previewImages, setFilePreview] = useState(advert?.image || []);
+	const [previewImages, setFilePreview] = useState(advert?.asset || []);
 	const [countries, setCountries] = useState([])
 	const [cities, setCities] = useState([])
 	const [country, setCountry] = useState("")

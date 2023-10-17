@@ -206,7 +206,7 @@ const StartPetition = ({ open, handelClick, data }) => {
 							placeholder="Type the issue that you are complaining about"
 						/>
 					</div>
-					
+
 					<div className="z-40">
 						<Dropdown placement="topStart" title={<div className="text-sm text-warning">{category}</div>}>
 							<Dropdown.Item onClick={() => setCategory("Human right awareness")}>Human right awareness</Dropdown.Item>

@@ -11,7 +11,7 @@ const CreatePost = ({
 	handelClick,
 	post,
 }) => {
-	const [filesPreview, setFilePreview] = useState(post?.image || [])
+	const [filesPreview, setFilePreview] = useState(post?.asset || [])
 	const [loading, setLoading] = useState(false)
 	const [body, setBody] = useState(post?.body || "")
 	const uploadRef = useRef(null)

@@ -17,7 +17,7 @@ const CreateEvent = ({ open, handelClick, event }) => {
 	const [audience, setAudience] = useState(event?.audience || "")
 	const [loading, setLoading] = useState(false)
 	const uploadRef = useRef(null)
-	const [previewImages, setFilePreview] = useState(event?.image || []);
+	const [previewImages, setFilePreview] = useState(event?.asset || []);
 	const { query } = useRouter()
 
 

@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dropdown, ButtonToolbar } from "rsuite";
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import axios from "axios"
 import router, { useRouter } from "next/router"
+import DropdownComp from './DropdownComp';
+import AddUpdates from './modals/AddUpdates';
 
 const Table = ({ contents, type }) => {
   const { query } = useRouter()
-
+  const [openUpdate, setOpenUpdate] = useState(false)
+  const [data, setData] = useState()
+  
   const deleteItem = async (id) => {
     try {
       const { data } = await axios.put(`${type}/delete-${type}`, {
@@ -21,6 +25,8 @@ const Table = ({ contents, type }) => {
       toast.warn(e.response.data.message)
     }
   }
+
+
 
   return (
     <div>
@@ -41,8 +47,8 @@ const Table = ({ contents, type }) => {
           </tr>
         </thead>
         <tbody>
-          {contents.length > 0 ? contents.map((user, index) => (
-            <tr key={index}>
+          {contents.length > 0 ? contents.map(user => (
+            <tr key={user._id}>
               <td className="p-3">
                 {user.createdAt.substring(0, 10)}
               </td>
@@ -89,9 +95,9 @@ const Table = ({ contents, type }) => {
                     }
                     noCaret
                   >
-                    <Dropdown.Item> <p onClick={() => editItem(user._id, 'Blocked')} className="cursor-pointer">Edit</p> </Dropdown.Item>
+                    <DropdownComp data={user} type={type} />
                     {
-                      type === "petitions" && <Dropdown.Item>  <p onClick={() => editItem(user._id, 'Active')} className="cursor-pointer">Add Update</p></Dropdown.Item>
+                      type === "petition" && <Dropdown.Item>  <p onClick={() => { setData(user), setOpenUpdate(true) }} className="cursor-pointer">Add Update</p></Dropdown.Item>
                     }
                     <Dropdown.Item>  <p onClick={() => deleteItem(user._id)} className="cursor-pointer text-[#81171B]">Delete</p></Dropdown.Item>
                   </Dropdown>
@@ -102,6 +108,8 @@ const Table = ({ contents, type }) => {
         </tbody>
       </table>
       <ToastContainer />
+      <AddUpdates open={openUpdate} handelClick={() => setOpenUpdate(!openUpdate)} update={null} petition={data} />
+
     </div>
   );
 };

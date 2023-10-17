@@ -8,7 +8,7 @@ import { useRouter } from "next/router"
 
 const AddUpdates = ({ open, handelClick, petition, update }) => {
 	const [loading, setLoading] = useState(false)
-	const [previewImages, setFilePreview] = useState(update?.image || []);
+	const [previewImages, setFilePreview] = useState(update?.asset || []);
 	const { query } = useRouter()
 	const [body, setBody] = useState(update?.body || "")
 	const uploadRef = useRef(null)
@@ -99,7 +99,7 @@ const AddUpdates = ({ open, handelClick, petition, update }) => {
 				</Modal.Body>
 
 				<Modal.Footer>
-					<input type="file" ref={uploadRef} multiple={true} className="d-none" onChange={handleImage} />
+					<input type="file" ref={uploadRef} multiple={true} className="hidden" onChange={handleImage} />
 					{previewImages.length > 0 && (
 						<div className="flex flex-wrap my-4 w-full">
 							{previewImages.map((image, index) => (
@@ -139,17 +139,17 @@ const AddUpdates = ({ open, handelClick, petition, update }) => {
 					<div className="flex justify-between text-gray-500">
 						<div className="w-24 flex justify-between my-auto">
 							<div onClick={() => uploadRef.current?.click()} className="cursor-pointer">
-								<img className="w-4 h-4 my-auto" src="/images/home/icons/ic_outline-photo-camera.svg" alt="" />
+								<img className="w-4 h-4 my-auto" src="/images/ic_outline-photo-camera.svg" alt="" />
 							</div>
 							<div className="cursor-pointer">
-								<img className="w-4 h-4 my-auto" src="/images/home/icons/charm_camera-video.svg" alt="" />
+								<img className="w-4 h-4 my-auto" src="/images/charm_camera-video.svg" alt="" />
 							</div>
-							<div className="cursor-pointer">
+							{/* <div className="cursor-pointer">
 								<img className="w-4 h-4 my-auto" src="/images/home/icons/fe_sitemap.svg" alt="" />
 							</div>
 							<div className="cursor-pointer">
 								<img className="w-4 h-4 my-auto" src="/images/home/icons/tabler_article.svg" alt="" />
-							</div>
+							</div> */}
 						</div>
 						{update === null ? (
 							<button onClick={handleSubmit} className="p-1 bg-warning text-white rounded-sm w-40">
