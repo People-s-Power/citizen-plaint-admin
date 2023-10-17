@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
+import { Modal } from "rsuite"
+import AssingProfessional from './AssingProfessional';
 
 const Subscriptions = ({ users }) => {
   const [subs, setSubs] = useState()
+
+  // console.log(users)
 
   const getAuthor = (id) => {
     var name
@@ -68,11 +72,12 @@ const Subscriptions = ({ users }) => {
             <td className="p-3">{sub.amount}</td>
             <td className="p-3">{sub.duration}</td>
             <td className="p-1">
-              <button className='p-2 bg-warning w-full rounded-md text-white'>Assign</button>
+             <AssingProfessional users={users} sub={sub} getSub={() => getSub()} />
             </td>
           </tr>)}
         </tbody>
       </table>
+
     </div>
   );
 };

@@ -2,6 +2,8 @@ import React, { Fragment, useState } from "react";
 import Link from "next/link";
 import { setCookie } from "cookies-next";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 const ProfAuth = () => {
   const [email, setEmail] = useState("");
@@ -25,10 +27,11 @@ const ProfAuth = () => {
       setCookie("token", data.meta.token);
       setCookie("user", data.data.user.id);
       window.location.href = "/professional";
-      
+
     } catch (e) {
       console.log(e);
       setLoading(false)
+      toast.warn(e.response.data.message)
     }
   };
 
@@ -62,6 +65,7 @@ const ProfAuth = () => {
           <p className="text-left text-warning">Sign Up Instead</p>
         </Link>
       </div>
+      <ToastContainer />
     </Fragment>
   );
 };

@@ -2,6 +2,8 @@ import React, { Fragment, useState } from "react";
 import Link from "next/link";
 import { setCookie } from "cookies-next";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 const ProfAuth = () => {
   const [email, setEmail] = useState("");
@@ -30,6 +32,7 @@ const ProfAuth = () => {
       window.location.href = "/professional/auth";
     } catch (e) {
       console.log(e);
+      toast.warn(e?.response.data.message)
       setLoading(false)
     }
   };
@@ -55,7 +58,7 @@ const ProfAuth = () => {
           value={email}
         />
         <input
-          type="password"
+          type="text"
           className="p-3 w-full my-3 bg-[#E5E5E5]"
           placeholder="Enter your Password"
           onChange={(e) => setPassword(e.target.value)}
@@ -81,6 +84,7 @@ const ProfAuth = () => {
           <p className="text-left text-warning">Login Instead?</p>
         </Link>
       </div>
+      <ToastContainer />
     </Fragment>
   );
 };
