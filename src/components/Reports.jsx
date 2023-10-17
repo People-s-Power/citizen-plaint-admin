@@ -106,11 +106,8 @@ const Reports = () => {
                     }
                     noCaret
                   >
-                    <Dropdown.Item>
-                    </Dropdown.Item>
-
-                    <Dropdown.Item> <p className="cursor-pointer" onClick={() => resolve(report._id, report.resolved)}>UnResolve</p> </Dropdown.Item>
-                    <Dropdown.Item> <p className="cursor-pointer" onClick={() => resolve(report._id, report.resolved)}>Resolve</p>  </Dropdown.Item>
+                    <Dropdown.Item> <p className="cursor-pointer" onClick={() => resolve(report._id, report.resolved)}> {report.resolved ? "UnResolve" : "Resolve"}</p> </Dropdown.Item>
+                    {/* <Dropdown.Item> <p className="cursor-pointer" onClick={() => resolve(report._id, report.resolved)}>Resolve</p>  </Dropdown.Item> */}
                     <Dropdown.Item> <a href={`https://www.theplaint.org/messages?page=${report.authorId}`} target="_blank">Send Message</a> </Dropdown.Item>
                   </Dropdown>
                 </td>
