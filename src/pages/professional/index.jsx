@@ -9,6 +9,7 @@ import CreatePost from '@/components/modals/CreatePost';
 import CreateAdvert from '@/components/modals/CreateAdvert';
 import CreateEvent from '@/components/modals/CreateEvent';
 import CreateVictories from '@/components/modals/CreateVictories';
+import Table from '@/components/Table';
 
 const Professionals = () => {
   const [userDeeds, setUser] = useState()
@@ -16,7 +17,7 @@ const Professionals = () => {
   const user = getCookie("user");
   const { query } = useRouter()
   const [active, setActive] = useState("summary");
-  const [manage, setManage] = useState("petition")
+  const [manage, setManage] = useState("petitions")
 
   const [posts, setPosts] = useState([])
   const [events, setEvents] = useState([])
@@ -33,13 +34,13 @@ const Professionals = () => {
   const [openVictory, setOpenVictory] = useState(false)
 
   const UploadTrigger = () => {
-    if (manage === "petition") {
+    if (manage === "petitions") {
       setOpenPetition(true)
-    } else if (manage === "advert") {
+    } else if (manage === "adverts") {
       setOpenAdvert(true)
-    } else if (manage === "post") {
+    } else if (manage === "posts") {
       setOpenPost(true)
-    } else if (manage === "event") {
+    } else if (manage === "events") {
       setOpenEvent(true)
     } else if (manage === "victory") {
       setOpenVictory(true)
@@ -52,28 +53,95 @@ const Professionals = () => {
         `/user/single/${user}`,
       );
       setUser(data.data.user)
-      // data.data.user.orgOperating.map(org => getOrg(org))
+      setOrgs(data.data.user.orgOperating)
+      // console.log(data.data.user)
     } catch (e) {
       console.log(e);
     }
   }
   useEffect(() => {
     getUser()
-    // userDeeds?.
-    // console.log(orgs)
+    getPetition()
+    getPost()
+    getEvents()
+    getAdvert()
+    getVictories()
+    getUpdates()
   }, [])
 
-  const getOrg = async (org) => {
+
+  const getPetition = async () => {
     try {
       const { data } = await axios.get(
-        `/org/${org}`
+        `/petition?page=1&authorId=${query?.page}&limit=100`,
       );
-      console.log(data);
-      setOrgs([...orgs, data.data.organization])
+      // console.log(data)
+      setPetitions(data.data.petitons.petitons)
     } catch (e) {
       console.log(e)
     }
   }
+
+  const getPost = async () => {
+    try {
+      const { data } = await axios.get(
+        `/post?page=1&authorId=${query?.page}&limit=100`,
+      );
+      // console.log(data)
+      setPosts(data.data.posts.posts)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getEvents = async () => {
+    try {
+      const { data } = await axios.get(
+        `/event?page=1&authorId=${query?.page}&limit=100`,
+      );
+      // console.log(data)
+      setEvents(data.data.events.events)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getAdvert = async () => {
+    try {
+      const { data } = await axios.get(
+        `/advert?page=1&authorId=${query?.page}&limit=100`,
+      );
+      // console.log(data)
+      setAdverts(data.data.adverts.advert)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getVictories = async () => {
+    try {
+      const { data } = await axios.get(
+        `/victory?page=1&authorId=${query?.page}&limit=100`,
+      );
+      // console.log(data)
+      setVictory(data.data.victory.victories)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getUpdates = async () => {
+    try {
+      const { data } = await axios.get(
+        `/update?page=1&authorId=${query?.page}&limit=100`,
+      );
+      // console.log(data)
+      setUpdates(data.data.updates)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   return (
     <Fragment>
       <title>CITIZEN PLAINT | Professionals</title>
@@ -199,21 +267,23 @@ const Professionals = () => {
                         <input type="text" className="p-2 rounded-md border w-[30%]" placeholder="Search" />
                         <div className='flex w-[30%]'>
                           <select onChange={(e) => setManage(e.target.value)} value={manage} className=" p-2 w-52 mr-5 border rounded-md">
-                            <option value="petition">Petition</option>
-                            <option value="post" >Post</option>
-                            <option value="event">Events</option>
-                            <option value="advert">Advert</option>
+                            <option value="petitions">Petition</option>
+                            <option value="posts" >Post</option>
+                            <option value="events">Events</option>
+                            <option value="adverts">Advert</option>
                             <option value="victory">Victory</option>
-                            <option value="update">Update</option>
+                            <option value="updates">Update</option>
                           </select>
-                          {manage !== "update" && <button onClick={() => UploadTrigger()} className='bg-warning px-6 py-1 rounded-md text-white'>
+                          {manage !== "updates" && <button onClick={() => UploadTrigger()} className='bg-warning px-6 py-1 rounded-md text-white'>
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
                               <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
                             </svg>
                           </button>}
                         </div>
                       </div>
-                      <div>Content</div>
+                      <div>
+                        <Table contents={eval(manage)} type={manage} />
+                      </div>
                     </div>;
                 }
               })()}

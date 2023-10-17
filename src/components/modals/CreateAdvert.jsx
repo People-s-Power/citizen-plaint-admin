@@ -72,7 +72,7 @@ const CreateAdvert = ({ open, handelClick, advert }) => {
 	}
 
 	const handleSubmit = async () => {
-		if (message === "" || caption === "" || action === "" || link === "" || duration == "" || email === "" || country === "" || city === "") {
+		if (message === "" || caption === "" || action === "" || link === "" || duration == "" || country === "" || city === "") {
 			toast.warn("Please fill all fields!")
 			return
 		}
@@ -88,7 +88,8 @@ const CreateAdvert = ({ open, handelClick, advert }) => {
 				email: email,
 				assets: previewImages,
 				country: country,
-				state: city
+				state: city,
+				audience: "EVERYONE"
 			},
 			)
 			toast.success("Advert Created Successfully!")
@@ -210,10 +211,7 @@ const CreateAdvert = ({ open, handelClick, advert }) => {
 					<textarea value={message} onChange={(e) => setMessage(e.target.value)} className="p-1 border border-gray-700 w-full h-20 rounded-sm" />
 				</div>
 				<div className="flex justify-between mt-2">
-					{/* <div className="w-[45%]">
-						<div className="text-sm my-1">Email</div>
-						<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="w-full border border-gray-700 text-sm" />
-					</div> */}
+
 					<div className="w-[45%] text-sm">
 						<div className="text-sm my-1">Website/Email/ Phone No</div>
 						<input value={link} onChange={(e) => setLink(e.target.value)} type="text" className="w-full border border-gray-700 text-sm" />
@@ -255,6 +253,11 @@ const CreateAdvert = ({ open, handelClick, advert }) => {
 							<option value="Email us">Email us</option>
 							<option value="Apply Now">Apply Now</option>
 						</select>
+					</div>
+
+					<div className="w-[45%]">
+						<div className="text-sm my-1">Email</div>
+						<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="w-full border border-gray-700 text-sm" />
 					</div>
 				</div>
 				{/* </Modal.Body> */}
