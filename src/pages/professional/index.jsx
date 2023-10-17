@@ -17,13 +17,13 @@ const Professionals = () => {
   const user = getCookie("user");
   const { query } = useRouter()
   const [active, setActive] = useState("summary");
-  const [manage, setManage] = useState("petitions")
+  const [manage, setManage] = useState("petition")
 
-  const [posts, setPosts] = useState([])
-  const [events, setEvents] = useState([])
-  const [adverts, setAdverts] = useState([])
-  const [petitions, setPetitions] = useState([])
-  const [updates, setUpdates] = useState([])
+  const [post, setPosts] = useState([])
+  const [event, setEvents] = useState([])
+  const [advert, setAdverts] = useState([])
+  const [petition, setPetitions] = useState([])
+  const [update, setUpdates] = useState([])
   const [victory, setVictory] = useState([])
 
 
@@ -34,13 +34,13 @@ const Professionals = () => {
   const [openVictory, setOpenVictory] = useState(false)
 
   const UploadTrigger = () => {
-    if (manage === "petitions") {
+    if (manage === "petition") {
       setOpenPetition(true)
-    } else if (manage === "adverts") {
+    } else if (manage === "advert") {
       setOpenAdvert(true)
-    } else if (manage === "posts") {
+    } else if (manage === "post") {
       setOpenPost(true)
-    } else if (manage === "events") {
+    } else if (manage === "event") {
       setOpenEvent(true)
     } else if (manage === "victory") {
       setOpenVictory(true)
@@ -196,7 +196,7 @@ const Professionals = () => {
                         <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                           <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('post') }}>
                             <p className="text-white">Total Number Of Post</p>
-                            <h1 className="text-2xl text-white font-bold mt-4">{posts.length}</h1>
+                            <h1 className="text-2xl text-white font-bold mt-4">{post.length}</h1>
                           </div>
                           <div onClick={() => setOpenPost(true)} className='mt-auto cursor-pointer'>
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
@@ -207,7 +207,7 @@ const Professionals = () => {
                         <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                           <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('petition') }}>
                             <p className="text-white">Total Number Of Petitions</p>
-                            <h1 className="text-2xl text-white font-bold mt-4">{petitions.length}</h1>
+                            <h1 className="text-2xl text-white font-bold mt-4">{petition.length}</h1>
                           </div>
                           <div onClick={() => setOpenPetition(true)} className='mt-auto cursor-pointer'>
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
@@ -218,7 +218,7 @@ const Professionals = () => {
                         <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                           <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('advert') }}>
                             <p className="text-white">Total Number Of Adverts</p>
-                            <h1 className="text-2xl text-white font-bold mt-4">{adverts.length}</h1>
+                            <h1 className="text-2xl text-white font-bold mt-4">{advert.length}</h1>
                           </div>
                           <div onClick={() => setOpenAdvert(true)} className='mt-auto cursor-pointer'>
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
@@ -229,7 +229,7 @@ const Professionals = () => {
                         <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                           <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('event') }}>
                             <p className="text-white">Total Number Of Events</p>
-                            <h1 className="text-2xl text-white font-bold mt-4">{events.length}</h1>
+                            <h1 className="text-2xl text-white font-bold mt-4">{event.length}</h1>
                           </div>
                           <div onClick={() => setOpenEvent(true)} className='mt-auto cursor-pointer'>
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
@@ -251,7 +251,7 @@ const Professionals = () => {
                         <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                           <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('update') }}>
                             <p className="text-white">Total Number Of Updates</p>
-                            <h1 className="text-2xl text-white font-bold mt-4">{updates.length}</h1>
+                            <h1 className="text-2xl text-white font-bold mt-4">{update.length}</h1>
                           </div>
                           <div className='mt-auto cursor-pointer'>
                             {/* <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
@@ -267,12 +267,12 @@ const Professionals = () => {
                         <input type="text" className="p-2 rounded-md border w-[30%]" placeholder="Search" />
                         <div className='flex w-[30%]'>
                           <select onChange={(e) => setManage(e.target.value)} value={manage} className=" p-2 w-52 mr-5 border rounded-md">
-                            <option value="petitions">Petition</option>
-                            <option value="posts" >Post</option>
-                            <option value="events">Events</option>
-                            <option value="adverts">Advert</option>
+                            <option value="petition">Petition</option>
+                            <option value="post" >Post</option>
+                            <option value="event">Events</option>
+                            <option value="advert">Advert</option>
                             <option value="victory">Victory</option>
-                            <option value="updates">Update</option>
+                            <option value="update">Update</option>
                           </select>
                           {manage !== "updates" && <button onClick={() => UploadTrigger()} className='bg-warning px-6 py-1 rounded-md text-white'>
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">

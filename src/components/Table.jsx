@@ -69,8 +69,11 @@ const Table = ({ contents, type }) => {
                   }
                   noCaret
                 >
-                  <Dropdown.Item> <p onClick={() => editItem(user._id, 'Blocked')} className="cursor-pointer">Block</p> </Dropdown.Item>
-                  <Dropdown.Item>  <p onClick={() => editItem(user._id, 'Active')} className="cursor-pointer">Activate</p></Dropdown.Item>
+                  <Dropdown.Item> <p onClick={() => editItem(user._id, 'Blocked')} className="cursor-pointer">Edit</p> </Dropdown.Item>
+                  {
+                    type === "petitions" && <Dropdown.Item>  <p onClick={() => editItem(user._id, 'Active')} className="cursor-pointer">Add Update</p></Dropdown.Item>
+                  }
+                  <Dropdown.Item>  <p onClick={() => editItem(user._id, 'Active')} className="cursor-pointer text-[#81171B]">Delete</p></Dropdown.Item>
                 </Dropdown>
               </ButtonToolbar>
             </td>
