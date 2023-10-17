@@ -41,48 +41,54 @@ const ProfAuth = () => {
     <Fragment>
       <title>CITIZEN PLAINT | Professional</title>
 
-      <div className="mx-auto lg:w-1/2 text-center lg:my-40">
-        <h1 className="my-4 font-bold text-xl">Sign Up as a Professional</h1>
-        <input
-          type="text"
-          className="p-3 w-full my-3 bg-[#E5E5E5]"
-          placeholder="Enter your Name"
-          onChange={(e) => setName(e.target.value)}
-          value={name}
-        />
-        <input
-          type="text"
-          className="p-3 w-full my-3 bg-[#E5E5E5]"
-          placeholder="Enter your Email"
-          onChange={(e) => setEmail(e.target.value)}
-          value={email}
-        />
-        <input
-          type="text"
-          className="p-3 w-full my-3 bg-[#E5E5E5]"
-          placeholder="Enter your Password"
-          onChange={(e) => setPassword(e.target.value)}
-          value={password}
-        />
+      <div className="mx-auto text-center lg:my-40">
+        <h1 className="my-4 font-bold text-2xl">Sign Up as a Professional</h1>
+        <div className="flex justify-evenly">
+          <div className="my-auto w-[40%]">
+            <input
+              type="text"
+              className="p-3 w-full my-3 bg-[#E5E5E5]"
+              placeholder="Enter your Name"
+              onChange={(e) => setName(e.target.value)}
+              value={name}
+            />
+            <input
+              type="text"
+              className="p-3 w-full my-3 bg-[#E5E5E5]"
+              placeholder="Enter your Email"
+              onChange={(e) => setEmail(e.target.value)}
+              value={email}
+            />
+            <input
+              type="password"
+              className="p-3 w-full my-3 bg-[#E5E5E5]"
+              placeholder="Enter your Password"
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+            />
 
-        <select
-          onChange={e => setRole(e.target.value)}
-          className="p-3 w-full my-3 bg-[#E5E5E5]"
-        >
-          <option className="hidden" value="">Select a role</option>
-          <option value="Admin">Admin</option>
-          <option value="Editor">Editor</option>
-          <option value="Staff">Staff</option>
-        </select>
-        <button
-          onClick={() => submit()}
-          className="bg-warning p-3 w-full my-3 text-white text-lg"
-        >
-          {loading ? 'loading...' : 'Sign Up'}
-        </button>
-        <Link href={'/professional/auth'}>
-          <p className="text-left text-warning">Login Instead?</p>
-        </Link>
+            <select
+              onChange={e => setRole(e.target.value)}
+              className="p-3 w-full my-3 bg-[#E5E5E5]"
+            >
+              <option className="hidden" value="">Select a role</option>
+              <option value="Admin">Admin</option>
+              <option value="Editor">Editor</option>
+              <option value="Staff">Staff</option>
+            </select>
+            <button
+              onClick={() => submit()}
+              className="bg-warning p-3 w-full my-3 text-white text-lg"
+            >
+              {loading ? 'loading...' : 'Sign Up'}
+            </button>
+            <Link href={'/professional/auth'}>
+              <p className="text-left text-warning">Login Instead?</p>
+            </Link>
+          </div>
+          <img src="/images/assistant.png" alt="" />
+        </div>
+
       </div>
       <ToastContainer />
     </Fragment>

@@ -39,31 +39,36 @@ const ProfAuth = () => {
     <Fragment>
       <title>CITIZEN PLAINT | Professional</title>
 
-      <div className="mx-auto lg:w-1/2 text-center lg:my-40">
-        <h1 className="my-4 font-bold text-xl">Login as a Professional</h1>
-        <input
-          type="text"
-          className="p-3 w-full my-3 bg-[#E5E5E5]"
-          placeholder="Enter your Email"
-          onChange={(e) => setEmail(e.target.value)}
-          value={email}
-        />
-        <input
-          type="password"
-          className="p-3 w-full my-3 bg-[#E5E5E5]"
-          placeholder="Enter your Password"
-          onChange={(e) => setPassword(e.target.value)}
-          value={password}
-        />
-        <button
-          onClick={() => submit()}
-          className="bg-warning p-3 w-full my-3 text-white text-lg"
-        >
-          {loading ? 'loading...' : 'Login'}
-        </button>
-        <Link href={'/professional/auth/signup'}>
-          <p className="text-left text-warning">Sign Up Instead</p>
-        </Link>
+      <div className="mx-auto text-center lg:my-40">
+        <h1 className="my-4 font-bold text-2xl">Login as a Professional</h1>
+        <div className="flex justify-evenly">
+          <div className="my-auto">
+            <input
+              type="text"
+              className="p-3 w-full my-3 bg-[#E5E5E5]"
+              placeholder="Enter your Email"
+              onChange={(e) => setEmail(e.target.value)}
+              value={email}
+            />
+            <input
+              type="password"
+              className="p-3 w-full my-3 bg-[#E5E5E5]"
+              placeholder="Enter your Password"
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+            />
+            <button
+              onClick={() => submit()}
+              className="bg-warning p-3 w-full my-3 text-white text-lg"
+            >
+              {loading ? 'loading...' : 'Login'}
+            </button>
+            <Link href={'/professional/auth/signup'}>
+              <p className="text-left text-warning">Sign Up Instead</p>
+            </Link>
+          </div>
+          <img src="/images/assistant.png" alt="" />
+        </div>
       </div>
       <ToastContainer />
     </Fragment>
