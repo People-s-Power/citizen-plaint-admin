@@ -74,7 +74,7 @@ const ProfAuth = () => {
               <option className="hidden" value="">Select a role</option>
               <option value="Admin">Admin</option>
               <option value="Editor">Editor</option>
-              <option value="Staff">Staff</option>
+              {/* <option value="Staff">Staff</option> */}
             </select>
             <button
               onClick={() => submit()}

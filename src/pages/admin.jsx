@@ -25,9 +25,9 @@ export default function Home() {
 
   const getAll = () => {
     try {
-      axios.get("/" + manage).then((res) => {
+      axios.get("/" + manage + "?page=1&limit=100").then((res) => {
         // console.log(res.data.data);
-        setContents(res.data.data[manage + 's'] || res.data.data.petitons || res.data.data.victory);
+        setContents(res.data.data[manage + 's'][manage + 's'] || res.data.data.petitons.petitons || res.data.data.victory.victory);
       });
     } catch (err) {
       console.log(err);

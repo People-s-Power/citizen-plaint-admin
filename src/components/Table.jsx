@@ -11,7 +11,7 @@ const Table = ({ contents, type }) => {
   const { query } = useRouter()
   const [openUpdate, setOpenUpdate] = useState(false)
   const [data, setData] = useState()
-  
+
   const deleteItem = async (id) => {
     try {
       const { data } = await axios.put(`${type}/delete-${type}`, {
@@ -53,10 +53,15 @@ const Table = ({ contents, type }) => {
                 {user.createdAt.substring(0, 10)}
               </td>
               <td className="p-3">
-                <a className="flex text-[#000]" href={`https://www.theplaint.org/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${user._id}`} target="_blank">
-                  <img className="w-10 h-10 mr-2" src={user.asset[0]?.url} alt="" />
-                  <span >{user.title || user.name || user.caption || user.body.slice(0, 20)}</span>
-                </a>
+                {
+                  type === "petition" ? <a className="flex text-[#000]" href={`https://www.theplaint.org/campaigns/${user.slug}`} target="_blank">
+                    <img className="w-10 h-10 mr-2" src={user.asset[0]?.url} alt="" />
+                    <span >{user.title || user.name || user.caption || user.body.slice(0, 20)}</span>
+                  </a> : <a className="flex text-[#000]" href={`https://www.theplaint.org/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${user._id}`} target="_blank">
+                    <img className="w-10 h-10 mr-2" src={user.asset[0]?.url} alt="" />
+                    <span >{user.title || user.name || user.caption || user.body.slice(0, 20)}</span>
+                  </a>
+                }
               </td>
               {/* <td className="p-3"> <a className="text-[#000]" target="_blank" href={`https://www.theplaint.org/user?page=${user.author}`}>{getAuthor(user.author)}</a> </td> */}
               <td className="p-3">
@@ -78,7 +83,7 @@ const Table = ({ contents, type }) => {
                 )}
               </td>
               <td className="p-3 text-center">
-                {user.views.length + "  |  " + user?.numberOfPaidViewsCount}
+                {user?.numberOfPaidViewsCount + "  |  " + user.views.length}
               </td>
               <td className="p-3">
                 {user.views?.length}
@@ -100,6 +105,7 @@ const Table = ({ contents, type }) => {
                       type === "petition" && <Dropdown.Item>  <p onClick={() => { setData(user), setOpenUpdate(true) }} className="cursor-pointer">Add Update</p></Dropdown.Item>
                     }
                     <Dropdown.Item>  <p onClick={() => deleteItem(user._id)} className="cursor-pointer text-[#81171B]">Delete</p></Dropdown.Item>
+                    <Dropdown.Item>  <p onClick={() => deleteItem(user._id)} className="cursor-pointer">Share</p></Dropdown.Item>
                   </Dropdown>
                 </ButtonToolbar>
               </td>

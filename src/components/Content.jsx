@@ -4,7 +4,7 @@ import axios from "axios";
 
 const Content = ({ contents, users, type, editItem }) => {
 
-  console.log(contents)
+  // console.log(contents)
   const getAuthor = (id) => {
     var name
     users.map((user) => {
@@ -38,7 +38,7 @@ const Content = ({ contents, users, type, editItem }) => {
             </tr>
           </thead>
           <tbody>
-            {contents.map((user, index) => (
+            {contents?.map((user, index) => (
               <tr key={index}>
                 <td className="p-3">
                   {user.createdAt.substring(0, 10)}

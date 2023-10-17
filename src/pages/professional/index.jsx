@@ -163,6 +163,7 @@ const Professionals = () => {
         <div className="mx-40 pt-6">
           {query.page === undefined ? <div>
             <h3>Hello, {userDeeds?.firstName}</h3>
+            <p>Here is the list of Organizations/Companies you are working with</p>
             {orgs.length > 0 ? orgs?.map((org, index) => <Link key={index} href={`?page=${org._id}`}>
               <div className='flex my-4 rounded-md p-4 bg-[#F5F6FA]'>
                 <img className='w-12 h-12 rounded-full' src={org.image} alt="" />
@@ -197,6 +198,16 @@ const Professionals = () => {
                 }
               >
                 Manage Content
+              </div>
+              <div
+                onClick={() => setActive("social")}
+                className={
+                  active === "social"
+                    ? "border-b border-warning cursor-pointer"
+                    : "cursor-pointer"
+                }
+              >
+                Social Connect
               </div>
             </div>
 
@@ -298,6 +309,8 @@ const Professionals = () => {
                         <Table contents={eval(manage)} type={manage} />
                       </div>
                     </div>;
+                  case "social":
+                    return <div className='text-lg text-center my-8'>Comming Soon</div>
                 }
               })()}
             </div>
