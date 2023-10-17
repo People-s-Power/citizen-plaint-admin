@@ -7,7 +7,7 @@ import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { useRouter } from "next/router"
 
-const StartPetition = ({ open, handelClick, data }) => {
+const StartPetition = ({ open, handelClick, data, author }) => {
 	const [title, setTitle] = useState(data?.title || "")
 	const [loading, setLoading] = useState(false)
 	const uploadRef = useRef(null)
@@ -18,6 +18,28 @@ const StartPetition = ({ open, handelClick, data }) => {
 	const [target, setTarget] = useState(data?.target || "")
 	const [body, setBody] = useState(data?.body || "")
 	const { query } = useRouter()
+
+	const categories = [
+		'human right awareness',
+		'social policy',
+		'criminal justice',
+		'environment',
+		'health',
+		'Politics',
+		'discrimination',
+		'development',
+		'disability',
+		'equality',
+		'human right action',
+		'Accounting',
+		'Design',
+		'Marketing',
+		'Education',
+		'Coaching and Mentoring',
+		'Information Technology',
+		'Law',
+		'Admin/Office Assistant',
+	]
 
 	const handleDelSelected = (index) => {
 		setFilePreview((prev) => {
@@ -82,7 +104,7 @@ const StartPetition = ({ open, handelClick, data }) => {
 			setBody("")
 			setFilePreview([])
 		} catch (error) {
-			console.log(error.response)
+			console.log(error)
 			toast.warn("Oops! Something went wrong")
 			setLoading(false)
 		}
@@ -208,8 +230,9 @@ const StartPetition = ({ open, handelClick, data }) => {
 					</div>
 
 					<div className="z-40">
-						<Dropdown placement="topStart" title={<div className="text-sm text-warning">{category}</div>}>
-							<Dropdown.Item onClick={() => setCategory("Human right awareness")}>Human right awareness</Dropdown.Item>
+						<Dropdown placement="bottomEnd" title={<div className="text-sm text-warning">{category}</div>}>
+							{categories.map((single) => <Dropdown.Item onClick={() => setCategory(single)}>{single}</Dropdown.Item>)}
+							{/* <Dropdown.Item onClick={() => setCategory("Human right awareness")}>Human right awareness</Dropdown.Item>
 							<Dropdown.Item onClick={() => setCategory("Social Policy")}>Social Policy</Dropdown.Item>
 							<Dropdown.Item onClick={() => setCategory("Criminal Justice")}>Criminal Justice</Dropdown.Item>
 							<Dropdown.Item onClick={() => setCategory("Human Right Action")}>Human Right Action</Dropdown.Item>
@@ -218,7 +241,7 @@ const StartPetition = ({ open, handelClick, data }) => {
 							<Dropdown.Item onClick={() => setCategory("Health")}>Health</Dropdown.Item>
 							<Dropdown.Item onClick={() => setCategory("Politics")}>Politics</Dropdown.Item>
 							<Dropdown.Item onClick={() => setCategory("Disability")}>Disability</Dropdown.Item>
-							<Dropdown.Item onClick={() => setCategory("Equality")}>Equality</Dropdown.Item>
+							<Dropdown.Item onClick={() => setCategory("Equality")}>Equality</Dropdown.Item> */}
 						</Dropdown>
 					</div>
 				</Modal.Body>

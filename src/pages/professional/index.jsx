@@ -60,6 +60,7 @@ const Professionals = () => {
     }
   }
   useEffect(() => {
+    // console.log(query.page)
     getUser()
     getPetition()
     getPost()
@@ -67,16 +68,18 @@ const Professionals = () => {
     getAdvert()
     getVictories()
     getUpdates()
-  }, [])
+  }, [query.page === undefined])
 
 
   const getPetition = async () => {
     try {
       const { data } = await axios.get(
-        `/petition?page=1&authorId=${query?.page}&limit=100`,
+        `/petition?page=1&authorId=${query.page}&limit=100`,
       );
       // console.log(data)
-      setPetitions(data.data.petitons.petitons)
+      if (query.page !== undefined) {
+        setPetitions(data.data.petitons.petitons)
+      }
     } catch (e) {
       console.log(e)
     }
@@ -88,7 +91,9 @@ const Professionals = () => {
         `/post?page=1&authorId=${query?.page}&limit=100`,
       );
       // console.log(data)
-      setPosts(data.data.posts.posts)
+      if (query.page !== undefined) {
+        setPosts(data.data.posts.posts)
+      }
     } catch (e) {
       console.log(e)
     }
@@ -100,7 +105,9 @@ const Professionals = () => {
         `/event?page=1&authorId=${query?.page}&limit=100`,
       );
       // console.log(data)
-      setEvents(data.data.events.events)
+      if (query.page !== undefined) {
+        setEvents(data.data.events.events)
+      }
     } catch (e) {
       console.log(e)
     }
@@ -112,7 +119,9 @@ const Professionals = () => {
         `/advert?page=1&authorId=${query?.page}&limit=100`,
       );
       // console.log(data)
-      setAdverts(data.data.adverts.advert)
+      if (query.page !== undefined) {
+        setAdverts(data.data.adverts.advert)
+      }
     } catch (e) {
       console.log(e)
     }
@@ -124,7 +133,9 @@ const Professionals = () => {
         `/victory?page=1&authorId=${query?.page}&limit=100`,
       );
       // console.log(data)
-      setVictory(data.data.victory.victories)
+      if (query.page !== undefined) {
+        setVictory(data.data.victory.victories)
+      }
     } catch (e) {
       console.log(e)
     }
@@ -136,7 +147,9 @@ const Professionals = () => {
         `/update?page=1&authorId=${query?.page}&limit=100`,
       );
       // console.log(data)
-      setUpdates(data.data.updates)
+      if (query.page !== undefined) {
+        setUpdates(data.data.updates)
+      }
     } catch (e) {
       console.log(e)
     }
@@ -291,7 +304,7 @@ const Professionals = () => {
           </section>
           }
         </div>
-        <StartPetition open={openPetition} handelClick={() => setOpenPetition(!openPetition)} data={null} />
+        <StartPetition open={openPetition} handelClick={() => setOpenPetition(!openPetition)} data={null} author={userDeeds} />
         <CreatePost open={openPost} handelClick={() => setOpenPost(!openPost)} post={null} />
         <CreateAdvert open={openAdvert} handelClick={() => setOpenAdvert(!openAdvert)} advert={null} />
         <CreateEvent open={openEvent} handelClick={() => setOpenEvent(!openEvent)} event={null} />
