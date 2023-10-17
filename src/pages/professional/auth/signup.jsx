@@ -8,6 +8,7 @@ const ProfAuth = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState("")
+  const [role, setRole] = useState("")
 
   const submit = async () => {
     if (email === "" || password === "" || name === "") {
@@ -21,7 +22,7 @@ const ProfAuth = () => {
           name: name,
           email: email,
           password: password,
-          accountType: "Staff"
+          accountType: role
         }
       );
       console.log(data);
@@ -60,6 +61,16 @@ const ProfAuth = () => {
           onChange={(e) => setPassword(e.target.value)}
           value={password}
         />
+
+        <select
+          onChange={e => setRole(e.target.value)}
+          className="p-3 w-full my-3 bg-[#E5E5E5]"
+        >
+          <option className="hidden" value="">Select a role</option>
+          <option value="Admin">Admin</option>
+          <option value="Editor">Editor</option>
+          <option value="Staff">Staff</option>
+        </select>
         <button
           onClick={() => submit()}
           className="bg-warning p-3 w-full my-3 text-white text-lg"

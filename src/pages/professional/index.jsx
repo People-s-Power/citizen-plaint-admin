@@ -163,12 +163,12 @@ const Professionals = () => {
         <div className="mx-40 pt-6">
           {query.page === undefined ? <div>
             <h3>Hello, {userDeeds?.firstName}</h3>
-            {orgs?.map((org, index) => <Link key={index} href={`?page=${org._id}`}>
+            {orgs.length > 0 ? orgs?.map((org, index) => <Link key={index} href={`?page=${org._id}`}>
               <div className='flex my-4 rounded-md p-4 bg-[#F5F6FA]'>
                 <img className='w-12 h-12 rounded-full' src={org.image} alt="" />
                 <p className='text-xl text-[#000] my-auto ml-6 font-bold'>{org.name}</p>
               </div>
-            </Link>)}
+            </Link>) : <div className='text-center my-4 text-xl'>You are not assigned to any organization</div>}
           </div> : <section>
             <div className='w-20'>
               <div onClick={() => window.location = '/professional'} className='flex'>
