@@ -74,7 +74,7 @@ const Content = ({ contents, users, type, editItem }) => {
                   )}
                 </td>
                 <td className="p-3 text-center">
-                  {user.views.length + "  |  " + user?.numberOfPaidViewsCount}
+                  {user?.numberOfPaidViewsCount + "  |  " + user.views.length}
                 </td>
                 <td className="p-3">
                   {user.views?.length}

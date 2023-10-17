@@ -26,7 +26,7 @@ export default function Home() {
   const getAll = () => {
     try {
       axios.get("/" + manage + "?page=1&limit=100").then((res) => {
-        console.log(res.data.data);
+        // console.log(res.data.data);
         setContents(res.data.data.petitons?.petitons || res.data.data[manage + 's'][manage + 's'] || res.data.data.victory.victory);
       });
     } catch (err) {
@@ -106,6 +106,16 @@ export default function Home() {
               Manage Content
             </div>
             <div
+              onClick={() => router.push("?page=social")}
+              className={
+                active === "social"
+                  ? "border-b border-warning cursor-pointer"
+                  : "cursor-pointer"
+              }
+            >
+              Social Connect
+            </div>
+            <div
               onClick={() => router.push("?page=user")}
               className={
                 active === "user"
@@ -162,6 +172,10 @@ export default function Home() {
                   return <Report />;
                 case "subscriptions":
                   return <Subscriptions users={users} />;
+                case "socail":
+                  return <div className="text-center my-8">
+                    Coming Soon
+                  </div>;
               }
             })()}
           </div>

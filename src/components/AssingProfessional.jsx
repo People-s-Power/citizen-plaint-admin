@@ -22,7 +22,6 @@ const AssingProfessional = ({ users, sub, getSub }) => {
     } catch (err) {
       console.log(err);
       toast.warn(err?.response.data.message)
-
     }
   }
 
@@ -39,14 +38,14 @@ const AssingProfessional = ({ users, sub, getSub }) => {
           {users.map(user => parseInt(sub.amount) >= 30000 && user.accountType === "Admin" ? <div key={user._id} className='p-3 my-3 flex justify-between bg-[#F5F6FA] rounded-md'>
             <div className='flex'>
               <img className='w-10 h-10 rounded-full' src={user.image} alt="" />
-              <p className='my-auto ml-4'>{user.name}</p>
+              <p className='my-auto w-44 ml-4'>{user.name}</p>
             </div>
             <p className='my-auto'> {user.orgOperating.length} Orgs</p>
             <button onClick={() => assign(user._id, sub.author, sub._id)} className='p-2  rounded-md bg-warning text-white'>Assign</button>
           </div> : user.accountType === "Editor" && <div key={user._id} className='p-3 my-3 flex justify-between bg-[#F5F6FA] rounded-md'>
             <div className='flex'>
               <img className='w-10 h-10 rounded-full' src={user.image} alt="" />
-              <p className='my-auto ml-4'>{user.name}</p>
+              <p className='my-auto w-44 ml-4'>{user.name}</p>
             </div>
             <p className='my-auto'> {user.orgOperating.length} Orgs</p>
             <button onClick={() => assign(user._id, sub.author, sub._id)} className='p-2  rounded-md bg-warning text-white'>Assign</button>

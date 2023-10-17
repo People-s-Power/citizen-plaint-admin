@@ -40,9 +40,9 @@ const Subscriptions = ({ users }) => {
           <tr>
             <th className="p-3">Date</th>
             <th className="p-3">Author</th>
-            <th className="p-3">Expired</th>
+            <th className="p-3">Status</th>
             <th className="p-3">Amount</th>
-            <th className="p-3">Dutation</th>
+            <th className="p-3">Duration</th>
             <th className="p-3">Action</th>
           </tr>
 
