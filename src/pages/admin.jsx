@@ -26,8 +26,8 @@ export default function Home() {
   const getAll = () => {
     try {
       axios.get("/" + manage + "?page=1&limit=100").then((res) => {
-        // console.log(res.data.data);
-        setContents(res.data.data[manage + 's'][manage + 's'] || res.data.data.petitons.petitons || res.data.data.victory.victory);
+        console.log(res.data.data);
+        setContents(res.data.data.petitons?.petitons || res.data.data[manage + 's'][manage + 's'] || res.data.data.victory.victory);
       });
     } catch (err) {
       console.log(err);

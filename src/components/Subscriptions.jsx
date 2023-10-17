@@ -53,7 +53,7 @@ const Subscriptions = ({ users }) => {
             <td className="p-3">{getAuthor(sub.author)}</td>
             <td className="p-3">
               {sub.expired ? (
-                <button className="rounded-full bg-[#00401C] p-1">
+                <button className="rounded-full bg-[#970808]  p-1">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -66,13 +66,13 @@ const Subscriptions = ({ users }) => {
                   </svg>
                 </button>
               ) : (
-                <button className="rounded-full bg-[#970808] p-3"></button>
+                <button className="rounded-full bg-[#00401C] p-3"></button>
               )}
             </td>
             <td className="p-3">{sub.amount}</td>
             <td className="p-3">{sub.duration}</td>
             <td className="p-1">
-             <AssingProfessional users={users} sub={sub} getSub={() => getSub()} />
+              <AssingProfessional users={users} sub={sub} getSub={() => getSub()} />
             </td>
           </tr>)}
         </tbody>
