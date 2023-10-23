@@ -7,6 +7,7 @@ import Report from "@/components/Reports";
 import Content from "@/components/Content"
 import router, { useRouter } from "next/router"
 import Subscriptions from "@/components/Subscriptions";
+import Withdrawal from "@/components/Withdrawal";
 
 export default function Home() {
   const [active, setActive] = useState("summary");
@@ -84,7 +85,7 @@ export default function Home() {
     <>
       <FrontLayout>
         <div className="mx-40 pt-6">
-          <div className="flex w-[55%] mx-auto justify-between">
+          <div className="flex w-[65%] mx-auto justify-between">
             <div
               onClick={() => router.push("?page=summary")}
               className={
@@ -145,6 +146,16 @@ export default function Home() {
             >
               Subscriptions
             </div>
+            <div
+              onClick={() => router.push("?page=withdrawal")}
+              className={
+                active === "withdrawal"
+                  ? "border-b border-warning cursor-pointer"
+                  : "cursor-pointer"
+              }
+            >
+              Withdrawal
+            </div>
           </div>
           <div className="pt-4">
             {(() => {
@@ -172,7 +183,9 @@ export default function Home() {
                   return <Report />;
                 case "subscriptions":
                   return <Subscriptions users={users} />;
-                case "socail":
+                case "withdrawal":
+                  return <Withdrawal />;
+                case "social":
                   return <div className="text-center my-8">
                     Coming Soon
                   </div>;
