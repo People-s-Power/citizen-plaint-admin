@@ -48,7 +48,7 @@ const Subscriptions = ({ users }) => {
 
         </thead>
         <tbody>
-          {subs?.map(sub => <tr key={sub._id}>
+          {subs?.length > 0 ? subs?.map(sub => <tr key={sub._id}>
             <td className="p-3">{sub.createdAt.substring(0, 10)}</td>
             <td className="p-3">{getAuthor(sub.author)}</td>
             <td className="p-3">
@@ -74,7 +74,7 @@ const Subscriptions = ({ users }) => {
             <td className="p-1">
               <AssingProfessional users={users} sub={sub} getSub={() => getSub()} />
             </td>
-          </tr>)}
+          </tr>) : <div className='p-8 text-center text-xl'>No subscriptions</div>}
         </tbody>
       </table>
 

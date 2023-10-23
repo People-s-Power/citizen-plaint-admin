@@ -230,7 +230,7 @@ const StartPetition = ({ open, handelClick, data, author }) => {
 					</div>
 
 					<div className="z-40">
-						<Dropdown placement="bottomEnd" title={<div className="text-sm text-warning">{category}</div>}>
+						<Dropdown placement="rightEnd" title={<div className="text-sm text-warning">{category}</div>}>
 							{categories.map((single) => <Dropdown.Item onClick={() => setCategory(single)}>{single}</Dropdown.Item>)}
 							{/* <Dropdown.Item onClick={() => setCategory("Human right awareness")}>Human right awareness</Dropdown.Item>
 							<Dropdown.Item onClick={() => setCategory("Social Policy")}>Social Policy</Dropdown.Item>

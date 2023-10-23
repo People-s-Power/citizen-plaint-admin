@@ -39,7 +39,7 @@ const User = () => {
   const getAll = () => {
     try {
       axios.get("/user").then((res) => {
-        // console.log(res.data.data);
+        console.log(res.data.data);
         setUsers(res.data.data.users);
       });
     } catch (err) {
