@@ -161,7 +161,7 @@ export default function Home() {
             {(() => {
               switch (active) {
                 case "summary":
-                  return <Summary summary={counts} />;
+                  return <Summary summary={counts} users={users} />;
                 case "content":
                   return <div>
                     <div className="flex justify-between my-5">
