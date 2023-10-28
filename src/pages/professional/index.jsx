@@ -10,6 +10,7 @@ import CreateAdvert from '@/components/modals/CreateAdvert';
 import CreateEvent from '@/components/modals/CreateEvent';
 import CreateVictories from '@/components/modals/CreateVictories';
 import Table from '@/components/Table';
+import Tasks from '@/components/Tasks';
 
 const Professionals = () => {
   const [userDeeds, setUser] = useState()
@@ -19,6 +20,7 @@ const Professionals = () => {
   const [active, setActive] = useState("summary");
   const [manage, setManage] = useState("petition")
   const [activities, setActivities] = useState([])
+  const [users, setUsers] = useState([])
 
   const [post, setPosts] = useState([])
   const [event, setEvents] = useState([])
@@ -61,15 +63,37 @@ const Professionals = () => {
     }
   }
 
+  const getAuthor = (id) => {
+    var name
+    users.map((user) => {
+      if (user._id === id) {
+        name = user
+      }
+    })
+    return name
+  }
+
+
   const getActivities = async () => {
     try {
       const { data } = await axios.patch("auth/activities?page=1&limit=10", {
         userId: user
       })
       setActivities(data.data.activities.activities)
-      console.log(data.data.activities.activities)
+      // console.log(data.data.activities.activities)
     } catch (e) {
       console.log(e)
+    }
+  }
+
+  const getUsers = () => {
+    try {
+      axios.get("/user").then((res) => {
+        // console.log(res.data.data);
+        setUsers(res.data.data.users);
+      });
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -216,6 +240,16 @@ const Professionals = () => {
                   Manage Content
                 </div>
                 <div
+                  onClick={() => setActive("tasks")}
+                  className={
+                    active === "tasks"
+                      ? "border-b border-warning cursor-pointer"
+                      : "cursor-pointer"
+                  }
+                >
+                  Tasks
+                </div>
+                <div
                   onClick={() => setActive("social")}
                   className={
                     active === "social"
@@ -304,8 +338,8 @@ const Professionals = () => {
 
                         <div>
                           {activities.length > 0 ? activities.map((activity, index) => <div className="flex p-3 border-b" key={index}>
-                            {/* <img className="w-10 h-10 mr-4" src={getAuthor(activity.authorId)?.image} alt="" /> */}
-                            <p className="my-auto">{activity.text}</p>
+                            <img className="w-10 rounded-full h-10 mr-4" src={getAuthor(activity.authorId)?.image} alt="" />
+                            <p className="my-auto">{activity.text}  by {getAuthor(activity.authorId)?.name}</p>
                           </div>) : <div className="text-center my-4">No Activities</div>}
                         </div>
                       </div>;
@@ -333,6 +367,8 @@ const Professionals = () => {
                           <Table contents={eval(manage)} type={manage} />
                         </div>
                       </div>;
+                    case "tasks":
+                      return <Tasks />
                     case "social":
                       return <div className='text-lg text-center my-8'>Comming Soon</div>
                   }
