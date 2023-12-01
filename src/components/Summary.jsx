@@ -73,8 +73,10 @@ const Summary = ({ summary, users }) => {
 
       <div>
         {activities.length > 0 ? activities.map((activity, index) => <div className="flex p-3 border-b" key={index}>
-          <img className="w-10 h-10 mr-4 rounded-full" src={getAuthor(activity.authorId)?.image} alt="" />
-          <p className="my-auto">{activity.text} by {getAuthor(activity.authorId)?.name}</p>
+          <img className="w-10 h-10 mr-4 rounded-full" src="./logo.png" alt="" />
+          <p className="my-auto">{activity.text}
+            {/* by {getAuthor(activity.authorId)?.name} */}
+          </p>
         </div>) : <div className="text-center my-4">No Activities</div>}
       </div>
     </>

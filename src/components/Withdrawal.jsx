@@ -71,7 +71,7 @@ const Withdrawal = () => {
                 <button onClick={() => approve(request._id)} className="p-2 rounded-md bg-warning text-white">Approve</button>
               </td>
             </tr>
-          )) : null}
+          )) :<div className='p-8 text-center text-xl'>No withdrawal</div>}
         </tbody>
       </table>
       <ToastContainer />
