@@ -2,9 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { Modal } from "rsuite"
 
 const Withdrawal = () => {
   const [requests, setRequests] = useState([])
+  const [tCode, setTCode] = useState()
+  const [otp, setOpt] = useState()
+  const [open, setOpen] = useState(false)
   const getAll = () => {
     try {
       axios.get("/withdraw?page=1&limit=100&status=Pending").then((res) => {
@@ -22,6 +26,24 @@ const Withdrawal = () => {
         withdrawId: id
       }).then((res) => {
         console.log(res.data);
+        setTCode(res.data.data.transfer_code)
+        setOpen(true)
+        // toast.success("Withdrawal Approved")
+      });
+    } catch (err) {
+      console.log(err);
+      toast.warn(err?.response.data.message)
+    }
+  }
+
+  const sendOtp = () => {
+    try {
+      axios.post("/withdraw/otp", {
+        transfer_code: tCode,
+        otp
+      }).then((res) => {
+        console.log(res.data);
+        setOpen(false)
         toast.success("Withdrawal Approved")
       });
     } catch (err) {
@@ -71,9 +93,20 @@ const Withdrawal = () => {
                 <button onClick={() => approve(request._id)} className="p-2 rounded-md bg-warning text-white">Approve</button>
               </td>
             </tr>
-          )) :<div className='p-8 text-center text-xl'>No withdrawal</div>}
+          )) : <div className='p-8 text-center text-xl'>No withdrawal</div>}
         </tbody>
       </table>
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <Modal.Header>
+          <Modal.Title> Enter OTP</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="text-center">
+            <input className="p-3 border rounded-md w-full" onChange={e => setOpt(e.target.value)} type="number" placeholder="Enter OTP" />
+            <button onClick={() => sendOtp()} className="bg-warning p-3 mt-4 rounded-md w-32 mx-auto">Send</button>
+          </div>
+        </Modal.Body>
+      </Modal>
       <ToastContainer />
     </div>
   );

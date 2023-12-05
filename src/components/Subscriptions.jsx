@@ -21,7 +21,7 @@ const Subscriptions = ({ users }) => {
   const getSub = async () => {
     try {
       axios.get("/sub/unassiged?page=1&limit=100").then((res) => {
-        // console.log(res);
+        console.log(res);
         setSubs(res.data.data.subscriptions)
       });
     } catch (err) {
