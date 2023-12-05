@@ -11,6 +11,7 @@ import CreateEvent from '@/components/modals/CreateEvent';
 import CreateVictories from '@/components/modals/CreateVictories';
 import Table from '@/components/Table';
 import Tasks from '@/components/Tasks';
+import Reviews from '@/components/modals/Reviews';
 
 const Professionals = () => {
   const [userDeeds, setUser] = useState()
@@ -29,7 +30,7 @@ const Professionals = () => {
   const [update, setUpdates] = useState([])
   const [victory, setVictory] = useState([])
 
-
+  const [open, setOpen] = useState(false)
   const [openPetition, setOpenPetition] = useState(false)
   const [openPost, setOpenPost] = useState(false)
   const [openAdvert, setOpenAdvert] = useState(false)
@@ -205,9 +206,12 @@ const Professionals = () => {
               <h3>Hello, {userDeeds?.firstName}</h3>
               <p>Here is the list of Organizations/Companies you are working with</p>
               {orgs.length > 0 ? orgs?.map((org, index) => <Link key={index} href={`?page=${org._id}`}>
-                <div className='flex my-4 rounded-md p-4 bg-[#F5F6FA]'>
-                  <img className='w-12 h-12 rounded-full' src={org.image} alt="" />
-                  <p className='text-xl text-[#000] my-auto ml-6 font-bold'>{org.name}</p>
+                <div className='flex my-4 rounded-md justify-between p-4 bg-[#F5F6FA]'>
+                  <div className='flex'>
+                    <img className='w-12 h-12 rounded-full' src={org.image} alt="" />
+                    <p className='text-xl text-[#000] my-auto ml-6 font-bold'>{org.name}</p>
+                  </div>
+                  <p className='text-[#000] my-auto' onClick={() => setOpen(true)}>Reviews & rating</p>
                 </div>
               </Link>) : <div className='text-center my-4 text-xl'>You are not assigned to any organization</div>}
             </div> : <section>
@@ -379,6 +383,7 @@ const Professionals = () => {
             </section>
           }
         </div>
+        <Reviews open={open} handelClick={() => setOpen(false)} />
         <StartPetition open={openPetition} handelClick={() => setOpenPetition(!openPetition)} data={null} author={userDeeds} />
         <CreatePost open={openPost} handelClick={() => setOpenPost(!openPost)} post={null} />
         <CreateAdvert open={openAdvert} handelClick={() => setOpenAdvert(!openAdvert)} advert={null} />
