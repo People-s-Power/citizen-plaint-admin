@@ -52,6 +52,7 @@ const Withdrawal = () => {
     } catch (err) {
       console.log(err);
       toast.warn(err?.response.data.message)
+      setLoading(false)
     }
   }
 
