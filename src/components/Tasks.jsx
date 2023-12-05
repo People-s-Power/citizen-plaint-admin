@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
 import { getCookie } from "cookies-next";
+import Reviews from './modals/Reviews';
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([])
   const user = getCookie("user");
+  const [open, setOpen] = useState(false)
 
   const getTasks = async () => {
     try {
@@ -23,6 +25,7 @@ const Tasks = () => {
         prof: user
       })
       setTasks(data.data.tasks.tasks)
+      setOpen(true)
       console.log(data.data.tasks.tasks)
     } catch (e) {
       console.log(e)
@@ -72,6 +75,7 @@ const Tasks = () => {
           )) : null}
         </tbody>
       </table>
+      <Reviews open={open} handelClick={() => setOpen(false)} />
     </div>
   );
 };
