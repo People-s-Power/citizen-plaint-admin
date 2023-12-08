@@ -26,8 +26,8 @@ const Withdrawal = () => {
       axios.post("/withdraw", {
         withdrawId: id
       }).then((res) => {
-        console.log(res.data);
-        setTCode(res.data.data.transfer_code)
+        console.log(res.data.data.data);
+        setTCode(res.data.data.data.transfer_code)
         setOpen(true)
         // toast.success("Withdrawal Approved")
       });
