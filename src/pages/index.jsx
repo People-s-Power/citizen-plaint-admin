@@ -33,7 +33,7 @@ const auth = () => {
   };
   return (
     <Fragment>
-      <title>PROJECT</title>
+      <title>PROJECT | Login</title>
       <div className="mx-auto lg:w-1/2 text-center lg:my-40">
         <h1 className="my-4 font-bold text-xl">Login</h1>
         <input
