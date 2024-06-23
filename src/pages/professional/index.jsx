@@ -197,7 +197,7 @@ const Professionals = () => {
 
   return (
     <Fragment>
-      <title>CITIZEN PLAINT | Professionals</title>
+      <title>PROJECT | Professionals</title>
       <main>
         <HeaderComp />
         <div className="mx-40 pt-6">
