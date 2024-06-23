@@ -4,7 +4,7 @@ import { getCookie } from "cookies-next";
 
 const FrontLayout = ({ children }) => {
   const token = getCookie("token");
-  const text = `CITIZEN PLAINT || ADMIN`;
+  const text = `PROJECT`;
 
   useEffect(() => {
     // console.log(token);
