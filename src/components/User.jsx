@@ -67,7 +67,7 @@ const User = () => {
   const editUser = async (id, status) => {
     try {
       const { data } = await axios.put(
-        `https://shark-app-28vbj.ondigitalocean.app/v1/user/single/${id}`,
+        `/user/single/${id}`,
         {
           isActive: !status
         }
@@ -86,7 +86,7 @@ const User = () => {
       allChecked.map(async (checked) => {
         try {
           const { data } = await axios.put(
-            `https://shark-app-28vbj.ondigitalocean.app/v1/user/single/${checked._id}`,
+            `/user/single/${checked._id}`,
             {
               isActive: false
             }
@@ -109,7 +109,7 @@ const User = () => {
       allChecked.map(async (checked) => {
         try {
           const { data } = await axios.put(
-            `https://shark-app-28vbj.ondigitalocean.app/v1/user/single/${checked._id}`,
+            `/user/single/${checked._id}`,
             {
               isActive: true
             }

@@ -60,7 +60,7 @@ const MessageModal = ({ open, handleClose }) => {
     try {
       setLoading(true)
       const { data } = await axios.post(
-        "https://shark-app-28vbj.ondigitalocean.app/v1/admin/send-message",
+        "/admin/send-message",
         {
           category: categoryValue,
           subCategory: subCategoryValue,

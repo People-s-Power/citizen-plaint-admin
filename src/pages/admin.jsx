@@ -37,7 +37,7 @@ export default function Home() {
   const editItem = async (id, status) => {
     try {
       const { data } = await axios.post(
-        `https://shark-app-28vbj.ondigitalocean.app/v1/${manage}/${id}`,
+        `/${manage}/${id}`,
         {
           status
         }

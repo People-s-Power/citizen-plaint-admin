@@ -3,7 +3,8 @@ import axios from "axios";
 import { getCookie } from "cookies-next";
 import 'rsuite/dist/rsuite.min.css';
 
-const HTTP_URI = "https://shark-app-28vbj.ondigitalocean.app/v1";
+const HTTP_URI = "https://project-experthub.onrender.com/v1";
+// const HTTP_URI = "http://localhost:8005/v1";
 const token = getCookie("token");
 axios.defaults.baseURL = HTTP_URI;
 // axios.defaults.withCredentials = true;

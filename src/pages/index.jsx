@@ -16,7 +16,7 @@ const auth = () => {
     try {
       setLoading(true)
       const { data } = await axios.post(
-        "https://shark-app-28vbj.ondigitalocean.app/v1/admin/login",
+        "/admin/login",
         {
           email: email,
           password: password,
