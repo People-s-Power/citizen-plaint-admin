@@ -24,6 +24,7 @@ const auth = () => {
       );
       console.log(data);
       setCookie("token", data.meta.token);
+      localStorage.setItem("token", data.meta.token);
       window.location.href = "/admin";
     } catch (e) {
       console.log(e);

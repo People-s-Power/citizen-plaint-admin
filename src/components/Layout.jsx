@@ -3,13 +3,13 @@ import HeaderComp from "../components/HeaderComp";
 import { getCookie } from "cookies-next";
 
 const FrontLayout = ({ children }) => {
-  const token = getCookie("token");
   const text = `PROJECT`;
 
   useEffect(() => {
     // console.log(token);
+    const token = getCookie("token") ?? localStorage.getItem("token");
     if (token === undefined) {
-      window.location.href = "/auth";
+      window.location.href = "/";
     }
   }, []);
   return (
