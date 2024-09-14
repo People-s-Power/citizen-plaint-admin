@@ -44,11 +44,11 @@ const ProfAuth = () => {
         profession: profession,
       });
       console.log(data);
-      setCookie("token", data.meta.token);
+      // setCookie("token", data.meta.token);
       window.location.href = "/professional/auth";
     } catch (e) {
       console.log(e);
-      toast.warn(e?.response.data.message);
+      e.response && toast.warn(e?.response.data.message);
       setLoading(false);
     }
   };
