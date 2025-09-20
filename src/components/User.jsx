@@ -219,7 +219,7 @@ const User = () => {
                 country === undefined &&
                 role === "") ||
               user.accountType === role ||
-              user.interests.includes(categoryValue) ||
+              (user.interests && user.interests.includes(categoryValue)) ||
               user.country === country ? (
                 <tr key={index}>
                   <td className="p-3">

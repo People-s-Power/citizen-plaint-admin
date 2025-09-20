@@ -222,7 +222,7 @@ const Professionals = () => {
                   </svg> <p className='ml-2'>Back</p>
                 </div>
               </div>
-              <div className="flex w-[40%] mx-auto justify-between">
+              <div className="flex w-[50%] mx-auto justify-between">
                 <div
                   onClick={() => setActive("summary")}
                   className={
@@ -262,6 +262,16 @@ const Professionals = () => {
                   }
                 >
                   Social Connect
+                </div>
+                <div
+                  onClick={() => setActive("message")}
+                  className={
+                    active === "message"
+                      ? "border-b border-warning cursor-pointer"
+                      : "cursor-pointer"
+                  }
+                >
+                  Messages
                 </div>
               </div>
 
@@ -375,6 +385,8 @@ const Professionals = () => {
                       </div>;
                     case "tasks":
                       return <Tasks />
+                    case "message":
+                      return <div className='text-lg text-center my-8'>Comming Soon</div>
                     case "social":
                       return <div className='text-lg text-center my-8'>Comming Soon</div>
                   }
