@@ -4,6 +4,7 @@ import axios from "axios";
 import HeaderComp from '@/components/HeaderComp';
 import Link from 'next/link';
 import router, { useRouter } from "next/router"
+import cookie from "js-cookie"
 import StartPetition from '@/components/modals/StartPetition';
 import CreatePost from '@/components/modals/CreatePost';
 import CreateAdvert from '@/components/modals/CreateAdvert';
@@ -12,6 +13,7 @@ import CreateVictories from '@/components/modals/CreateVictories';
 import Table from '@/components/Table';
 import Tasks from '@/components/Tasks';
 import Reviews from '@/components/modals/Reviews';
+import MessagesComponent from '@/components/MessageComponent';
 
 const Professionals = () => {
   const [userDeeds, setUser] = useState()
@@ -58,7 +60,7 @@ const Professionals = () => {
       );
       setUser(data.data.user)
       setOrgs(data.data.user.orgOperating)
-      // console.log(data.data.user)
+      console.log(data.data)
     } catch (e) {
       console.log(e);
     }
@@ -203,17 +205,25 @@ const Professionals = () => {
         <div className="mx-40 pt-6">
           {query.page === undefined ?
             <div>
-              <h3>Hello, {userDeeds?.firstName}</h3>
+              <h3>Hello, {userDeeds?.firstName} {userDeeds?.lastName}</h3>
               <p>Here is the list of Organizations/Companies you are working with</p>
-              {orgs.length > 0 ? orgs?.map((org, index) => <Link key={index} href={`?page=${org._id}`}>
-                <div className='flex my-4 rounded-md justify-between p-4 bg-[#F5F6FA]'>
-                  <div className='flex'>
-                    <img className='w-12 h-12 rounded-full' src={org.image} alt="" />
-                    <p className='text-xl text-[#000] my-auto ml-6 font-bold'>{org.name}</p>
+              {orgs.length > 0 ? orgs?.map((org, index) => (
+                <Link
+                  key={index}
+                  href={`?page=${org._id}`}
+                  onClick={() => {
+                    cookie.set('org', org._id);
+                  }}
+                >
+                  <div className='flex my-4 rounded-md justify-between p-4 bg-[#F5F6FA]'>
+                    <div className='flex'>
+                      <img className='w-12 h-12 rounded-full' src={org.image} alt="" />
+                      <p className='text-xl text-[#000] my-auto ml-6 font-bold'>{org.name}</p>
+                    </div>
+                    <p className='text-[#000] my-auto' onClick={() => setOpen(true)}>Reviews & rating</p>
                   </div>
-                  <p className='text-[#000] my-auto' onClick={() => setOpen(true)}>Reviews & rating</p>
-                </div>
-              </Link>) : <div className='text-center my-4 text-xl'>You are not assigned to any organization</div>}
+                </Link>
+              )) : <div className='text-center my-4 text-xl'>You are not assigned to any organization</div>}
             </div> : <section>
               <div className='w-20'>
                 <div onClick={() => window.location = '/professional'} className='flex cursor-pointer'>
@@ -386,7 +396,7 @@ const Professionals = () => {
                     case "tasks":
                       return <Tasks />
                     case "message":
-                      return <div className='text-lg text-center my-8'>Comming Soon</div>
+                      return <MessagesComponent />;
                     case "social":
                       return <div className='text-lg text-center my-8'>Comming Soon</div>
                   }

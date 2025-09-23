@@ -10,7 +10,12 @@ module.exports = {
   ],
   theme: {
     extend: {
-
+      screens: {
+        sm: { max: "700px" },
+        md: "700px",
+        lg: "1024px",
+        xl: "1280px",
+      },
     },
     colors: {
       warning: "#FFC107",
