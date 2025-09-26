@@ -102,11 +102,22 @@ const ProfAuth = () => {
             >
               {loading ? "loading..." : "Sign Up"}
             </button>
-            <Link href={"/professional/auth"}>
-              <p className="text-left text-warning">Login Instead?</p>
-            </Link>
+            <div className="flex justify-between mt-4">
+              <Link href={"/professional/auth"}>
+                <p className="text-left text-warning">Login Instead?</p>
+              </Link>
+              <div className=" text-sm text-gray-600 text-left">
+                By signing up, you agree to our
+                <Link href="/terms">
+                  <span className="text-warning underline ml-1 cursor-pointer">
+                    Terms and Conditions
+                  </span>
+                </Link>
+                .
+              </div>
+            </div>
           </div>
-          <img src="/images/assistant.png" alt="" />
+          <img className="object-cover" src="/images/assistant.png" alt="" />
         </div>
       </div>
       <ToastContainer />
