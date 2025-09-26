@@ -8,6 +8,7 @@ import Content from "@/components/Content"
 import router, { useRouter } from "next/router"
 import Subscriptions from "@/components/Subscriptions";
 import Withdrawal from "@/components/Withdrawal";
+import Tasks from "@/components/Tasks";
 
 export default function Home() {
   const [active, setActive] = useState("summary");
@@ -85,7 +86,7 @@ export default function Home() {
     <>
       <FrontLayout>
         <div className="mx-40 pt-6">
-          <div className="flex w-[65%] mx-auto justify-between">
+          <div className="flex w-[80%] mx-auto justify-between">
             <div
               onClick={() => router.push("?page=summary")}
               className={
@@ -105,6 +106,16 @@ export default function Home() {
               }
             >
               Manage Content
+            </div>
+            <div
+              onClick={() => router.push("?page=tasks")}
+              className={
+                active === "tasks"
+                  ? "border-b border-warning cursor-pointer"
+                  : "cursor-pointer"
+              }
+            >
+              Manage Tasks
             </div>
             <div
               onClick={() => router.push("?page=social")}
@@ -181,6 +192,8 @@ export default function Home() {
                   return <User />;
                 case "report":
                   return <Report />;
+                case 'tasks':
+                  return <Tasks />;
                 case "subscriptions":
                   return <Subscriptions users={users} />;
                 case "withdrawal":

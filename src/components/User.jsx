@@ -205,7 +205,7 @@ const User = () => {
       </div>
       <div>
         <table className="min-w-full border rounded-lg overflow-hidden shadow-md">
-          <thead className="bg-warning text-white">
+          <thead className="bg-gold text-white">
             <tr>
               <th className="p-3 font-semibold text-left">Select</th>
               <th className="p-3 font-semibold text-left">Name</th>

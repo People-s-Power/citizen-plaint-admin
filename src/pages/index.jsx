@@ -1,4 +1,6 @@
 import React, { Fragment, useState } from "react";
+import { useSetAtom } from 'jotai';
+import { adminAtom } from '@/atoms/adminAtom';
 import axios from "axios";
 import { setCookie } from "cookies-next";
 import Link from "next/link";
@@ -8,7 +10,8 @@ import "react-toastify/dist/ReactToastify.css"
 const auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const setAdmin = useSetAtom(adminAtom);
   const submit = async () => {
     if (email === "" || password === "") {
       return;
@@ -25,7 +28,11 @@ const auth = () => {
       console.log(data);
       setCookie("token", data.meta.token);
       localStorage.setItem("token", data.meta.token);
+      // Set Jotai global state
+      setAdmin(data.data.admin);
       window.location.href = "/admin";
+
+
     } catch (e) {
       console.log(e);
       setLoading(false)

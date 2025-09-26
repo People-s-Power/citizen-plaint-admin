@@ -2,20 +2,25 @@ import React, { Fragment, useState } from "react";
 import Link from "next/link";
 import { setCookie } from "cookies-next";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useAtom } from 'jotai';
+import { adminAtom} from '@/atoms/adminAtom';
 
 const ProfAuth = () => {
+  const [admin, setAdmin] = useAtom(adminAtom);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
 
   const submit = async () => {
     if (email === "" || password === "") {
       return;
     }
     try {
-      setLoading(true)
+      setLoading(true);
+      // setError(null);
+
       const { data } = await axios.post(
         "/auth/login",
         {
@@ -23,15 +28,18 @@ const ProfAuth = () => {
           password: password,
         }
       );
-      console.log(data);
+
+      // Store the user data in Jotai state
+      setAdmin(data.data.user);
+
+      // Set cookies
       setCookie("token", data.meta.token);
       setCookie("user", data.data.user.id);
-      window.location.href = "/professional";
 
+      window.location.href = "/professional";
     } catch (e) {
       console.log(e);
-      setLoading(false)
-      toast.warn(e?.response.data.message)
+      toast.warn(e?.response?.data?.message)
     }
   };
 

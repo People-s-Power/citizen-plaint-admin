@@ -1,18 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
-import { getCookie } from "cookies-next";
+import { useRouter } from 'next/router';
+import { useAtom } from 'jotai';
+import { adminAtom } from '@/atoms/adminAtom';
 import Reviews from './modals/Reviews';
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([])
-  const user = getCookie("user");
   const [open, setOpen] = useState(false)
+  const [admin] = useAtom(adminAtom);
 
+  const router = useRouter();
   const getTasks = async () => {
     try {
       const { data } = await axios.get("auth/task?page=1&limit=20")
-      setTasks(data.data.tasks.tasks)
-      console.log(data.data.tasks.tasks)
+      const allTasks = data.data.tasks.tasks;
+      // If route starts with /admin, show all tasks
+      if (router.pathname.startsWith('/admin')) {
+        setTasks(allTasks);
+        console.log(allTasks);
+      } else {
+        // Otherwise, filter to assigned tasks
+        const profId = admin?._id || admin?.id;
+        const assignedTasks = allTasks.filter(task => Array.isArray(task.assigne) && task.assigne.includes(profId));
+        setTasks(assignedTasks);
+        console.log(assignedTasks);
+      }
     } catch (e) {
       console.log(e)
     }
@@ -20,13 +33,21 @@ const Tasks = () => {
 
   const completed = async (id) => {
     try {
+      const profId = admin?._id || admin?.id;
       const { data } = await axios.post(`auth/task/${id}`, {
         status: "DONE",
-        prof: user
+        prof: profId
       })
-      setTasks(data.data.tasks.tasks)
-      setOpen(true)
-      console.log(data.data.tasks.tasks)
+      const allTasks = data.data.tasks.tasks;
+      if (router.pathname.startsWith('/admin')) {
+        setTasks(allTasks);
+        console.log(allTasks);
+      } else {
+        const assignedTasks = allTasks.filter(task => Array.isArray(task.assigne) && task.assigne.includes(profId));
+        setTasks(assignedTasks);
+        console.log(assignedTasks);
+      }
+      setOpen(true);
     } catch (e) {
       console.log(e)
     }
@@ -51,28 +72,36 @@ const Tasks = () => {
           </tr>
         </thead>
         <tbody>
-          {tasks.length > 0 ? tasks.map(task => (
-            <tr key={task._id}>
-              <td className="p-3">
-                {task.createdAt.substring(0, 10)}
-              </td>
-              <td className="p-3">
-                {task.name}
-              </td>
-              <td className="p-3">
-                {task.author.name}
-              </td>
-              <td className="p-3">
-                {task.status}
-              </td>
-              <td className="p-3">
-                {task.dueDate.substring(0, 10)}
-              </td>
-              <td className="p-3">
-                {task.status === "DONE" ? "" : <button onClick={() => completed(task._id)} className='p-2 bg-warning rounded-md text-white'>Complete</button>}
+          {tasks.length > 0 ? (
+            tasks.map(task => (
+              <tr key={task._id}>
+                <td className="p-3">
+                  {task.createdAt.substring(0, 10)}
+                </td>
+                <td className="p-3">
+                  {task.name}
+                </td>
+                <td className="p-3">
+                  {task.author.name}
+                </td>
+                <td className="p-3">
+                  {task.status}
+                </td>
+                <td className="p-3">
+                  {task.dueDate.substring(0, 10)}
+                </td>
+                <td className="p-3">
+                  {task.status === "DONE" ? "" : <button onClick={() => completed(task._id)} className='p-2 bg-warning rounded-md text-white'>Complete</button>}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6" className="p-6 text-center text-gray-400">
+                No tasks found.
               </td>
             </tr>
-          )) : null}
+          )}
         </tbody>
       </table>
       <Reviews open={open} handelClick={() => setOpen(false)} />
