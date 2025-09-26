@@ -4,6 +4,24 @@ import MessageModal from "./MessageModal";
 import axios from "axios";
 import Select from "react-select";
 
+const PROFESSIONS = [
+  "General Administrative Assistant",
+  "Social Media Manager ",
+  "Real Estate",
+  "Virtual Research",
+  "Virtual Data Entry",
+  "Virtual Book keeper",
+  "Virtual ecommerce",
+  "Customer Service Provider (Phone/Chat",
+  "Content Writer",
+  "Website Management",
+  "Public Relation Assistant",
+  "Graphic designs",
+  "Appointment/Calendar setter",
+  "Email Management",
+  "Campaign/petition Writer",
+];
+
 const User = () => {
   const [modal, setModal] = useState(false);
   const [users, setUsers] = useState([]);
@@ -12,6 +30,8 @@ const User = () => {
   const [countries, setCountries] = useState([]);
   const [country, setCountry] = useState();
   const [role, setRole] = useState("");
+  const [professionValue, setProfessionValue] = useState("");
+  const [searchValue, setSearchValue] = useState("");
 
   const category = [
     { value: "human right awareness", label: "Human right awareness" },
@@ -127,101 +147,100 @@ const User = () => {
 
   return (
     <div>
-      <div className="flex justify-between my-3">
-        <div className="flex w-[70%]">
+      <div className="flex flex-row flex-wrap justify-between items-center my-6 bg-white rounded-lg shadow p-6 gap-4">
+        <div className="flex flex-row flex-wrap gap-4 items-center justify-between w-auto">
           <input
-            onChange={(e) => search(e.target.value)}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
             type="text"
-            placeholder="Search"
-            className="p-3 rounded-md mr-4 border w-[30%]"
+            placeholder="Search users by name..."
+            className="p-3 rounded-md border w-full focus:outline-warning focus:ring-2 focus:ring-warning"
           />
           <button
             onClick={() => multiBlock()}
-            className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-4"
+            className="p-3 border border-[#C98821] rounded-md text-[#C98821] bg-[#FFF7E6] hover:bg-[#FFE0B2] transition font-semibold"
           >
             Block
           </button>
           <button
             onClick={() => multiActivate()}
-            className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-4"
+            className="p-3 border border-[#00401C] rounded-md text-[#00401C] bg-[#E6FFF7] hover:bg-[#B2FFE0] transition font-semibold"
           >
             Activate
           </button>
           <button
             onClick={() => setModal(true)}
-            className="p-3 border border-[#000000] rounded-md text-[#C98821] mx-4"
+            className="p-3 border border-[#1976D2] rounded-md text-[#1976D2] bg-[#E3F2FD] hover:bg-[#BBDEFB] transition font-semibold"
           >
             Send Message
           </button>
-        </div>
-        <div className="flex w-[50%]">
           <select
             onChange={(e) => setRole(e.target.value)}
-            className="border mr-4 p-3 border-[#000000] rounded-md"
+            className="border p-3 rounded-md min-w-[160px] text-gray-700 focus:outline-warning"
+            value={role}
           >
-            <option className="hidden " value="">
-              Selct a user category
+            <option className="hidden" value="">
+              Select a user category
             </option>
+            <option value="All">All</option>
             <option value="Campaigner">Campaigner</option>
             <option value="Organization">Organization</option>
             <option value="Staff">Staff</option>
             <option value="Admin">Admin</option>
             <option value="Editor">Editor</option>
           </select>
-          <Select
-            isClearable={true}
-            className="mr-4"
-            onChange={(val) => setCategoryValue(val?.value)}
-            options={category}
-            placeholder="Select an Interest"
-          />
-
-          <Select
-            options={countries}
-            isClearable={true}
-            className="mx-4"
-            onChange={(e) => {
-              setCountry(e?.value);
-            }}
-            placeholder="Select a Country"
-          />
+          <select
+            className="border p-3 rounded-md min-w-[180px] text-gray-700 focus:outline-warning"
+            value={professionValue}
+            onChange={(e) => setProfessionValue(e.target.value)}
+          >
+            <option value="">All Professions</option>
+            {PROFESSIONS.map((prof) => (
+              <option key={prof} value={prof}>
+                {prof}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       <div>
-        <table className="table-auto w-full ">
-          <thead className="bg-gold text-white text-left rounded-md">
+        <table className="min-w-full border rounded-lg overflow-hidden shadow-md">
+          <thead className="bg-warning text-white">
             <tr>
-              <th className="p-3">
-                <input
-                  type="checkbox"
-                  onChange={(e) => {
-                    if (e.target.checked === true) {
-                      allChecked.push(...users);
-                      // console.log(users)
-                    } else {
-                      // allChecked = []
-                    }
-                    setCheckedAll(e.target.checked);
-                  }}
-                />
-              </th>
-              <th className="p-3">User</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">User Description</th>
-              <th className="p-3">Location</th>
-              <th className="p-3">Interest</th>
-              <th className="p-3">Action</th>
+              <th className="p-3 font-semibold text-left">Select</th>
+              <th className="p-3 font-semibold text-left">Name</th>
+              <th className="p-3 font-semibold text-left">Email</th>
+              <th className="p-3 font-semibold text-left">Account Type</th>
+              <th className="p-3 font-semibold text-left">Profession</th>
+              <th className="p-3 font-semibold text-left">Status</th>
+              <th className="p-3 font-semibold text-left">Location</th>
+              <th className="p-3 font-semibold text-left">Action</th>
             </tr>
           </thead>
           <tbody>
-            {users?.map((user, index) =>
-              (categoryValue === undefined &&
-                country === undefined &&
-                role === "") ||
-              user.accountType === role ||
-              (user.interests && user.interests.includes(categoryValue)) ||
-              user.country === country ? (
-                <tr key={index}>
+            {users
+              ?.filter((user) => {
+                // Search filter
+                if (searchValue && searchValue.trim() !== "") {
+                  const val = searchValue.trim().toLowerCase();
+                  const matches =
+                    (user.name && user.name.toLowerCase().includes(val)) ||
+                    (user.email && user.email.toLowerCase().includes(val)) ||
+                    (user.profession && user.profession.toLowerCase().includes(val));
+                  if (!matches) return false;
+                }
+                // If 'All' or empty is selected for both filters, show all users
+                const roleIsAll = !role || role === "" || role === "All";
+                const profIsAll = !professionValue || professionValue === "" || professionValue === "All";
+                const countryIsAll = !country || country === "" || country === "All";
+                if (roleIsAll && profIsAll && countryIsAll && !searchValue) return true;
+                if (!roleIsAll && user.accountType !== role) return false;
+                if (!profIsAll && user.profession !== professionValue) return false;
+                if (!countryIsAll && user.country !== country) return false;
+                return true;
+              })
+              .map((user, index) => (
+                <tr key={index} className={index % 2 === 0 ? "bg-[#F9FAFB] hover:bg-[#FFF7E6]" : "bg-white hover:bg-[#FFF7E6]"}>
                   <td className="p-3">
                     <input
                       type="checkbox"
@@ -235,41 +254,26 @@ const User = () => {
                       }}
                     />
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 font-medium">
                     <a
-                      className="text-[#000]"
+                      className="text-warning hover:underline"
                       href={`https://www.theplaint.org/user?page=${user?._id}`}
                       target="_blank"
                     >
                       {user?.name}
-                    </a>{" "}
+                    </a>
                   </td>
+                  <td className="p-3 text-gray-700">{user?.email || "-"}</td>
+                  <td className="p-3 text-gray-700">{user?.accountType || user?.role || "-"}</td>
+                  <td className="p-3 text-gray-700">{user?.profession || "-"}</td>
                   <td className="p-3">
                     {user?.isActive ? (
-                      <button className="rounded-full bg-[#00401C] p-1">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          fill="#fff"
-                          className="bi bi-check"
-                          viewBox="0 0 16 16"
-                        >
-                          <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z" />
-                        </svg>
-                      </button>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#00401C] text-white text-xs font-semibold">Active</span>
                     ) : (
-                      <button className="rounded-full bg-[#970808] p-3"></button>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#970808] text-white text-xs font-semibold">Inactive</span>
                     )}
                   </td>
-                  <td className="p-3">
-                    {user?.description?.substring(0, 20)}
-                    {user?.description?.length > 20 ? "..." : null}
-                  </td>
-                  <td>
-                    {user?.city}, {user?.country}
-                  </td>
-                  <td className="p-3">{user?.interests?.length ? user?.interests[0] : ""}</td>
+                  <td className="p-3 text-gray-700">{user?.city || "-"}{user?.country ? `, ${user.country}` : ""}</td>
                   <td className="p-3">
                     <Dropdown
                       placement="rightStart"
@@ -283,28 +287,26 @@ const User = () => {
                       noCaret
                     >
                       <Dropdown.Item>
-                        {" "}
                         <a
                           href={`https://www.theplaint.org/messages?page=${user?._id}`}
                           target="_blank"
+                          className="text-warning"
                         >
                           Send Message
-                        </a>{" "}
+                        </a>
                       </Dropdown.Item>
                       <Dropdown.Item>
-                        {" "}
                         <p
                           onClick={() => editUser(user._id, user.isActive)}
-                          className="cursor-pointer"
+                          className="cursor-pointer text-[#970808]"
                         >
                           Block User
-                        </p>{" "}
+                        </p>
                       </Dropdown.Item>
                       <Dropdown.Item>
-                        {" "}
                         <p
                           onClick={() => editUser(user._id, user.isActive)}
-                          className="cursor-pointer"
+                          className="cursor-pointer text-[#00401C]"
                         >
                           Activate User
                         </p>
@@ -312,8 +314,7 @@ const User = () => {
                     </Dropdown>
                   </td>
                 </tr>
-              ) : null
-            )}
+              ))}
           </tbody>
         </table>
       </div>
