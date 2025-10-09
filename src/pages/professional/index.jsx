@@ -21,7 +21,7 @@ const Professionals = () => {
   const user = getCookie("user");
   const { query } = useRouter()
   const [active, setActive] = useState("summary");
-  const [manage, setManage] = useState("petition")
+  const [manage, setManage] = useState("post")
   const [activities, setActivities] = useState([])
   const [users, setUsers] = useState([])
 

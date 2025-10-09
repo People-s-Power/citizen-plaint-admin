@@ -194,7 +194,7 @@ const User = () => {
             value={professionValue}
             onChange={(e) => setProfessionValue(e.target.value)}
           >
-            <option value="">All Professions</option>
+            <option value="">All Virtual Assistants</option>
             {PROFESSIONS.map((prof) => (
               <option key={prof} value={prof}>
                 {prof}
