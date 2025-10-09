@@ -182,10 +182,10 @@ const User = () => {
             <option className="hidden" value="">
               Select a user category
             </option>
-            <option value="All">All</option>
-            <option value="Campaigner">Campaigner</option>
+            <option value="All">All Users</option>
+            {/* <option value="Campaigner">Campaigner</option> */}
             <option value="Organization">Organization</option>
-            <option value="Staff">Staff</option>
+            {/* <option value="Staff">Staff</option> */}
             <option value="Admin">Admin</option>
             <option value="Editor">Editor</option>
           </select>
