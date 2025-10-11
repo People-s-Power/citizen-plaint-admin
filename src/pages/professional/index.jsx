@@ -32,6 +32,7 @@ const Professionals = () => {
   const [petition, setPetitions] = useState([])
   const [update, setUpdates] = useState([])
   const [victory, setVictory] = useState([])
+  const [invites, setInvites] = useState([])
 
   const [open, setOpen] = useState(false)
   const [openPetition, setOpenPetition] = useState(false)
@@ -225,6 +226,20 @@ const Professionals = () => {
                   </div>
                 </Link>
               )) : <div className='text-center my-4 text-xl'>You are not assigned to any organization</div>}
+              <div>
+                <h3>Invites</h3>
+                {invites.length > 0 ? invites?.map((org, index) => (
+                  <div key={index} className='flex my-4 rounded-md justify-between p-4 bg-[#F5F6FA]'>
+                    <div className='flex'>
+                      <img className='w-12 h-12 rounded-full' src={org.image} alt="" />
+                      <p className='text-xl text-[#000] my-auto ml-6 font-bold'>{org.name}</p>
+                    </div>
+                    <div className='flex space-x-4 my-auto'>
+                      <button className='bg-[#008000] text-white px-4 py-2 rounded'>Accept</button>
+                      <button className='bg-[#FF0000] text-white px-4 py-2 rounded'>Decline</button>
+                    </div>
+                  </div>)) : <div className='text-center my-4 text-xl'>No new invites</div>}
+              </div>
             </div> : <section>
               <div className='w-20'>
                 <div onClick={() => window.location = '/professional'} className='flex cursor-pointer'>
