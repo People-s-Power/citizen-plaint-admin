@@ -14,6 +14,7 @@ import Table from '@/components/Table';
 import Tasks from '@/components/Tasks';
 import Reviews from '@/components/modals/Reviews';
 import MessagesComponent from '@/components/MessageComponent';
+import AppointmentComp from '@/components/AppointmentComp';
 
 const Professionals = () => {
   const [userDeeds, setUser] = useState()
@@ -263,6 +264,17 @@ const Professionals = () => {
                 >
                   Tasks
                 </div>
+
+                <div
+                  onClick={() => setActive("calendar")}
+                  className={
+                    active === "calendar"
+                      ? "border-b border-warning cursor-pointer"
+                      : "cursor-pointer"
+                  }
+                >
+                  Calendar
+                </div>
                 <div
                   onClick={() => setActive("social")}
                   className={
@@ -397,6 +409,8 @@ const Professionals = () => {
                       return <Tasks />
                     case "message":
                       return <MessagesComponent />;
+                    case "calendar":
+                      return <AppointmentComp />
                     case "social":
                       return <div className='text-lg text-center my-8'>Comming Soon</div>
                   }
