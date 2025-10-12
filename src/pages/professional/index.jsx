@@ -226,7 +226,7 @@ const Professionals = () => {
                   </div>
                 </Link>
               )) : <div className='text-center my-4 text-xl'>You are not assigned to any organization</div>}
-              <div>
+              {/* <div>
                 <h3>Invites</h3>
                 {invites.length > 0 ? invites?.map((org, index) => (
                   <div key={index} className='flex my-4 rounded-md justify-between p-4 bg-[#F5F6FA]'>
@@ -239,7 +239,7 @@ const Professionals = () => {
                       <button className='bg-[#FF0000] text-white px-4 py-2 rounded'>Decline</button>
                     </div>
                   </div>)) : <div className='text-center my-4 text-xl'>No new invites</div>}
-              </div>
+              </div> */}
             </div> : <section>
               <div className='w-20'>
                 <div onClick={() => window.location = '/professional'} className='flex cursor-pointer'>
