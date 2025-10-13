@@ -32,7 +32,8 @@ const Professionals = () => {
   const [petition, setPetitions] = useState([])
   const [update, setUpdates] = useState([])
   const [victory, setVictory] = useState([])
-  const [invites, setInvites] = useState([])
+  const [invite, setInvite] = useState(false)
+
 
   const [open, setOpen] = useState(false)
   const [openPetition, setOpenPetition] = useState(false)
@@ -222,7 +223,14 @@ const Professionals = () => {
                       <img className='w-12 h-12 rounded-full' src={org.image} alt="" />
                       <p className='text-xl text-[#000] my-auto ml-6 font-bold'>{org.name}</p>
                     </div>
-                    <p className='text-[#000] my-auto' onClick={() => setOpen(true)}>Reviews & rating</p>
+                    <div className='w-1/2 flex justify-end gap-4'>
+                      {invite && <div className='flex space-x-4 my-auto'>
+                        <button className='bg-[#008000] text-white px-4 py-2 rounded'>Accept</button>
+                        <button className='bg-[#FF0000] text-white px-4 py-2 rounded'>Decline</button>
+                      </div>}
+
+                      <p className='text-[#000] my-auto' onClick={() => setOpen(true)}>Reviews & rating</p>
+                    </div>
                   </div>
                 </Link>
               )) : <div className='text-center my-4 text-xl'>You are not assigned to any organization</div>}

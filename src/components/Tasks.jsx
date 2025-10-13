@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useAtom } from 'jotai';
 import { adminAtom } from '@/atoms/adminAtom';
 import Reviews from './modals/Reviews';
+import { getCookie } from "cookies-next";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -11,6 +12,7 @@ const Tasks = () => {
   const [dropdownOpen, setDropdownOpen] = useState(null);
   const [admin] = useAtom(adminAtom);
   const router = useRouter();
+  const user = getCookie("user");
 
   const getTasks = async () => {
     try {
@@ -44,7 +46,7 @@ const Tasks = () => {
         setTasks(allTasks);
       } else {
         const assignedTasks = allTasks.filter(
-          task => Array.isArray(task.assigne) && task.assigne.includes(profId)
+          task => Array.isArray(task.assigne) && task.assigne.includes(user)
         );
         setTasks(assignedTasks);
       }
@@ -117,7 +119,7 @@ const Tasks = () => {
                       {(isAdminRoute ? allStatusOptions : userStatusOptions).map((option) => (
                         <button
                           key={option.value}
-                          onClick={() => updateStatus(task._id, option.value)}
+                          onClick={() => { updateStatus(task._id, option.value) }}
                           className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                         >
                           {option.label}
