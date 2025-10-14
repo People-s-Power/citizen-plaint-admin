@@ -16,12 +16,13 @@ module.exports = {
         lg: "1024px",
         xl: "1280px",
       },
+      colors: {
+        warning: "#FFC107",
+        gold: "#C98821",
+        white: "#FFFFFF",
+        "primary-new": '#FDC332',
+      }
     },
-    colors: {
-      warning: "#FFC107",
-      gold: "#C98821",
-      white: "#FFFFFF",
-    }
   },
   plugins: [],
 }

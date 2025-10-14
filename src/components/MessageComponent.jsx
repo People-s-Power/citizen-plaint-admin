@@ -362,7 +362,7 @@ const MessagesComponent = () => {
     // )
 
     return (
-        <div className="lg:flex lg:px-32 sm:p-6">
+        <div className="lg:flex sm:p-6">
 
             {error && (
                 <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50">
@@ -388,7 +388,7 @@ const MessagesComponent = () => {
                         </Whisper>
                     </div>
                 )} */}
-                <input type="text" className="p-2 rounded-md w-full" onChange={(e) => search(e.target.value)} placeholder="Search Messages" />
+                <input type="text" className="p-2 border rounded-md w-full" onChange={(e) => search(e.target.value)} placeholder="Search Messages" />
                 {messages &&
                     messages.map((item, index) => (
                         <div key={index} className={
