@@ -8,10 +8,13 @@ import ReactTimeAgo from "react-time-ago"
 import Online from "./Online"
 import { socket } from "../pages/_app"
 
+import { useAtom } from 'jotai';
+import { adminAtom } from '@/atoms/adminAtom';
 
 
 const MessagesComponent = () => {
     const { query } = useRouter();
+    const [admin] = useAtom(adminAtom);
 
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
@@ -201,6 +204,10 @@ const MessagesComponent = () => {
 
     useEffect(() => {
         getDm()
+        const found = admin.orgOperating.find(single => single._id === query.page);
+        console.log(found)
+        setActive(found)
+
     }, [])
 
     useEffect(() => {
@@ -371,23 +378,23 @@ const MessagesComponent = () => {
             )}
             <div className="lg:w-[40%] overflow-y-auto h-full">
                 <div className="text-lg p-3">Messages</div>
-                {/* {orgs && (
-                    <div className="my-2 bg-warning p-2 rounded-md">
-                        <Whisper placement="bottom" trigger="click" speaker={speaker}>
-                            <div className="flex justify-between ">
-                                <div className="flex cursor-pointer">
-                                    <img src={active?.image} className="w-10 h-10 rounded-full mr-4" alt="" />
-                                    <div className="text-sm my-auto">{active?.name}</div>
-                                </div>
-                                <div className="my-auto">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#ffffff" className="bi bi-caret-down-fill" viewBox="0 0 16 16">
-                                        <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </Whisper>
+                {/* {orgs && ( */}
+                <div className="my-2 bg-warning p-2 rounded-md">
+                    {/* <Whisper placement="bottom" trigger="click" speaker={speaker}> */}
+                    <div className="flex justify-between ">
+                        <div className="flex cursor-pointer">
+                            <img src={active?.image} className="w-10 h-10 rounded-full mr-4" alt="" />
+                            <div className="text-sm my-auto">{active?.name}</div>
+                        </div>
+                        <div className="my-auto">
+                            {/* <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#ffffff" className="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+                            </svg> */}
+                        </div>
                     </div>
-                )} */}
+                    {/* </Whisper> */}
+                </div>
+                {/* )} */}
                 <input type="text" className="p-2 border rounded-md w-full" onChange={(e) => search(e.target.value)} placeholder="Search Messages" />
                 {messages &&
                     messages.map((item, index) => (
