@@ -32,32 +32,29 @@ const Tasks = () => {
       console.log(e);
     }
   };
-
+  
   const updateStatus = async (id, newStatus) => {
     try {
       const profId = admin?._id || admin?.id;
-      const { data } = await axios.post(`auth/task/${id}`, {
-        status: newStatus,
-        prof: profId
-      });
-      const allTasks = data.data.tasks.tasks;
 
-      if (router.pathname.startsWith('/admin')) {
-        setTasks(allTasks);
-      } else {
-        const assignedTasks = allTasks.filter(
-          task => Array.isArray(task.assigne) && task.assigne.includes(user)
-        );
-        setTasks(assignedTasks);
-      }
-
+      // Close dropdown immediately
       setDropdownOpen(null);
-      getTasks();
+
+      await axios.post(`auth/task/${id}`, {
+        status: newStatus,
+        prof: profId,
+      });
+
+      // Fetch updated tasks
+      await getTasks();
+
+      // Open review modal if done
       if (newStatus === "DONE") setOpen(true);
     } catch (e) {
       console.log(e);
     }
   };
+
 
   useEffect(() => {
     getTasks();
@@ -87,11 +84,11 @@ const Tasks = () => {
       <table className="table-auto w-full">
         <thead className="bg-gold text-white text-left rounded-md">
           <tr>
-            <th className="p-3">Date</th>
-            <th className="p-3">Name</th>
             <th className="p-3">Author</th>
-            <th className="p-3">Status</th>
+            <th className="p-3">Name</th>
+            <th className="p-3">Date</th>
             <th className="p-3">Due Date</th>
+            <th className="p-3">Status</th>
             <th className="p-3">Action</th>
           </tr>
         </thead>
@@ -99,17 +96,17 @@ const Tasks = () => {
           {tasks.length > 0 ? (
             tasks.map((task) => (
               <tr key={task._id} className="border-b hover:bg-gray-50">
-                <td className="p-3">{task.createdAt?.substring(0, 10)}</td>
-                <td className="p-3">{task.name}</td>
                 <td className="p-3">{task.author?.name}</td>
-                <td className="p-3 font-medium">{task.status}</td>
+                <td className="p-3">{task.name}</td>
+                <td className="p-3">{task.createdAt?.substring(0, 10)}</td>
                 <td className="p-3">{task.dueDate?.substring(0, 10)}</td>
+                <td className="p-3 font-medium">{task.status}</td>
                 <td className="p-3 relative">
                   <button
                     onClick={() =>
                       setDropdownOpen(dropdownOpen === task._id ? null : task._id)
                     }
-                    className="p-2 bg-gray-700 rounded-md text-sm"
+                    className="p-2 bg-gray-100 rounded-md text-sm"
                   >
                     {task.status ? `${task.status} ▾` : "Change Status ▾"}
                   </button>

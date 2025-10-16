@@ -592,7 +592,7 @@ const MessagesComponent = () => {
                             <button className="p-2 bg-warning w-44 mx-auto text-white rounded-md">Learn More</button>
                         </a>
                     </div> :
-                        show?.blocked !== true ? (show !== null || query.page !== undefined ? (
+                        show?.blocked !== true ? (show !== null ? (
                             <div className="fixed bottom-0 lg:w-[45%] sm:left-0 w-full bg-white ">
                                 <div className="flex relative">
                                     <textarea
