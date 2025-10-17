@@ -33,6 +33,7 @@ const Professionals = () => {
   const [update, setUpdates] = useState([])
   const [victory, setVictory] = useState([])
   const [invite, setInvite] = useState(false)
+  const [tasks, setTasks] = useState([])
 
 
   const [open, setOpen] = useState(false)
@@ -55,6 +56,25 @@ const Professionals = () => {
       setOpenVictory(true)
     }
   }
+
+  const getTasks = async () => {
+    try {
+      const { data } = await axios.get("auth/task?page=1&limit=20");
+      const allTasks = data.data.tasks.tasks;
+
+      if (router.pathname.startsWith('/admin')) {
+        setTasks(allTasks);
+      } else {
+        const profId = admin?._id || admin?.id;
+        const assignedTasks = allTasks.filter(
+          task => Array.isArray(task.assigne) && task.assigne.includes(profId)
+        );
+        setTasks(assignedTasks);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const getUser = async () => {
     try {
@@ -325,8 +345,8 @@ const Professionals = () => {
                   switch (active) {
                     case "summary":
                       return <div>
-                        <div className="flex justify-between flex-wrap">
-                          <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                        <div className="grid grid-cols-4 gap-4">
+                          <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                             <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('post') }}>
                               <p className="text-white">Total Number Of Post</p>
                               <h1 className="text-2xl text-white font-bold mt-4">{post.length}</h1>
@@ -337,7 +357,7 @@ const Professionals = () => {
                               </svg>
                             </div>
                           </div>
-                          <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                          <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                             <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('petition') }}>
                               <p className="text-white">Total Number Of Petitions</p>
                               <h1 className="text-2xl text-white font-bold mt-4">{petition.length}</h1>
@@ -348,7 +368,7 @@ const Professionals = () => {
                               </svg>
                             </div>
                           </div>
-                          <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                          {/* <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                             <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('advert') }}>
                               <p className="text-white">Total Number Of Adverts</p>
                               <h1 className="text-2xl text-white font-bold mt-4">{advert.length}</h1>
@@ -358,19 +378,19 @@ const Professionals = () => {
                                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
                               </svg>
                             </div>
-                          </div>
-                          <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                          </div> */}
+                          <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                             <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('event') }}>
                               <p className="text-white">Total Number Of Events</p>
                               <h1 className="text-2xl text-white font-bold mt-4">{event.length}</h1>
                             </div>
-                            <div onClick={() => setOpenEvent(true)} className='mt-auto cursor-pointer'>
+                            <div className='mt-auto cursor-pointer'>
                               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
                                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
                               </svg>
                             </div>
                           </div>
-                          <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                          {/* <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                             <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('victory') }}>
                               <p className="text-white">Total Number Of Victories</p>
                               <h1 className="text-2xl text-white font-bold mt-4">{victory.length}</h1>
@@ -380,17 +400,29 @@ const Professionals = () => {
                                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
                               </svg>
                             </div>
-                          </div>
-                          <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                          </div> */}
+                          {/* <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
                             <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('update') }}>
                               <p className="text-white">Total Number Of Updates</p>
                               <h1 className="text-2xl text-white font-bold mt-4">{update.length}</h1>
                             </div>
                             <div className='mt-auto cursor-pointer'>
-                              {/* <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
                               <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                            </svg> */}
+                            </svg>
                             </div>
+                          </div> */}
+
+                          <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                            <div className='cursor-pointer' onClick={() => setActive("tasks")} >
+                              <p className="text-white">Total Number of Task</p>
+                              <h1 className="text-2xl text-white font-bold mt-4">{tasks.length}</h1>
+                            </div>
+                            {/* <div onClick={() => setOpenPetition(true)} className='mt-auto cursor-pointer'>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
+                              </svg>
+                            </div> */}
                           </div>
                         </div>
                         <p className="text-2xl my-8 text-center text-[#00401C]">Activity Logs</p>
