@@ -223,10 +223,15 @@ const User = () => {
                 // Search filter
                 if (searchValue && searchValue.trim() !== "") {
                   const val = searchValue.trim().toLowerCase();
+                  const professionMatch = user.profession
+                    ? (Array.isArray(user.profession)
+                      ? user.profession.some(prof => prof.name?.toLowerCase().includes(val))
+                      : user.profession.toLowerCase().includes(val))
+                    : false;
                   const matches =
                     (user.name && user.name.toLowerCase().includes(val)) ||
                     (user.email && user.email.toLowerCase().includes(val)) ||
-                    (user.profession && user.profession.toLowerCase().includes(val));
+                    professionMatch;
                   if (!matches) return false;
                 }
                 // If 'All' or empty is selected for both filters, show all users
@@ -235,7 +240,15 @@ const User = () => {
                 const countryIsAll = !country || country === "" || country === "All";
                 if (roleIsAll && profIsAll && countryIsAll && !searchValue) return true;
                 if (!roleIsAll && user.accountType !== role) return false;
-                if (!profIsAll && user.profession !== professionValue) return false;
+                if (!profIsAll) {
+                  // Handle both array and string profession formats
+                  if (Array.isArray(user.profession)) {
+                    const hasMatchingProf = user.profession.some(prof => prof.name === professionValue);
+                    if (!hasMatchingProf) return false;
+                  } else if (user.profession !== professionValue) {
+                    return false;
+                  }
+                }
                 if (!countryIsAll && user.country !== country) return false;
                 return true;
               })
@@ -265,7 +278,13 @@ const User = () => {
                   </td>
                   <td className="p-3 text-gray-700">{user?.email || "-"}</td>
                   <td className="p-3 text-gray-700">{user?.accountType || user?.role || "-"}</td>
-                  <td className="p-3 text-gray-700">{user?.profession || "-"}</td>
+                  <td className="p-3 text-gray-700">
+                    {user?.profession
+                      ? (Array.isArray(user.profession)
+                        ? user.profession.map(prof => prof.name).join(", ")
+                        : user.profession)
+                      : "-"}
+                  </td>
                   <td className="p-3">
                     {user?.isActive ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#00401C] text-white text-xs font-semibold">Active</span>
