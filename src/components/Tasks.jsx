@@ -4,12 +4,15 @@ import { useRouter } from 'next/router';
 import { useAtom } from 'jotai';
 import { adminAtom } from '@/atoms/adminAtom';
 import Reviews from './modals/Reviews';
+import TaskViewModal from './modals/TaskViewModal';
 import { getCookie } from "cookies-next";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const [open, setOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const [admin] = useAtom(adminAtom);
   const router = useRouter();
   const user = getCookie("user");
@@ -32,7 +35,7 @@ const Tasks = () => {
       console.log(e);
     }
   };
-  
+
   const updateStatus = async (id, newStatus) => {
     try {
       const profId = admin?._id || admin?.id;
@@ -79,6 +82,11 @@ const Tasks = () => {
   // Choose correct status set depending on route
   const isAdminRoute = router.pathname.startsWith('/admin');
 
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+    setViewModalOpen(true);
+  };
+
   return (
     <div>
       <table className="table-auto w-full">
@@ -97,7 +105,14 @@ const Tasks = () => {
             tasks.map((task) => (
               <tr key={task._id} className="border-b hover:bg-gray-50">
                 <td className="p-3">{task.author?.name}</td>
-                <td className="p-3">{task.name}</td>
+                <td className="p-3">
+                  <button
+                    onClick={() => handleTaskClick(task)}
+                    className="hover:underline font-medium cursor-pointer text-left"
+                  >
+                    {task.name}
+                  </button>
+                </td>
                 <td className="p-3">{task.createdAt?.substring(0, 10)}</td>
                 <td className="p-3">{task.dueDate?.substring(0, 10)}</td>
                 <td className="p-3 font-medium">{task.status}</td>
@@ -138,6 +153,14 @@ const Tasks = () => {
       </table>
 
       <Reviews open={open} handelClick={() => setOpen(false)} />
+      <TaskViewModal
+        open={viewModalOpen}
+        task={selectedTask}
+        onClose={() => {
+          setViewModalOpen(false);
+          setSelectedTask(null);
+        }}
+      />
     </div>
   );
 };
