@@ -42,6 +42,7 @@ const Professionals = () => {
   const [openAdvert, setOpenAdvert] = useState(false)
   const [openEvent, setOpenEvent] = useState(false)
   const [openVictory, setOpenVictory] = useState(false)
+  const [processingInvitation, setProcessingInvitation] = useState(null)
 
   const UploadTrigger = () => {
     if (manage === "petition") {
@@ -82,7 +83,10 @@ const Professionals = () => {
         `/user/single/${user}`,
       );
       setUser(data.data.user)
-      setOrgs(data.data.user.orgOperating)
+      // Only set orgs from user data, don't append
+      if (data.data.user.orgOperating) {
+        setOrgs(data.data.user.orgOperating)
+      }
       console.log(data.data)
     } catch (e) {
       console.log(e);
@@ -112,27 +116,90 @@ const Professionals = () => {
     }
   }
 
-  const getUsers = () => {
+  const getOrgs = async () => {
     try {
-      axios.get("/user").then((res) => {
-        // console.log(res.data.data);
-        setUsers(res.data.data.users);
-      });
+      //       const { data } = await axios.get(SERVER_URL +`/api/v5/organization/invitations/pending/${user}`);
+      const { data } = await axios.get(`${SERVER_URL}/api/v5/organization/invitations/pending/${user}`);
+      console.log('Pending invitations:', data);
+      // Append pending invitations to existing orgs
+      if (data && Array.isArray(data)) {
+        setOrgs(prevOrgs => {
+          // Filter out duplicates based on _id
+          const existingIds = new Set(prevOrgs.map(org => org._id));
+          const newOrgs = data.filter(org => !existingIds.has(org._id));
+          return [...prevOrgs, ...newOrgs];
+        });
+      }
     } catch (err) {
       console.log(err);
     }
   }
 
+  const handleAcceptInvitation = async (invitationId) => {
+    if (processingInvitation) return;
+
+    try {
+      setProcessingInvitation(invitationId);
+      const { data } = await axios.post(`${SERVER_URL}/api/v5/organization/invitations/accept`, {
+        orgId: invitationId,
+        userId: user
+      });
+      console.log('Invitation accepted:', data);
+
+      // Refresh the organizations list
+      setOrgs([]);
+      await getUser();
+      await getOrgs();
+
+      // Optional: Show success message
+      alert('Invitation accepted successfully!');
+    } catch (err) {
+      console.error('Error accepting invitation:', err);
+      alert('Failed to accept invitation. Please try again.');
+    } finally {
+      setProcessingInvitation(null);
+    }
+  }
+
+  const handleRejectInvitation = async (invitationId) => {
+    if (processingInvitation) return;
+
+    try {
+      setProcessingInvitation(invitationId);
+      const { data } = await axios.post(`${SERVER_URL}/api/v5/organization/invitations/reject`, {
+        orgId: invitationId,
+        userId: user
+      });
+      console.log('Invitation rejected:', data);
+
+      // Remove the rejected invitation from the list
+      setOrgs(prevOrgs => prevOrgs.filter(org => org._id || org.organizationId !== invitationId));
+
+      // Optional: Show success message
+      alert('Invitation rejected successfully!');
+    } catch (err) {
+      console.error('Error rejecting invitation:', err);
+      alert('Failed to reject invitation. Please try again.');
+    } finally {
+      setProcessingInvitation(null);
+    }
+  }
+
   useEffect(() => {
     // console.log(query.page)
-    getActivities()
-    getUser()
-    getPetition()
-    getPost()
-    getEvents()
-    getAdvert()
-    getVictories()
-    getUpdates()
+    const fetchData = async () => {
+      await getUser(); // Get user data first (sets initial orgs)
+      await getOrgs(); // Then get pending invitations (appends without duplicates)
+      getActivities();
+      getPetition();
+      getPost();
+      getEvents();
+      getAdvert();
+      getVictories();
+      getUpdates();
+    };
+
+    fetchData();
   }, [query.page === undefined])
 
 
@@ -233,23 +300,46 @@ const Professionals = () => {
               {orgs.length > 0 ? orgs?.map((org, index) => (
                 <Link
                   key={index}
-                  href={`?page=${org._id}`}
-                  onClick={() => {
-                    cookie.set('org', org._id);
+                  href={org.status === "Pending" ? "#" : `?page=${org._id}`}
+                  onClick={(e) => {
+                    if (org.status !== "Pending") {
+                      cookie.set('org', org.organizationId || org._id);
+                    } else {
+                      e.preventDefault();
+                    }
                   }}
                 >
                   <div className='flex my-4 rounded-md justify-between p-4 bg-[#F5F6FA]'>
                     <div className='flex'>
-                      <img className='w-12 h-12 rounded-full' src={org.image} alt="" />
-                      <p className='text-xl text-[#000] my-auto ml-6 font-bold'>{org.name}</p>
+                      <img className='w-12 h-12 rounded-full' src={org.image || org.organizationImage} alt="" />
+                      <p className='text-xl text-[#000] my-auto ml-6 font-bold'>{org.name || org.organizationName}</p>
                     </div>
                     <div className='w-1/2 flex justify-end gap-4'>
-                      {invite && <div className='flex space-x-4 my-auto'>
-                        <button className='bg-[#008000] text-white px-4 py-2 rounded'>Accept</button>
-                        <button className='bg-[#FF0000] text-white px-4 py-2 rounded'>Decline</button>
+                      {org.status === "Pending" && <div className='flex space-x-4 my-auto'>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAcceptInvitation(org.organizationId);
+                          }}
+                          disabled={processingInvitation === org.organizationId}
+                          className='bg-[#008000] text-white px-4 py-2 rounded hover:bg-[#006600] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                        >
+                          {processingInvitation === org.organizationId ? 'Processing...' : 'Accept'}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleRejectInvitation(org.organizationId);
+                          }}
+                          disabled={processingInvitation === org.organizationId}
+                          className='bg-[#FF0000] text-white px-4 py-2 rounded hover:bg-[#CC0000] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                        >
+                          {processingInvitation === org.organizationId ? 'Processing...' : 'Decline'}
+                        </button>
                       </div>}
-
-                      <p className='text-[#000] my-auto' onClick={() => setOpen(true)}>Reviews & rating</p>
+                      {org.status !== "Pending" && (
+                        <p className='text-[#000] my-auto cursor-pointer' onClick={() => setOpen(true)}>Reviews & rating</p>
+                      )}
                     </div>
                   </div>
                 </Link>
