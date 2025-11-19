@@ -16,9 +16,12 @@ import Reviews from '@/components/modals/Reviews';
 import MessagesComponent from '@/components/MessageComponent';
 import AppointmentComp from '@/components/AppointmentComp';
 import { SERVER_URL } from '../_app';
+import { useAtom } from 'jotai';
+import { accessAtom } from '../../atoms/adminAtom';
 
 const Professionals = () => {
   const [userDeeds, setUser] = useState()
+  const [setAccess] = useAtom(accessAtom);
   const [orgs, setOrgs] = useState([])
   const user = getCookie("user");
   const { query } = useRouter()
@@ -35,6 +38,7 @@ const Professionals = () => {
   const [victory, setVictory] = useState([])
   const [invite, setInvite] = useState(false)
   const [tasks, setTasks] = useState([])
+  const [orgInvites, setOrgInvites] = useState([])
 
 
   const [open, setOpen] = useState(false)
@@ -89,6 +93,20 @@ const Professionals = () => {
         setOrgs(data.data.user.orgOperating)
       }
       console.log(data.data)
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  const getUsers = async () => {
+    try {
+      const { data } = await axios.post(
+        `${SERVER_URL}/api/v5/organization/user/organizations`,
+        { userId: user }
+      );
+      console.log(data)
+      setOrgInvites(data.data.organizations)
+      // setUsers(data.data.users)
     } catch (e) {
       console.log(e);
     }
@@ -197,6 +215,7 @@ const Professionals = () => {
       getAdvert();
       getVictories();
       getUpdates();
+      getUsers();
     };
 
     fetchData();
@@ -304,6 +323,18 @@ const Professionals = () => {
                   onClick={(e) => {
                     if (org.status !== "Pending") {
                       cookie.set('org', org.organizationId || org._id);
+                      // Set access if user is an operator in orgInvites
+                      const orgInvite = orgInvites.find(o => (o.organizationId || o._id) === (org.organizationId || org._id));
+                      if (orgInvite && Array.isArray(orgInvite.operators)) {
+                        const operator = orgInvite.operators.find(op => op.userId === user);
+                        if (operator && operator.access) {
+                          setAccess(operator.access);
+                        } else {
+                          setAccess(null);
+                        }
+                      } else {
+                        setAccess(null);
+                      }
                     } else {
                       e.preventDefault();
                     }
