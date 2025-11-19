@@ -7,6 +7,9 @@ const HTTP_URI = "https://project-experthub.onrender.com/v1";
 
 // const HTTP_URI = "http://localhost:3000/v1";
 export const SERVER_URL = "https://people-powapi-v5-5ifxz.ondigitalocean.app";
+// export const SERVER_URL = "http://localhost:8005"
+
+
 import cookie from "js-cookie"
 
 import TimeAgo from "javascript-time-ago"

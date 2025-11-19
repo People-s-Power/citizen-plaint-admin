@@ -15,6 +15,7 @@ import Tasks from '@/components/Tasks';
 import Reviews from '@/components/modals/Reviews';
 import MessagesComponent from '@/components/MessageComponent';
 import AppointmentComp from '@/components/AppointmentComp';
+import { SERVER_URL } from '../_app';
 
 const Professionals = () => {
   const [userDeeds, setUser] = useState()
@@ -118,7 +119,6 @@ const Professionals = () => {
 
   const getOrgs = async () => {
     try {
-      //       const { data } = await axios.get(SERVER_URL +`/api/v5/organization/invitations/pending/${user}`);
       const { data } = await axios.get(`${SERVER_URL}/api/v5/organization/invitations/pending/${user}`);
       console.log('Pending invitations:', data);
       // Append pending invitations to existing orgs
