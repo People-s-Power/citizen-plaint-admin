@@ -18,15 +18,18 @@ import AppointmentComp from '@/components/AppointmentComp';
 import { SERVER_URL } from '../_app';
 import { useAtom } from 'jotai';
 import { accessAtom } from '../../atoms/adminAtom';
+import { checkAccess } from '@/utils/accessUtils';
 
 const Professionals = () => {
   const [userDeeds, setUser] = useState()
-  const [setAccess] = useAtom(accessAtom);
+  const [access, setAccess] = useAtom(accessAtom);
   const [orgs, setOrgs] = useState([])
   const user = getCookie("user");
   const { query } = useRouter()
-  const [active, setActive] = useState("summary");
-  const [manage, setManage] = useState("post")
+  // Defer default active tab until access is known to avoid showing 'summary' by default
+  const [active, setActive] = useState(null);
+  // determine manage dynamically from access; start as null until access is known
+  const [manage, setManage] = useState(null);
   const [activities, setActivities] = useState([])
   const [users, setUsers] = useState([])
 
@@ -51,17 +54,61 @@ const Professionals = () => {
 
   const UploadTrigger = () => {
     if (manage === "petition") {
-      setOpenPetition(true)
+      // only allow starting a petition when user has Make Petitions permission
+      if (checkAccess(access, 'Make Petitions')) {
+        setOpenPetition(true)
+      } else {
+        alert('You do not have permission to create petitions.')
+      }
     } else if (manage === "advert") {
       setOpenAdvert(true)
     } else if (manage === "post") {
-      setOpenPost(true)
+      // allow creating posts only when user has Make Posts permission
+      if (checkAccess(access, 'Make Posts') || checkAccess(access, 'Create Posts')) {
+        setOpenPost(true)
+      } else {
+        alert('You do not have permission to create posts.')
+      }
     } else if (manage === "event") {
-      setOpenEvent(true)
+      // allow creating events only when user has Create Events permission
+      if (checkAccess(access, 'Create Events') || checkAccess(access, 'Make Events')) {
+        setOpenEvent(true)
+      } else {
+        alert('You do not have permission to create events.')
+      }
     } else if (manage === "victory") {
       setOpenVictory(true)
     }
   }
+
+  // Safe mapping for Table contents to avoid eval
+  const contentMap = {
+    post,
+    petition,
+    event,
+    advert,
+    victory,
+    update
+  }
+
+  // compute a sensible default for manage once access is loaded
+  useEffect(() => {
+    if (manage !== null) return; // already set
+
+    const pickDefault = () => {
+      if (checkAccess(access, 'View Posts')) return 'post'
+      if (checkAccess(access, 'View Petitions')) return 'petition'
+      if (checkAccess(access, 'View Events')) return 'event'
+      // if (checkAccess(access, 'View Adverts')) return 'advert'
+      // if (checkAccess(access, 'View Victories')) return 'victory'
+      // if (checkAccess(access, 'View Updates')) return 'update'
+
+      return 'petition'
+    }
+
+    const def = pickDefault()
+    setManage(def)
+  }, [access, manage])
 
   const getTasks = async () => {
     try {
@@ -105,7 +152,7 @@ const Professionals = () => {
         { userId: user }
       );
       console.log(data)
-      setOrgInvites(data.data.organizations)
+      setOrgInvites(data)
       // setUsers(data.data.users)
     } catch (e) {
       console.log(e);
@@ -216,6 +263,11 @@ const Professionals = () => {
       getVictories();
       getUpdates();
       getUsers();
+      // set default active once access is available
+      if (active === null) {
+        const hasDashboard = checkAccess(access, ['View Dashboard']);
+        setActive(hasDashboard ? 'summary' : 'content');
+      }
     };
 
     fetchData();
@@ -328,6 +380,7 @@ const Professionals = () => {
                       if (orgInvite && Array.isArray(orgInvite.operators)) {
                         const operator = orgInvite.operators.find(op => op.userId === user);
                         if (operator && operator.access) {
+                          console.log(operator.access);
                           setAccess(operator.access);
                         } else {
                           setAccess(null);
@@ -375,39 +428,29 @@ const Professionals = () => {
                   </div>
                 </Link>
               )) : <div className='text-center my-4 text-xl'>You are not assigned to any organization</div>}
-              {/* <div>
-                <h3>Invites</h3>
-                {invites.length > 0 ? invites?.map((org, index) => (
-                  <div key={index} className='flex my-4 rounded-md justify-between p-4 bg-[#F5F6FA]'>
-                    <div className='flex'>
-                      <img className='w-12 h-12 rounded-full' src={org.image} alt="" />
-                      <p className='text-xl text-[#000] my-auto ml-6 font-bold'>{org.name}</p>
-                    </div>
-                    <div className='flex space-x-4 my-auto'>
-                      <button className='bg-[#008000] text-white px-4 py-2 rounded'>Accept</button>
-                      <button className='bg-[#FF0000] text-white px-4 py-2 rounded'>Decline</button>
-                    </div>
-                  </div>)) : <div className='text-center my-4 text-xl'>No new invites</div>}
-              </div> */}
+
             </div> : <section>
               <div className='w-20'>
-                <div onClick={() => window.location = '/professional'} className='flex cursor-pointer'>
+                <div onClick={() => { setAccess(null); window.location = '/professional' }} className='flex cursor-pointer'>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-left-square-fill" viewBox="0 0 16 16">
                     <path d="M16 14a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12zm-4.5-6.5H5.707l2.147-2.146a.5.5 0 1 0-.708-.708l-3 3a.5.5 0 0 0 0 .708l3 3a.5.5 0 0 0 .708-.708L5.707 8.5H11.5a.5.5 0 0 0 0-1z" />
                   </svg> <p className='ml-2'>Back</p>
                 </div>
               </div>
               <div className="flex w-[50%] mx-auto justify-between">
-                <div
-                  onClick={() => setActive("summary")}
-                  className={
-                    active === "summary"
-                      ? "border-b border-warning cursor-pointer"
-                      : "cursor-pointer"
-                  }
-                >
-                  Summary
-                </div>
+                {checkAccess(access, 'View Dashboard') && (
+                  <div
+                    onClick={() => setActive("summary")}
+                    className={
+                      active === "summary"
+                        ? "border-b border-warning cursor-pointer"
+                        : "cursor-pointer"
+                    }
+                  >
+                    Summary
+                  </div>
+                )}
+
                 <div
                   onClick={() => setActive("content")}
                   className={
@@ -449,16 +492,18 @@ const Professionals = () => {
                 >
                   Social Connect
                 </div>
-                <div
-                  onClick={() => setActive("message")}
-                  className={
-                    active === "message"
-                      ? "border-b border-warning cursor-pointer"
-                      : "cursor-pointer"
-                  }
-                >
-                  Messages
-                </div>
+                {checkAccess(access, 'View Messages') && (
+                  <div
+                    onClick={() => setActive("message")}
+                    className={
+                      active === "message"
+                        ? "border-b border-warning cursor-pointer"
+                        : "cursor-pointer"
+                    }
+                  >
+                    Messages
+                  </div>
+                )}
               </div>
 
               <div className="pt-4">
@@ -467,84 +512,56 @@ const Professionals = () => {
                     case "summary":
                       return <div>
                         <div className="grid grid-cols-4 gap-4">
-                          <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                            <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('post') }}>
-                              <p className="text-white">Total Number Of Post</p>
-                              <h1 className="text-2xl text-white font-bold mt-4">{post.length}</h1>
+                          {checkAccess(access, 'View Post Dashboard') && (
+                            <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                              <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('post') }}>
+                                <p className="text-white">Total Number Of Post</p>
+                                <h1 className="text-2xl text-white font-bold mt-4">{post.length}</h1>
+                              </div>
+                              <div onClick={() => setOpenPost(true)} className='mt-auto cursor-pointer'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
+                                </svg>
+                              </div>
                             </div>
-                            <div onClick={() => setOpenPost(true)} className='mt-auto cursor-pointer'>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                              </svg>
-                            </div>
-                          </div>
-                          <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                            <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('petition') }}>
-                              <p className="text-white">Total Number Of Petitions</p>
-                              <h1 className="text-2xl text-white font-bold mt-4">{petition.length}</h1>
-                            </div>
-                            <div onClick={() => setOpenPetition(true)} className='mt-auto cursor-pointer'>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                              </svg>
-                            </div>
-                          </div>
-                          {/* <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                            <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('advert') }}>
-                              <p className="text-white">Total Number Of Adverts</p>
-                              <h1 className="text-2xl text-white font-bold mt-4">{advert.length}</h1>
-                            </div>
-                            <div onClick={() => setOpenAdvert(true)} className='mt-auto cursor-pointer'>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                              </svg>
-                            </div>
-                          </div> */}
-                          <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                            <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('event') }}>
-                              <p className="text-white">Total Number Of Events</p>
-                              <h1 className="text-2xl text-white font-bold mt-4">{event.length}</h1>
-                            </div>
-                            <div className='mt-auto cursor-pointer'>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                              </svg>
-                            </div>
-                          </div>
-                          {/* <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                            <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('victory') }}>
-                              <p className="text-white">Total Number Of Victories</p>
-                              <h1 className="text-2xl text-white font-bold mt-4">{victory.length}</h1>
-                            </div>
-                            <div onClick={() => setOpenVictory(true)} className='mt-auto cursor-pointer'>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                              </svg>
-                            </div>
-                          </div> */}
-                          {/* <div className="w-[32%] my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                            <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('update') }}>
-                              <p className="text-white">Total Number Of Updates</p>
-                              <h1 className="text-2xl text-white font-bold mt-4">{update.length}</h1>
-                            </div>
-                            <div className='mt-auto cursor-pointer'>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                            </svg>
-                            </div>
-                          </div> */}
+                          )}
 
-                          <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                            <div className='cursor-pointer' onClick={() => setActive("tasks")} >
-                              <p className="text-white">Total Number of Task</p>
-                              <h1 className="text-2xl text-white font-bold mt-4">{tasks.length}</h1>
+                          {checkAccess(access, 'Petitions Dashboard') && (
+                            <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                              <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('petition') }}>
+                                <p className="text-white">Total Number Of Petitions</p>
+                                <h1 className="text-2xl text-white font-bold mt-4">{petition.length}</h1>
+                              </div>
+                              <div onClick={() => setOpenPetition(true)} className='mt-auto cursor-pointer'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
+                                </svg>
+                              </div>
                             </div>
-                            {/* <div onClick={() => setOpenPetition(true)} className='mt-auto cursor-pointer'>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                              </svg>
-                            </div> */}
-                          </div>
+                          )}
+
+                          {checkAccess(access, 'Event Dashboard') && (
+                            <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                              <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('event') }}>
+                                <p className="text-white">Total Number Of Events</p>
+                                <h1 className="text-2xl text-white font-bold mt-4">{event.length}</h1>
+                              </div>
+                              <div className='mt-auto cursor-pointer'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
+                                </svg>
+                              </div>
+                            </div>
+                          )}
+
+                          {checkAccess(access, 'Tasks Dashboard') && (
+                            <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                              <div className='cursor-pointer' onClick={() => setActive("tasks")} >
+                                <p className="text-white">Total Number of Task</p>
+                                <h1 className="text-2xl text-white font-bold mt-4">{tasks.length}</h1>
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <p className="text-2xl my-8 text-center text-[#00401C]">Activity Logs</p>
 
@@ -562,15 +579,20 @@ const Professionals = () => {
                         <div className="flex justify-between my-5">
                           <input type="text" className="p-2 rounded-md border w-[30%]" placeholder="Search" />
                           <div className='flex w-[30%]'>
-                            <select onChange={(e) => setManage(e.target.value)} value={manage} className=" p-2 w-52 mr-5 border rounded-md">
-                              <option value="petition">Petition</option>
-                              <option value="post" >Post</option>
-                              <option value="event">Events</option>
+                            <select onChange={(e) => setManage(e.target.value)} value={manage || ''} className=" p-2 w-52 mr-5 border rounded-md">
+                              {checkAccess(access, 'View Petitions') && <option value="petition">Petition</option>}
+                              {checkAccess(access, 'View Posts') && <option value="post" >Post</option>}
+                              {checkAccess(access, 'View Events') && <option value="event">Events</option>}
+                              {/* {checkAccess(access, 'View Adverts') && <option value="advert">Advert</option>}
+                              {checkAccess(access, 'View Victories') && <option value="victory">Victory</option>}
+                              {checkAccess(access, 'View Updates') && <option value="update">Update</option>} */}
+
                               <option value="advert">Advert</option>
                               <option value="victory">Victory</option>
                               <option value="update">Update</option>
+
                             </select>
-                            {manage !== "updates" && <button onClick={() => UploadTrigger()} className='bg-warning px-6 py-1 rounded-md text-white'>
+                            {manage !== "update" && <button onClick={() => UploadTrigger()} className='bg-warning px-6 py-1 rounded-md text-white'>
                               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
                                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
                               </svg>
@@ -578,7 +600,7 @@ const Professionals = () => {
                           </div>
                         </div>
                         <div>
-                          <Table contents={eval(manage)} type={manage} />
+                          <Table contents={manage ? contentMap[manage] || [] : []} type={manage} />
                         </div>
                       </div>;
                     case "tasks":

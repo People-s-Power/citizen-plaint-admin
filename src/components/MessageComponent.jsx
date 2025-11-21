@@ -10,11 +10,14 @@ import { socket } from "../pages/_app"
 
 import { useAtom } from 'jotai';
 import { adminAtom } from '@/atoms/adminAtom';
+import { accessAtom } from '@/atoms/adminAtom';
+import { checkAccess } from '@/utils/accessUtils';
 
 
 const MessagesComponent = () => {
     const { query } = useRouter();
     const [admin] = useAtom(adminAtom);
+    const [access] = useAtom(accessAtom);
 
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
@@ -101,6 +104,14 @@ const MessagesComponent = () => {
                 getDm();
             });
         }
+    }
+
+    const handleDeleteChat = (id) => {
+        if (!checkAccess(access, 'Delete Messages') && !checkAccess(access, 'Manage Messages')) {
+            alert('You do not have permission to delete chats.')
+            return
+        }
+        deleteChat(id)
     }
     // const getSingle = () => {
     //     try {
@@ -231,6 +242,15 @@ const MessagesComponent = () => {
         }
     }
 
+    const handleBlockUser = (id) => {
+        // require permission to block users in messages
+        if (!checkAccess(access, 'Block Users') && !checkAccess(access, 'Manage Messages')) {
+            alert('You do not have permission to block users.')
+            return
+        }
+        blockUser(id)
+    }
+
     const unblockUser = (id) => {
         if (socket && socket.connected && query.page) {
             socket.emit(
@@ -269,6 +289,14 @@ const MessagesComponent = () => {
                 getDm();
             });
         }
+    }
+
+    const handleDeleteDm = (id, msg) => {
+        if (!checkAccess(access, 'Delete Messages') && !checkAccess(access, 'Manage Messages')) {
+            alert('You do not have permission to delete messages.')
+            return
+        }
+        deleteDm(id, msg)
     }
 
     const resolve = (id) => {
@@ -311,6 +339,22 @@ const MessagesComponent = () => {
                 readMessage(id, msg);
             });
         }
+    }
+
+    const handleMarkUnread = (id) => {
+        if (!checkAccess(access, 'Mark Messages') && !checkAccess(access, 'Manage Messages')) {
+            alert('You do not have permission to mark messages unread.')
+            return
+        }
+        markUnRead(id)
+    }
+
+    const handleMarkRead = (id, msg) => {
+        if (!checkAccess(access, 'Mark Messages') && !checkAccess(access, 'Manage Messages')) {
+            alert('You do not have permission to mark messages read.')
+            return
+        }
+        markRead(id, msg)
     }
     // item.users[0]._id === active.id ? item.users[1].name : item.users[0].name
     const search = (value) => {
@@ -480,13 +524,13 @@ const MessagesComponent = () => {
                             </div>
                             <Dropdown placement="leftStart" title={<img className="h-6 w-6" src="/images/edit.svg" alt="" />} noCaret>
                                 <Dropdown.Item>
-                                    <span onClick={() => deleteChat(item.id)}>Delete</span>
+                                    <span onClick={() => handleDeleteChat(item.id)}>Delete</span>
                                 </Dropdown.Item>
                                 <Dropdown.Item>
-                                    <span onClick={() => markUnRead(item.id)}>Mark Unread</span>
+                                    <span onClick={() => handleMarkUnread(item.id)}>Mark Unread</span>
                                 </Dropdown.Item>
                                 <Dropdown.Item>
-                                    <span onClick={() => markRead(item.id, item.messages[item.messages.length - 1]._id)}>Mark Read</span>
+                                    <span onClick={() => handleMarkRead(item.id, item.messages[item.messages.length - 1]._id)}>Mark Read</span>
                                 </Dropdown.Item>
                             </Dropdown>
                         </div>
@@ -571,7 +615,7 @@ const MessagesComponent = () => {
                                         </div>
                                         <Dropdown placement="leftStart" title={<img className="h-6 w-6" src="/images/edit.svg" alt="" />} noCaret>
                                             <Dropdown.Item>
-                                                <span onClick={() => deleteDm(show.id, item._id)}>Delete</span>
+                                                <span onClick={() => handleDeleteDm(show.id, item._id)}>Delete</span>
                                             </Dropdown.Item>
                                         </Dropdown>
                                     </div>
@@ -620,7 +664,7 @@ const MessagesComponent = () => {
                                             <Dropdown.Item>Report User/Ad</Dropdown.Item>
                                         </Link>
                                         <Dropdown.Item>
-                                            <span onClick={() => blockUser(show?.id)}>Block User</span>
+                                            <span onClick={() => handleBlockUser(show?.id)}>Block User</span>
                                         </Dropdown.Item>
                                     </Dropdown>
                                     {star === true && (

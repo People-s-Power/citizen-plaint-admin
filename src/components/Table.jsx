@@ -6,13 +6,34 @@ import axios from "axios"
 import router, { useRouter } from "next/router"
 import DropdownComp from './DropdownComp';
 import AddUpdates from './modals/AddUpdates';
+import { useAtom } from 'jotai';
+import { accessAtom } from '../atoms/adminAtom';
+import { checkAccess } from '@/utils/accessUtils';
 
 const Table = ({ contents, type }) => {
   const { query } = useRouter()
   const [openUpdate, setOpenUpdate] = useState(false)
   const [data, setData] = useState()
+  const [access] = useAtom(accessAtom);
 
   const deleteItem = async (id) => {
+    // determine required permission
+    const permissionMap = {
+      petition: 'Delete Petitions',
+      post: 'Delete Posts',
+      event: 'Delete Events',
+      update: 'Delete Petition Updates',
+      victory: 'Delete Victories',
+      advert: 'Delete Adverts'
+    }
+
+    const required = permissionMap[type] || `Delete ${type}`
+
+    if (!checkAccess(access, required)) {
+      toast.warn('You do not have permission to delete this item.')
+      return
+    }
+
     try {
       const { data } = await axios.put(`${type}/delete-${type}`, {
         orgId: query?.page,
@@ -22,7 +43,7 @@ const Table = ({ contents, type }) => {
       toast(`${type} deleted successfully!`)
     } catch (e) {
       // console.log(e)
-      toast.warn(e.response.data.message)
+      toast.warn(e.response?.data?.message || 'Failed to delete item')
     }
   }
 
@@ -102,7 +123,24 @@ const Table = ({ contents, type }) => {
                   >
                     <DropdownComp data={user} type={type} />
                     {
-                      type === "petition" && <Dropdown.Item>  <p onClick={() => { setData(user), setOpenUpdate(true) }} className="cursor-pointer">Add Update</p></Dropdown.Item>
+                      type === "petition" && (
+                        <Dropdown.Item>
+                          <p
+                            onClick={() => {
+                              // require permission to create petition updates
+                              if (checkAccess(access, 'Make Petition Updates')) {
+                                setData(user);
+                                setOpenUpdate(true);
+                              } else {
+                                toast.warn('You do not have permission to add petition updates.')
+                              }
+                            }}
+                            className="cursor-pointer"
+                          >
+                            Add Update
+                          </p>
+                        </Dropdown.Item>
+                      )
                     }
                     <Dropdown.Item>  <p onClick={() => deleteItem(user._id)} className="cursor-pointer text-[#81171B]">Delete</p></Dropdown.Item>
                     <Dropdown.Item>  <p onClick={() => deleteItem(user._id)} className="cursor-pointer">Share</p></Dropdown.Item>
