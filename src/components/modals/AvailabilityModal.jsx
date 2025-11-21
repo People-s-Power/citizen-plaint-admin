@@ -87,150 +87,101 @@ const Availability = ({ open, handleClick }) => {
     if (!open) return null;
 
     return (
-        <div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div
                 onClick={handleClick}
-                className="fixed cursor-pointer bg-black opacity-50 top-0 left-0 right-0 w-full h-[100vh] z-10"
-            ></div>
+                className="absolute inset-0 bg-black opacity-40"
+            />
 
-            <div className="fixed top-10 bottom-10 left-0 overflow-y-auto rounded-md right-0 lg:w-[70%] w-[95%] mx-auto z-20 bg-[#F8F7F4]">
-                <div className="shadow-[0px_1px_2.8px_0px_#1E1E1E38] p-4 lg:px-12 flex justify-between">
-                    <div className="flex lg:w-[40%] w-[80%] justify-between">
-                        <p
+            <div className="relative w-full max-w-3xl mx-4 bg-white rounded-lg shadow-xl overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b">
+                    <div className="flex space-x-6">
+                        <button
                             onClick={() => setSteps(0)}
-                            className={
-                                steps === 0
-                                    ? 'font-medium border-b border-[#DC9F08] pb-2'
-                                    : 'font-medium cursor-pointer'
-                            }
+                            className={`px-3 py-2 rounded-md focus:outline-none ${steps === 0 ? 'bg-yellow-200 text-gray-800 font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
                             Mode of Appointment
-                        </p>
-                        <p
+                        </button>
+                        <button
                             onClick={() => setSteps(1)}
-                            className={
-                                steps === 1
-                                    ? 'font-medium border-b border-[#DC9F08] pb-2'
-                                    : 'font-medium cursor-pointer'
-                            }
+                            className={`px-3 py-2 rounded-md focus:outline-none ${steps === 1 ? 'bg-yellow-200 text-gray-800 font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
                             Available Time
-                        </p>
+                        </button>
                     </div>
-                    <button className='cursor-pointer' onClick={() => handleClick()}>X</button>
-
-                    {/* <img
-                        onClick={handleClick}
-                        className="w-6 h-6 cursor-pointer"
-                        src="/images/icons/material-symbols_cancel-outline.svg"
-                        alt=""
-                    /> */}
+                    <button onClick={() => handleClick()} className="text-gray-600 hover:text-gray-900">✕</button>
                 </div>
 
-                <div className="lg:w-1/2 w-[90%] mx-auto mt-10">
+                <div className="p-6">
                     <ToastContainer />
                     {steps === 0 && (
-                        <div>
-                            <p>
-                                Setting your mode of Appointment will enable your client reach
-                                out to you either via online, by phone call or your address
-                            </p>
+                        <div className="space-y-6">
+                            <p className="text-gray-700">Setting your mode of Appointment will enable clients to reach you via online, phone, or in-person.</p>
 
-                            <div className="mt-8">
+                            <div className="space-y-3">
                                 {mode.map((single, index) => (
-                                    <div key={index} className="flex my-3">
+                                    <label key={index} className="flex items-center space-x-3">
                                         <input
-                                            onChange={() =>
-                                                handleModeChange(index, 'checked', !single.checked)
-                                            }
+                                            onChange={() => handleModeChange(index, 'checked', !single.checked)}
                                             type="checkbox"
                                             checked={single.checked}
+                                            className="h-4 w-4 text-yellow-500"
                                         />
-                                        <p className="ml-2 capitalize">{single.name}</p>
-                                    </div>
+                                        <span className="capitalize text-gray-800">{single.name}</span>
+                                    </label>
                                 ))}
-
-                                {mode[1].checked && (
-                                    <>
-                                        <p>Appointment Location</p>
-                                        <div className="flex mt-4 justify-between">
-                                            <div className="w-[49%]">
-                                                <input
-                                                    onChange={e => setLocation(e.target.value)}
-                                                    value={location}
-                                                    className="w-full border rounded-md p-3 bg-transparent"
-                                                    placeholder="Place where this Event will be held"
-                                                    type="text"
-                                                />
-                                            </div>
-                                            <div className="w-[49%]">
-                                                <input
-                                                    value={room}
-                                                    onChange={e => setRoom(e.target.value)}
-                                                    className="w-full border rounded-md p-3 bg-transparent"
-                                                    placeholder="Room No."
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
                             </div>
 
-                            <div className="flex justify-evenly w-44 mx-auto mt-6">
-                                <button
-                                    onClick={() => setSteps(1)}
-                                    className="bg-[#FDC332] p-3 rounded-md px-6"
-                                >
-                                    Next
-                                </button>
-                                <button onClick={handleClick}>Cancel</button>
+                            {mode[1].checked && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-sm text-gray-600">Appointment Location</label>
+                                        <input
+                                            onChange={e => setLocation(e.target.value)}
+                                            value={location}
+                                            className="w-full border rounded-md p-3 mt-1"
+                                            placeholder="Place where this Event will be held"
+                                            type="text"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm text-gray-600">Room No.</label>
+                                        <input
+                                            value={room}
+                                            onChange={e => setRoom(e.target.value)}
+                                            className="w-full border rounded-md p-3 mt-1"
+                                            placeholder="Room No."
+                                            type="text"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex justify-end space-x-4">
+                                <button onClick={() => setSteps(1)} className="bg-yellow-500 text-white px-5 py-2 rounded-md">Next</button>
+                                <button onClick={handleClick} className="px-4 py-2 rounded-md border">Cancel</button>
                             </div>
                         </div>
                     )}
 
                     {steps === 1 && (
-                        <div>
-                            <p>Select Appointment day and time</p>
-                            {days.map((day, index) => (
-                                <div key={index} className="flex justify-between my-1">
-                                    <input
-                                        onChange={e => handleChecked(index, e)}
-                                        checked={day.checked}
-                                        type="checkbox"
-                                    />
-                                    <p className="w-24 my-auto">{day.day}</p>
-                                    <input
-                                        value={day.startTime}
-                                        onChange={e =>
-                                            handleDaysInputChange(index, { startTime: e.target.value })
-                                        }
-                                        className={`py-1 px-2 rounded-sm ${day.checked && !day.startTime ? 'border border-red-500' : ''
-                                            }`}
-                                        type="time"
-                                    />
-                                    <p className="my-auto">-</p>
-                                    <input
-                                        value={day.endTime}
-                                        onChange={e =>
-                                            handleDaysInputChange(index, { endTime: e.target.value })
-                                        }
-                                        className={`py-1 px-2 rounded-sm ${day.checked && !day.endTime ? 'border border-red-500' : ''
-                                            }`}
-                                        type="time"
-                                    />
-                                </div>
-                            ))}
+                        <div className="space-y-4">
+                            <p className="text-gray-700">Select appointment day and time</p>
+                            <div className="space-y-2">
+                                {days.map((day, index) => (
+                                    <div key={index} className="flex items-center space-x-3">
+                                        <input onChange={e => handleChecked(index, e)} checked={day.checked} type="checkbox" className="h-4 w-4 text-yellow-500" />
+                                        <div className="w-28 text-gray-700">{day.day}</div>
+                                        <input value={day.startTime} onChange={e => handleDaysInputChange(index, { startTime: e.target.value })} className={`py-2 px-3 rounded-md border ${day.checked && !day.startTime ? 'border-red-500' : 'border-gray-200'}`} type="time" />
+                                        <span className="text-gray-500">to</span>
+                                        <input value={day.endTime} onChange={e => handleDaysInputChange(index, { endTime: e.target.value })} className={`py-2 px-3 rounded-md border ${day.checked && !day.endTime ? 'border-red-500' : 'border-gray-200'}`} type="time" />
+                                    </div>
+                                ))}
+                            </div>
 
-                            <div className="flex justify-evenly mx-auto mt-6">
-                                <button
-                                    onClick={updateAvailability}
-                                    className="bg-[#FDC332] p-3 rounded-md px-6"
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Saving...' : 'Save'}
-                                </button>
-                                <button onClick={handleClick}>Cancel</button>
+                            <div className="flex justify-end space-x-4">
+                                <button onClick={updateAvailability} className="bg-yellow-500 text-white px-5 py-2 rounded-md" disabled={loading}>{loading ? 'Saving...' : 'Save'}</button>
+                                <button onClick={handleClick} className="px-4 py-2 rounded-md border">Cancel</button>
                             </div>
                         </div>
                     )}

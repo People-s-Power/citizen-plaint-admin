@@ -69,8 +69,37 @@ const User = () => {
     }
   };
 
+  const getOrgs = () => {
+    try {
+      axios.get("/org").then((res) => {
+        console.log(res.data.data);
+        const orgs = (res.data?.data?.Organizations || []).map(org => ({
+          ...org,
+          accountType: org.accountType || 'Organization',
+          role: org.role || 'Organization',
+        }));
+        // Merge organizations into existing users array, avoiding duplicates by _id
+        setUsers(prev => {
+          const existing = Array.isArray(prev) ? prev : [];
+          const combined = [...existing, ...orgs];
+          const seen = new Set();
+          return combined.filter(item => {
+            const id = item && (item._id || item.id || item.email);
+            if (!id) return true; // keep items without id
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+          });
+        });
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
     getAll();
+    getOrgs();
   }, []);
 
   const [allChecked, setAllChecked] = useState([]);
