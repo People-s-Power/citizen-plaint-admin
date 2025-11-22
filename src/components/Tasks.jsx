@@ -6,6 +6,7 @@ import { adminAtom } from '@/atoms/adminAtom';
 import Reviews from './modals/Reviews';
 import TaskViewModal from './modals/TaskViewModal';
 import { getCookie } from "cookies-next";
+import { SERVER_URL } from '@/pages/_app';
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -57,6 +58,17 @@ const Tasks = () => {
       console.log(e);
     }
   };
+
+  const toggleLock = async (id) => {
+    try {
+      // call toggle-lock endpoint
+      await axios.post(`${SERVER_URL}/api/v5/tasks/${id}/toggle-lock`);
+      // refresh tasks
+      await getTasks();
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
 
   useEffect(() => {
@@ -126,6 +138,10 @@ const Tasks = () => {
                     {task.status ? `${task.status} ▾` : "Change Status ▾"}
                   </button>
 
+                  <button className='ml-8' onClick={() => toggleLock(task._id)}>
+                    {task.lock ? '🔐' : '🔓'}
+                  </button>
+
                   {dropdownOpen === task._id && (
                     <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-md z-10">
                       {(isAdminRoute ? allStatusOptions : userStatusOptions).map((option) => (
@@ -137,6 +153,7 @@ const Tasks = () => {
                           {option.label}
                         </button>
                       ))}
+
                     </div>
                   )}
                 </td>
