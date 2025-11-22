@@ -324,7 +324,7 @@ const User = () => {
                   <td className="p-3 text-gray-700">{user?.city || "-"}{user?.country ? `, ${user.country}` : ""}</td>
                   <td className="p-3">
                     <Dropdown
-                      placement="rightStart"
+                      placement="leftStart"
                       title={
                         <img
                           className="h-4 w-4"
