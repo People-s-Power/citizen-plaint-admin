@@ -41,26 +41,11 @@ const AppointmentComp = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [query.page]);
 
-    // const [updateAppointmentStatus] = useMutation(DELETE_APPOINTMENT);
-
-    // const { loading } = useQuery(GET_USER_APPOINTMENTS, {
-    //     client: apollo,
-    //     variables: { userId: query.page || user?.id },
-    //     onCompleted: (data) => {
-    //         setAppointments(data?.getUserAppointments || []);
-    //     },
-    //     onError: (err) => console.error(err),
-    // });
-
     const deleteAppointment = async (id) => {
         try {
-            // await updateAppointmentStatus({
-            //     variables: {
-            //         id,
-            //         status: "CANCELLED",
-            //     },
-            // });
+            await axios.delete(`${SERVER_URL}/api/v5/appointments/${id}`);
             toast.success("Appointment successfully cancelled!");
+            fetchAppointments(); // Refresh list after delete
         } catch (error) {
             console.error(error);
             toast.error("Failed to cancel appointment");
@@ -143,25 +128,26 @@ const AppointmentComp = () => {
                                                         : appointment?.from?.name}
                                                 </p>
                                             </div>
-                                            {appointment.from?._id === query.page && (
-                                                <div className="flex gap-3">
-                                                    <button
-                                                        onClick={() => deleteAppointment(appointment._id)}
-                                                        className="text-red-500 hover:text-red-700"
-                                                    >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width="16"
-                                                            height="16"
-                                                            fill="currentColor"
-                                                            className="bi bi-trash3-fill"
-                                                            viewBox="0 0 16 16"
+                                            {appointment.from?._id === query.page &&
+                                                checkAccess(access, 'Delete Appointment') && (
+                                                    <div className="flex gap-3">
+                                                        <button
+                                                            onClick={() => deleteAppointment(appointment._id)}
+                                                            className="text-red-500 hover:text-red-700"
                                                         >
-                                                            <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1z" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            )}
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width="16"
+                                                                height="16"
+                                                                fill="currentColor"
+                                                                className="bi bi-trash3-fill"
+                                                                viewBox="0 0 16 16"
+                                                            >
+                                                                <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1z" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                )}
                                         </div>
 
                                         <p className="text-gray-600 mb-2">
