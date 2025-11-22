@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { SERVER_URL } from '../../pages/_app';
 // import { useMutation, gql } from '@apollo/client';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -7,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 // import { SERVER_URL } from 'utils/constants';
 // import { print } from 'graphql';
+import { useRouter } from "next/router";
 
 // const SET_AVAILABILITIES = gql`
 //   mutation SetAvailabilities($input: BulkAvailabilityInput!) {
@@ -20,15 +22,16 @@ const Availability = ({ open, handleClick }) => {
     const [steps, setSteps] = useState(0);
     const [location, setLocation] = useState('');
     const [room, setRoom] = useState('');
-    // const user = useRecoilValue(UserAtom);
-    const [loading, setLoading] = useState(false);
+    const { query } = useRouter();
 
+    const [loading, setLoading] = useState(false);
+    const [isEdit, setIsEdit] = useState(false);
+    const [initialAvailability, setInitialAvailability] = useState(null);
     const [mode, setMode] = useState([
         { name: 'online', checked: false },
         { name: 'in person', checked: false },
         { name: 'phone', checked: false },
     ]);
-
     const [days, setDays] = useState([
         { day: 'Monday', startTime: '', endTime: '', checked: false },
         { day: 'Tuesday', startTime: '', endTime: '', checked: false },
@@ -38,25 +41,87 @@ const Availability = ({ open, handleClick }) => {
         { day: 'Saturday', startTime: '', endTime: '', checked: false },
     ]);
 
+    useEffect(() => {
+        if (query.page) {
+            axios.get(`${SERVER_URL}/api/v5/organization/get-availability`, { params: { orgId: query.page } })
+                .then(res => {
+                    if (res.data && Object.keys(res.data).length > 0) {
+                        setIsEdit(true);
+                        setInitialAvailability(res.data);
+                        setLocation(res.data.location || '');
+                        setRoom(res.data.room || '');
+                        setMode(res.data.mode || [
+                            { name: 'online', checked: false },
+                            { name: 'in person', checked: false },
+                            { name: 'phone', checked: false }
+                        ]);
+                        setDays(res.data.days || [
+                            { day: 'Monday', startTime: '', endTime: '', checked: false },
+                            { day: 'Tuesday', startTime: '', endTime: '', checked: false },
+                            { day: 'Wednesday', startTime: '', endTime: '', checked: false },
+                            { day: 'Thursday', startTime: '', endTime: '', checked: false },
+                            { day: 'Friday', startTime: '', endTime: '', checked: false },
+                            { day: 'Saturday', startTime: '', endTime: '', checked: false }
+                        ]);
+                    } else {
+                        setIsEdit(false);
+                        setInitialAvailability(null);
+                        setLocation('');
+                        setRoom('');
+                        setMode([
+                            { name: 'online', checked: false },
+                            { name: 'in person', checked: false },
+                            { name: 'phone', checked: false }
+                        ]);
+                        setDays([
+                            { day: 'Monday', startTime: '', endTime: '', checked: false },
+                            { day: 'Tuesday', startTime: '', endTime: '', checked: false },
+                            { day: 'Wednesday', startTime: '', endTime: '', checked: false },
+                            { day: 'Thursday', startTime: '', endTime: '', checked: false },
+                            { day: 'Friday', startTime: '', endTime: '', checked: false },
+                            { day: 'Saturday', startTime: '', endTime: '', checked: false }
+                        ]);
+                    }
+                })
+                .catch(err => {
+                    setIsEdit(false);
+                    setInitialAvailability(null);
+                    setLocation('');
+                    setRoom('');
+                    setMode([
+                        { name: 'online', checked: false },
+                        { name: 'in person', checked: false },
+                        { name: 'phone', checked: false }
+                    ]);
+                    setDays([
+                        { day: 'Monday', startTime: '', endTime: '', checked: false },
+                        { day: 'Tuesday', startTime: '', endTime: '', checked: false },
+                        { day: 'Wednesday', startTime: '', endTime: '', checked: false },
+                        { day: 'Thursday', startTime: '', endTime: '', checked: false },
+                        { day: 'Friday', startTime: '', endTime: '', checked: false },
+                        { day: 'Saturday', startTime: '', endTime: '', checked: false }
+                    ]);
+                });
+        }
+    }, [query.page]);
+
     const updateAvailability = async () => {
         try {
             setLoading(true);
-            // await axios.post(SERVER_URL + '/graphql', {
-            //     query: print(SET_AVAILABILITIES),
-            //     variables: {
-            //         input: {
-            //             userId: user.id,
-            //             days,
-            //             mode,
-            //             room,
-            //             location,
-            //         },
-            //     },
-            // });
+            const endpoint = isEdit
+                ? '/api/v5/organization/edit-availability'
+                : '/api/v5/organization/set-availability';
+            const payload = {
+                orgId: query.page,
+                days,
+                mode,
+                room,
+                location
+            };
+            await axios.post(SERVER_URL + endpoint, payload);
             toast.success('Availability successfully saved!');
             handleClick();
         } catch (error) {
-            console.error(error);
             toast.error('Failed to save availability');
         } finally {
             setLoading(false);

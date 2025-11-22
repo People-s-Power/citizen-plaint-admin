@@ -5,6 +5,7 @@ import Link from "next/link"
 import axios from "axios"
 import { io } from "socket.io-client"
 import ReactTimeAgo from "react-time-ago"
+import AppointmentModal from './modals/AppointmentModal';
 import Online from "./Online"
 import { socket } from "../pages/_app"
 
@@ -15,6 +16,12 @@ import { checkAccess } from '@/utils/accessUtils';
 
 
 const MessagesComponent = () => {
+    const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
+    const [appointmentUser, setAppointmentUser] = useState(null);
+    const handleBookAppointment = (userId) => {
+        setAppointmentUser(userId);
+        setAppointmentModalOpen(true);
+    };
     const { query } = useRouter();
     const [admin] = useAtom(adminAtom);
     const [access] = useAtom(accessAtom);
@@ -526,16 +533,27 @@ const MessagesComponent = () => {
                                 <Dropdown.Item>
                                     <span onClick={() => handleDeleteChat(item.id)}>Delete</span>
                                 </Dropdown.Item>
+
                                 <Dropdown.Item>
                                     <span onClick={() => handleMarkUnread(item.id)}>Mark Unread</span>
                                 </Dropdown.Item>
                                 <Dropdown.Item>
                                     <span onClick={() => handleMarkRead(item.id, item.messages[item.messages.length - 1]._id)}>Mark Read</span>
                                 </Dropdown.Item>
+
+                                {checkAccess(access, 'Book Appointment') && (
+                                    <Dropdown.Item>
+                                        <span onClick={() => handleBookAppointment(item.users[0]?._id === query.page ? item.users[1]?._id : item.users[0]?._id)}>
+                                            Book Appointment
+                                        </span>
+                                    </Dropdown.Item>
+                                )}
                             </Dropdown>
                         </div>
                     ))}
             </div>
+            {/* Appointment Modal (moved outside message map) */}
+            <AppointmentModal open={appointmentModalOpen} handleClick={() => setAppointmentModalOpen(false)} to={appointmentUser} />
             <div className={`lg:w-[45%] shadow-md lg:fixed lg:right-32 h-full sm:overflow-auto sm:mt-4  ${show !== null || query.page !== undefined ? 'sm:absolute sm:top-20 bg-white z-10 sm:left-0 sm:h-screen sm:w-screen' : 'sm:hidden'}`}>
                 <div className="lg:hidden cursor-pointer p-4" onClick={() => setShow(null)}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-arrow-left-circle-fill" viewBox="0 0 16 16">

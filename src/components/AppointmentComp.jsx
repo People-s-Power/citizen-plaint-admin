@@ -1,59 +1,45 @@
-import React, { useState } from "react";
-// import { useQuery, useMutation, gql } from "@apollo/client";
+import React, { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import AvailabilityModal from "./modals/AvailabilityModal";
-// import { useRecoilValue } from "recoil";
-// import { UserAtom } from "../atoms/UserAtom";
-// import { apollo } from "apollo";
+import axios from "axios";
+import { SERVER_URL } from "../pages/_app";
 import { useRouter } from "next/router";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 
+import { useAtom } from 'jotai';
+import { accessAtom } from '../atoms/adminAtom';
+import { checkAccess } from '../utils/accessUtils';
 const localizer = momentLocalizer(moment);
-
-// const GET_USER_APPOINTMENTS = gql`
-//   query GetUserAppointments($userId: ID!) {
-//     getUserAppointments(userId: $userId) {
-//       _id
-//       from {
-//         name
-//         email
-//         image
-//       }
-//       to {
-//         name
-//         email
-//         image
-//       }
-//       mode
-//       category
-//       date
-//       time
-//       location
-//       status
-//       createdAt
-//     }
-//   }
-// `;
-
-// const DELETE_APPOINTMENT = gql`
-//   mutation UpdateAppointmentStatus($id: ID!, $status: String!) {
-//     updateAppointmentStatus(id: $id, status: $status) {
-//       _id
-//       status
-//     }
-//   }
-// `;
 
 const AppointmentComp = () => {
     const [open, setOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("appointments");
     const [loading, setLoading] = useState(false);
-    // const user = useRecoilValue(UserAtom);
+    const [access, _] = useAtom(accessAtom);
     const { query } = useRouter();
     const [appointments, setAppointments] = useState([]);
+
+    // Fetch appointments and populate state
+    const fetchAppointments = async () => {
+        if (query.page) {
+            try {
+                const response = await axios.get(`${SERVER_URL}/api/v5/appointments`, {
+                    params: { id: query.page },
+                });
+                setAppointments(response.data);
+            } catch (error) {
+                console.error("Error fetching appointments:", error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        fetchAppointments();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [query.page]);
 
     // const [updateAppointmentStatus] = useMutation(DELETE_APPOINTMENT);
 
@@ -98,15 +84,17 @@ const AppointmentComp = () => {
                         >
                             📋 Appointments
                         </button>
-                        <button
-                            onClick={() => setActiveTab("calendar")}
-                            className={`px-4 py-2 rounded-md text-left ${activeTab === "calendar"
-                                ? "bg-[#FDC332] text-white"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                }`}
-                        >
-                            🗓️ Calendar
-                        </button>
+                        {checkAccess(access, 'View Calendar') && (
+                            <button
+                                onClick={() => setActiveTab("calendar")}
+                                className={`px-4 py-2 rounded-md text-left ${activeTab === "calendar"
+                                    ? "bg-[#FDC332] text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    }`}
+                            >
+                                🗓️ Calendar
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -116,12 +104,14 @@ const AppointmentComp = () => {
                         <h2 className="text-xl font-semibold">
                             My {activeTab === "appointments" ? "Appointments" : "Calendar"}
                         </h2>
-                        <button
-                            onClick={() => setOpen(true)}
-                            className="bg-[#FDC332] text-white px-4 py-2 rounded-md hover:bg-[#e3b02d] transition-colors"
-                        >
-                            Set Availability
-                        </button>
+                        {checkAccess(access, 'Set Availability') && (
+                            <button
+                                onClick={() => setOpen(true)}
+                                className="bg-[#FDC332] text-white px-4 py-2 rounded-md hover:bg-[#e3b02d] transition-colors"
+                            >
+                                Set Availability
+                            </button>
+                        )}
                     </div>
 
                     {/* Loading State */}
@@ -141,19 +131,19 @@ const AppointmentComp = () => {
                                                 <img
                                                     className="w-10 h-10 rounded-full object-cover mr-3"
                                                     src={
-                                                        appointment.from?._id === user.id
-                                                            ? appointment.to.image || "/images/user.png"
-                                                            : appointment.from?.image || "/images/user.png"
+                                                        appointment.from?._id === query.page
+                                                            ? appointment?.to.image || "/images/user.png"
+                                                            : appointment?.from?.image || "/images/user.png"
                                                     }
                                                     alt=""
                                                 />
                                                 <p className="font-medium text-lg">
-                                                    {appointment.from?._id === user.id
-                                                        ? appointment.to.name
-                                                        : appointment.from?.name}
+                                                    {appointment.from?._id === query.page
+                                                        ? appointment?.to?.name
+                                                        : appointment?.from?.name}
                                                 </p>
                                             </div>
-                                            {appointment.from?._id === user.id && (
+                                            {appointment.from?._id === query.page && (
                                                 <div className="flex gap-3">
                                                     <button
                                                         onClick={() => deleteAppointment(appointment._id)}
@@ -210,9 +200,16 @@ const AppointmentComp = () => {
                             <Calendar
                                 style={{ height: "80vh" }}
                                 localizer={localizer}
-                                events={[]}
+                                events={appointments.map(app => ({
+                                    title: `${app.mode || ''} - ${app.category || ''}`,
+                                    start: app.date ? new Date(app.date + 'T' + (app.time || '09:00')) : new Date(),
+                                    end: app.date ? new Date(app.date + 'T' + (app.time || '10:00')) : new Date(),
+                                    allDay: false,
+                                    resource: app,
+                                }))}
                                 startAccessor="start"
                                 endAccessor="end"
+                                titleAccessor="title"
                             />
                         </div>
                     )}
