@@ -62,9 +62,23 @@ const Tasks = () => {
   const toggleLock = async (id) => {
     try {
       // call toggle-lock endpoint
-      await axios.post(`${SERVER_URL}/api/v5/tasks/${id}/toggle-lock`);
-      // refresh tasks
-      await getTasks();
+      const res = await axios.post(`${SERVER_URL}/api/v5/tasks/${id}/toggle-lock`);
+      if (res && res.status >= 200 && res.status < 300) {
+        // try to read lock value from multiple possible response shapes
+        let newLockValue;
+        if (res.data && typeof res.data.lock !== 'undefined') newLockValue = res.data.lock;
+        else if (res.data && typeof res.data.locked !== 'undefined') newLockValue = res.data.locked;
+        else if (res.data && res.data.data && typeof res.data.data.lock !== 'undefined') newLockValue = res.data.data.lock;
+        else if (res.data && res.data.data && typeof res.data.data.locked !== 'undefined') newLockValue = res.data.data.locked;
+
+        // update tasks using functional update to avoid stale closures
+        setTasks(prevTasks => prevTasks.map(task =>
+          task._id === id ? { ...task, lock: typeof newLockValue === 'boolean' ? newLockValue : !task.lock } : task
+        ));
+
+        // also sync selectedTask if it's the one being toggled
+        setSelectedTask(prev => prev && prev._id === id ? { ...prev, lock: typeof newLockValue === 'boolean' ? newLockValue : !prev.lock } : prev);
+      }
     } catch (e) {
       console.error(e);
     }

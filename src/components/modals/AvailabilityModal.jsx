@@ -45,17 +45,29 @@ const Availability = ({ open, handleClick }) => {
         if (query.page) {
             axios.get(`${SERVER_URL}/api/v5/organization/get-availability`, { params: { orgId: query.page } })
                 .then(res => {
-                    if (res.data && Object.keys(res.data).length > 0) {
+                    // Support response shapes like { orgAvailability: [...] } or the direct availability object
+                    let availability = null;
+                    if (res && res.data) {
+                        if (Array.isArray(res.data.orgAvailability)) {
+                            availability = res.data.orgAvailability.length > 0 ? res.data.orgAvailability[0] : null;
+                        } else if (Array.isArray(res.data) && res.data.length > 0) {
+                            availability = res.data[0];
+                        } else if (res.data && Object.keys(res.data).length > 0) {
+                            availability = res.data;
+                        }
+                    }
+
+                    if (availability) {
                         setIsEdit(true);
-                        setInitialAvailability(res.data);
-                        setLocation(res.data.location || '');
-                        setRoom(res.data.room || '');
-                        setMode(res.data.mode || [
+                        setInitialAvailability(availability);
+                        setLocation(availability.location || '');
+                        setRoom(availability.room || '');
+                        setMode(availability.mode || [
                             { name: 'online', checked: false },
                             { name: 'in person', checked: false },
                             { name: 'phone', checked: false }
                         ]);
-                        setDays(res.data.days || [
+                        setDays(availability.days || [
                             { day: 'Monday', startTime: '', endTime: '', checked: false },
                             { day: 'Tuesday', startTime: '', endTime: '', checked: false },
                             { day: 'Wednesday', startTime: '', endTime: '', checked: false },
