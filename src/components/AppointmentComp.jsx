@@ -57,7 +57,7 @@ const AppointmentComp = () => {
             <ToastContainer />
             <div className="px-4 flex flex-col lg:flex-row gap-6">
                 {/* Right Section: Tabs */}
-                <div className="w-full lg:w-64 bg-white rounded-md shadow-sm p-4 border">
+                {/* <div className="w-full lg:w-64 bg-white rounded-md shadow-sm p-4 border">
                     <h3 className="font-semibold mb-4">View Options</h3>
                     <div className="flex flex-col space-y-3">
                         <button
@@ -81,14 +81,20 @@ const AppointmentComp = () => {
                             </button>
                         )}
                     </div>
-                </div>
+                </div> */}
 
                 {/* Left Section: Appointments / Calendar */}
                 <div className="flex-1">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-semibold">
-                            My {activeTab === "appointments" ? "Appointments" : "Calendar"}
-                        </h2>
+                    <div className="flex justify-between mb-6">
+                        <div className="flex gap-4">
+                            <h2 onClick={() => setActiveTab("appointments")} className={`text-xl font-semibold ${activeTab === "appointments" ? "border-b-2 border-[#FDC332]" : "cursor-pointer"}`}>
+                                My Appointments
+                            </h2>
+                            <h2 onClick={() => setActiveTab("calendar")} className={`text-xl font-semibold ${activeTab === "calendar" ? "border-b-2 border-[#FDC332]" : "cursor-pointer"}`}>
+                                My Calendar
+                            </h2>
+                        </div>
+
                         {checkAccess(access, 'Set Availability') && (
                             <button
                                 onClick={() => setOpen(true)}

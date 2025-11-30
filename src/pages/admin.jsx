@@ -85,8 +85,8 @@ export default function Home() {
   return (
     <>
       <FrontLayout>
-        <div className="mx-40 pt-6">
-          <div className="flex w-[80%] mx-auto justify-between">
+        <div className="mx-20 pt-6 flex">
+          <div className="w-[20%] space-y-6 mt-6 text-lg font-medium">
             <div
               onClick={() => router.push("?page=summary")}
               className={
@@ -168,7 +168,7 @@ export default function Home() {
               Withdrawal
             </div>
           </div>
-          <div className="pt-4">
+          <div className="w-[80%]">
             {(() => {
               switch (active) {
                 case "summary":

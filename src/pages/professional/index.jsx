@@ -363,7 +363,7 @@ const Professionals = () => {
       <title>PROJECT | Professionals</title>
       <main>
         <HeaderComp />
-        <div className="mx-40 pt-6">
+        <div className="mx-20 pt-6">
           {query.page === undefined ?
             <div>
               <h3>Hello, {userDeeds?.firstName} {userDeeds?.lastName}</h3>
@@ -432,188 +432,151 @@ const Professionals = () => {
             </div> : <section>
               <div className='w-20'>
                 <div onClick={() => { setAccess(null); window.location = '/professional' }} className='flex cursor-pointer'>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-left-square-fill" viewBox="0 0 16 16">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-arrow-left-square-fill" viewBox="0 0 16 16">
                     <path d="M16 14a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12zm-4.5-6.5H5.707l2.147-2.146a.5.5 0 1 0-.708-.708l-3 3a.5.5 0 0 0 0 .708l3 3a.5.5 0 0 0 .708-.708L5.707 8.5H11.5a.5.5 0 0 0 0-1z" />
-                  </svg> <p className='ml-2'>Back</p>
+                  </svg> <p className='ml-2 text-lg'>Back</p>
                 </div>
               </div>
-              <div className="flex w-[50%] mx-auto justify-between">
-                {checkAccess(access, 'View Dashboard') && (
-                  <div
-                    onClick={() => setActive("summary")}
-                    className={
-                      active === "summary"
-                        ? "border-b border-warning cursor-pointer"
-                        : "cursor-pointer"
-                    }
-                  >
-                    Summary
+              <section className='flex gap-4'>
+                <div className="w-[20%] space-y-6 mt-6 text-lg font-medium">
+                  {checkAccess(access, 'View Dashboard') && (
+                    <div
+                      onClick={() => setActive("summary")}
+                      className="cursor-pointer"
+                    >
+                      <span className={active === 'summary' ? 'inline-block border-b border-warning' : ''}>Summary</span>
+                    </div>
+                  )}
+
+                  <div onClick={() => setActive("content")} className="cursor-pointer">
+                    <span className={active === 'content' ? 'inline-block border-b border-warning' : ''}>Manage Content</span>
                   </div>
-                )}
-
-                <div
-                  onClick={() => setActive("content")}
-                  className={
-                    active === "content"
-                      ? "border-b border-warning cursor-pointer"
-                      : "cursor-pointer"
-                  }
-                >
-                  Manage Content
-                </div>
-                <div
-                  onClick={() => setActive("tasks")}
-                  className={
-                    active === "tasks"
-                      ? "border-b border-warning cursor-pointer"
-                      : "cursor-pointer"
-                  }
-                >
-                  Tasks
-                </div>
-
-                <div
-                  onClick={() => setActive("calendar")}
-                  className={
-                    active === "calendar"
-                      ? "border-b border-warning cursor-pointer"
-                      : "cursor-pointer"
-                  }
-                >
-                  Calendar
-                </div>
-                <div
-                  onClick={() => setActive("social")}
-                  className={
-                    active === "social"
-                      ? "border-b border-warning cursor-pointer"
-                      : "cursor-pointer"
-                  }
-                >
-                  Social Connect
-                </div>
-                {checkAccess(access, 'View Messages') && (
-                  <div
-                    onClick={() => setActive("message")}
-                    className={
-                      active === "message"
-                        ? "border-b border-warning cursor-pointer"
-                        : "cursor-pointer"
-                    }
-                  >
-                    Messages
+                  <div onClick={() => setActive("tasks")} className="cursor-pointer">
+                    <span className={active === 'tasks' ? 'inline-block border-b border-warning' : ''}>Tasks</span>
                   </div>
-                )}
-              </div>
 
-              <div className="pt-4">
-                {(() => {
-                  switch (active) {
-                    case "summary":
-                      return <div>
-                        <div className="grid grid-cols-4 gap-4">
-                          {checkAccess(access, 'View Post Dashboard') && (
-                            <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                              <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('post') }}>
-                                <p className="text-white">Total Number Of Post</p>
-                                <h1 className="text-2xl text-white font-bold mt-4">{post.length}</h1>
-                              </div>
-                              <div onClick={() => setOpenPost(true)} className='mt-auto cursor-pointer'>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                                </svg>
-                              </div>
-                            </div>
-                          )}
+                  <div onClick={() => setActive("calendar")} className="cursor-pointer">
+                    <span className={active === 'calendar' ? 'inline-block border-b border-warning' : ''}>Calendar</span>
+                  </div>
+                  <div onClick={() => setActive("social")} className="cursor-pointer">
+                    <span className={active === 'social' ? 'inline-block border-b border-warning' : ''}>Social Connect</span>
+                  </div>
+                  {checkAccess(access, 'View Messages') && (
+                    <div onClick={() => setActive("message")} className="cursor-pointer">
+                      <span className={active === 'message' ? 'inline-block border-b border-warning' : ''}>Messages</span>
+                    </div>
+                  )}
+                </div>
 
-                          {checkAccess(access, 'Petitions Dashboard') && (
-                            <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                              <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('petition') }}>
-                                <p className="text-white">Total Number Of Petitions</p>
-                                <h1 className="text-2xl text-white font-bold mt-4">{petition.length}</h1>
+                <div className="pt-4 w-[80%]">
+                  {(() => {
+                    switch (active) {
+                      case "summary":
+                        return <div>
+                          <div className="grid grid-cols-4 gap-4">
+                            {checkAccess(access, 'View Post Dashboard') && (
+                              <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                                <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('post') }}>
+                                  <p className="text-white">Total Number Of Post</p>
+                                  <h1 className="text-2xl text-white font-bold mt-4">{post.length}</h1>
+                                </div>
+                                <div onClick={() => setOpenPost(true)} className='mt-auto cursor-pointer'>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
+                                  </svg>
+                                </div>
                               </div>
-                              <div onClick={() => setOpenPetition(true)} className='mt-auto cursor-pointer'>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                                </svg>
-                              </div>
-                            </div>
-                          )}
+                            )}
 
-                          {checkAccess(access, 'Event Dashboard') && (
-                            <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                              <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('event') }}>
-                                <p className="text-white">Total Number Of Events</p>
-                                <h1 className="text-2xl text-white font-bold mt-4">{event.length}</h1>
+                            {checkAccess(access, 'Petitions Dashboard') && (
+                              <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                                <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('petition') }}>
+                                  <p className="text-white">Total Number Of Petitions</p>
+                                  <h1 className="text-2xl text-white font-bold mt-4">{petition.length}</h1>
+                                </div>
+                                <div onClick={() => setOpenPetition(true)} className='mt-auto cursor-pointer'>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
+                                  </svg>
+                                </div>
                               </div>
-                              <div className='mt-auto cursor-pointer'>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                                </svg>
-                              </div>
-                            </div>
-                          )}
+                            )}
 
-                          {checkAccess(access, 'Tasks Dashboard') && (
-                            <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
-                              <div className='cursor-pointer' onClick={() => setActive("tasks")} >
-                                <p className="text-white">Total Number of Task</p>
-                                <h1 className="text-2xl text-white font-bold mt-4">{tasks.length}</h1>
+                            {checkAccess(access, 'Event Dashboard') && (
+                              <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                                <div className='cursor-pointer' onClick={() => { setActive('content'), setManage('event') }}>
+                                  <p className="text-white">Total Number Of Events</p>
+                                  <h1 className="text-2xl text-white font-bold mt-4">{event.length}</h1>
+                                </div>
+                                <div className='mt-auto cursor-pointer'>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
+                                  </svg>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-2xl my-8 text-center text-[#00401C]">Activity Logs</p>
+                            )}
 
-                        <div>
-                          {activities.length > 0 ? activities.map((activity, index) => <div className="flex p-3 border-b" key={index}>
-                            <img className="w-10 h-10 mr-4 rounded-full" src="./logo.png" alt="" />
-                            <p className="my-auto">{activity.text}
-                              {/* by {getAuthor(activity.authorId)?.name} */}
-                            </p>
-                          </div>) : <div className="text-center my-4">No Activities</div>}
-                        </div>
-                      </div>;
-                    case "content":
-                      return <div>
-                        <div className="flex justify-between my-5">
-                          <input type="text" className="p-2 rounded-md border w-[30%]" placeholder="Search" />
-                          <div className='flex w-[30%]'>
-                            <select onChange={(e) => setManage(e.target.value)} value={manage || ''} className=" p-2 w-52 mr-5 border rounded-md">
-                              {checkAccess(access, 'View Petitions') && <option value="petition">Petition</option>}
-                              {checkAccess(access, 'View Posts') && <option value="post" >Post</option>}
-                              {checkAccess(access, 'View Events') && <option value="event">Events</option>}
-                              {/* {checkAccess(access, 'View Adverts') && <option value="advert">Advert</option>}
+                            {checkAccess(access, 'Tasks Dashboard') && (
+                              <div className=" my-4 bg-gold p-6 rounded-md text-white flex justify-between">
+                                <div className='cursor-pointer' onClick={() => setActive("tasks")} >
+                                  <p className="text-white">Total Number of Task</p>
+                                  <h1 className="text-2xl text-white font-bold mt-4">{tasks.length}</h1>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-2xl my-8 text-center text-[#00401C]">Activity Logs</p>
+
+                          <div>
+                            {activities.length > 0 ? activities.map((activity, index) => <div className="flex p-3 border-b" key={index}>
+                              <img className="w-10 h-10 mr-4 rounded-full" src="./logo.png" alt="" />
+                              <p className="my-auto">{activity.text}
+                                {/* by {getAuthor(activity.authorId)?.name} */}
+                              </p>
+                            </div>) : <div className="text-center my-4">No Activities</div>}
+                          </div>
+                        </div>;
+                      case "content":
+                        return <div>
+                          <div className="flex justify-between my-5">
+                            <input type="text" className="p-2 rounded-md border w-[30%]" placeholder="Search" />
+                            <div className='flex w-[30%]'>
+                              <select onChange={(e) => setManage(e.target.value)} value={manage || ''} className=" p-2 w-52 mr-5 border rounded-md">
+                                {checkAccess(access, 'View Petitions') && <option value="petition">Petition</option>}
+                                {checkAccess(access, 'View Posts') && <option value="post" >Post</option>}
+                                {checkAccess(access, 'View Events') && <option value="event">Events</option>}
+                                {/* {checkAccess(access, 'View Adverts') && <option value="advert">Advert</option>}
                               {checkAccess(access, 'View Victories') && <option value="victory">Victory</option>}
                               {checkAccess(access, 'View Updates') && <option value="update">Update</option>} */}
 
-                              <option value="advert">Advert</option>
-                              <option value="victory">Victory</option>
-                              <option value="update">Update</option>
+                                <option value="advert">Advert</option>
+                                <option value="victory">Victory</option>
+                                <option value="update">Update</option>
 
-                            </select>
-                            {manage !== "update" && <button onClick={() => UploadTrigger()} className='bg-warning px-6 py-1 rounded-md text-white'>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
-                              </svg>
-                            </button>}
+                              </select>
+                              {manage !== "update" && <button onClick={() => UploadTrigger()} className='bg-warning px-6 py-1 rounded-md text-white'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z" />
+                                </svg>
+                              </button>}
+                            </div>
                           </div>
-                        </div>
-                        <div>
-                          <Table contents={manage ? contentMap[manage] || [] : []} type={manage} />
-                        </div>
-                      </div>;
-                    case "tasks":
-                      return <Tasks />
-                    case "message":
-                      return <MessagesComponent />;
-                    case "calendar":
-                      return <AppointmentComp />
-                    case "social":
-                      return <div className='text-lg text-center my-8'>Comming Soon</div>
-                  }
-                })()}
-              </div>
+                          <div>
+                            <Table contents={manage ? contentMap[manage] || [] : []} type={manage} />
+                          </div>
+                        </div>;
+                      case "tasks":
+                        return <Tasks />
+                      case "message":
+                        return <MessagesComponent />;
+                      case "calendar":
+                        return <AppointmentComp />
+                      case "social":
+                        return <div className='text-lg text-center my-8'>Comming Soon</div>
+                    }
+                  })()}
+                </div>
+              </section>
             </section>
           }
         </div>
