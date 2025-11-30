@@ -86,86 +86,30 @@ export default function Home() {
     <>
       <FrontLayout>
         <div className="mx-20 pt-6 flex">
-          <div className="w-[20%] space-y-6 mt-6 text-lg font-medium">
-            <div
-              onClick={() => router.push("?page=summary")}
-              className={
-                active === "summary"
-                  ? "border-b border-warning cursor-pointer"
-                  : "cursor-pointer"
-              }
-            >
-              Summary
+          <div className="w-[20%] space-y-6 text-lg font-medium">
+            <div onClick={() => router.push("?page=summary")} className="cursor-pointer">
+              <span className={active === 'summary' ? 'inline-block border-b border-warning' : ''}>Summary</span>
             </div>
-            <div
-              onClick={() => router.push("?page=content")}
-              className={
-                active === "content"
-                  ? "border-b border-warning cursor-pointer"
-                  : "cursor-pointer"
-              }
-            >
-              Manage Content
+            <div onClick={() => router.push("?page=content")} className="cursor-pointer">
+              <span className={active === 'content' ? 'inline-block border-b border-warning' : ''}>Manage Content</span>
             </div>
-            <div
-              onClick={() => router.push("?page=tasks")}
-              className={
-                active === "tasks"
-                  ? "border-b border-warning cursor-pointer"
-                  : "cursor-pointer"
-              }
-            >
-              Manage Tasks
+            <div onClick={() => router.push("?page=tasks")} className="cursor-pointer">
+              <span className={active === 'tasks' ? 'inline-block border-b border-warning' : ''}>Manage Tasks</span>
             </div>
-            <div
-              onClick={() => router.push("?page=social")}
-              className={
-                active === "social"
-                  ? "border-b border-warning cursor-pointer"
-                  : "cursor-pointer"
-              }
-            >
-              Social Connect
+            <div onClick={() => router.push("?page=social")} className="cursor-pointer">
+              <span className={active === 'social' ? 'inline-block border-b border-warning' : ''}>Social Connect</span>
             </div>
-            <div
-              onClick={() => router.push("?page=user")}
-              className={
-                active === "user"
-                  ? "border-b border-warning cursor-pointer"
-                  : "cursor-pointer"
-              }
-            >
-              User
+            <div onClick={() => router.push("?page=user")} className="cursor-pointer">
+              <span className={active === 'user' ? 'inline-block border-b border-warning' : ''}>User</span>
             </div>
-            <div
-              onClick={() => router.push("?page=report")}
-              className={
-                active === "report"
-                  ? "border-b border-warning cursor-pointer"
-                  : "cursor-pointer"
-              }
-            >
-              Report
+            <div onClick={() => router.push("?page=report")} className="cursor-pointer">
+              <span className={active === 'report' ? 'inline-block border-b border-warning' : ''}>Report</span>
             </div>
-            <div
-              onClick={() => router.push("?page=subscriptions")}
-              className={
-                active === "subscriptions"
-                  ? "border-b border-warning cursor-pointer"
-                  : "cursor-pointer"
-              }
-            >
-              Subscriptions
+            <div onClick={() => router.push("?page=subscriptions")} className="cursor-pointer">
+              <span className={active === 'subscriptions' ? 'inline-block border-b border-warning' : ''}>Subscriptions</span>
             </div>
-            <div
-              onClick={() => router.push("?page=withdrawal")}
-              className={
-                active === "withdrawal"
-                  ? "border-b border-warning cursor-pointer"
-                  : "cursor-pointer"
-              }
-            >
-              Withdrawal
+            <div onClick={() => router.push("?page=withdrawal")} className="cursor-pointer">
+              <span className={active === 'withdrawal' ? 'inline-block border-b border-warning' : ''}>Withdrawal</span>
             </div>
           </div>
           <div className="w-[80%]">
