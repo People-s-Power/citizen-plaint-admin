@@ -13,7 +13,8 @@ import CreateVictories from '@/components/modals/CreateVictories';
 import Table from '@/components/Table';
 import Tasks from '@/components/Tasks';
 import Reviews from '@/components/modals/Reviews';
-import MessagesComponent from '@/components/MessageComponent';
+// import MessagesComponent from '@/components/MessageComponent';
+import MessagingPicker from '@/components/messagingPicker';
 import AppointmentComp from '@/components/AppointmentComp';
 import { SERVER_URL } from '../_app';
 import { useAtom } from 'jotai';
@@ -568,7 +569,8 @@ const Professionals = () => {
                       case "tasks":
                         return <Tasks />
                       case "message":
-                        return <MessagesComponent />;
+                        // return <MessagesComponent />;
+                        return <MessagingPicker />;
                       case "calendar":
                         return <AppointmentComp />
                       case "social":

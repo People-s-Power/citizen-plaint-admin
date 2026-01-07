@@ -2,6 +2,8 @@ import "@/styles/globals.css";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import 'rsuite/dist/rsuite.min.css';
+import {QueryProvider} from "@/context/react-query"
+import { Toaster } from "@/components/ui/sonner"
 
 const HTTP_URI = "https://project-experthub.onrender.com/v1";
 
@@ -33,5 +35,10 @@ axios.defaults.baseURL = HTTP_URI;
 axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 
 export default function App({ Component, pageProps }) {
-  return <Component {...pageProps} />;
+    return (
+        <QueryProvider>
+            <Toaster />
+            <Component {...pageProps} />
+        </QueryProvider>
+    );
 }
