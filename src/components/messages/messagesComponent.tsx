@@ -261,7 +261,7 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {messages.map((item, index) => {
+            {messages.filter((item) => item.assignedOperators.includes(user)).map((item, index) => {
               const isUnread =
                 item.unread === true ||
                 (item.messages[item.messages.length - 1]?.received === false &&
