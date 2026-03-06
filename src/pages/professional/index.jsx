@@ -20,6 +20,7 @@ import { SERVER_URL } from '../_app';
 import { useAtom } from 'jotai';
 import { accessAtom } from '../../atoms/adminAtom';
 import { checkAccess } from '@/utils/accessUtils';
+import TeamComp from '@/components/TeamComp';
 
 const Professionals = () => {
   const [userDeeds, setUser] = useState()
@@ -462,6 +463,11 @@ const Professionals = () => {
                   <div onClick={() => setActive("social")} className="cursor-pointer">
                     <span className={active === 'social' ? 'inline-block border-b border-warning' : ''}>Social Connect</span>
                   </div>
+                  {checkAccess(access, 'View Team') && (
+                    <div onClick={() => setActive("team")} className="cursor-pointer">
+                      <span className={active === 'team' ? 'inline-block border-b border-warning' : ''}>Team</span>
+                    </div>
+                  )}
                   {checkAccess(access, 'View Messages') && (
                     <div onClick={() => setActive("message")} className="cursor-pointer">
                       <span className={active === 'message' ? 'inline-block border-b border-warning' : ''}>Messages</span>
@@ -573,7 +579,9 @@ const Professionals = () => {
                         return <MessagingPicker />;
                       case "calendar":
                         return <AppointmentComp />
-                      case "social":
+                      case 'team':
+                        return <TeamComp />
+                      case 'social':
                         return <div className='text-lg text-center my-8'>Comming Soon</div>
                     }
                   })()}
