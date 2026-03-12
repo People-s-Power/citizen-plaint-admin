@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 import React from "react";
 import { useAtom } from 'jotai';
@@ -67,6 +66,12 @@ const HeaderComp = () => {
                 ▾
               </button>
               <div id="logout-dropdown" className="hidden absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-10">
+                <a
+                  href="/professional/profile"
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-warning hover:text-white rounded"
+                >
+                  Profile
+                </a>
                 <button
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-warning hover:text-white rounded"
                   onClick={() => {

@@ -100,16 +100,21 @@ const Tasks = () => {
     // Fetch operators
     const fetchOperators = async () => {
       try {
-        const { data } = await axios.get(`${SERVER_URL}/api/v5/organization/${query.page}/operators`);
-        console.log("Fetched operators:", data);
-        setOperators(data);
+        // Try to get orgId from query or admin object
+        const orgId = query.page || admin?.orgId || admin?.organizationId || admin?.organization?._id;
+        if (!orgId) {
+          setOperators([]);
+          return;
+        }
+        const { data } = await axios.get(`${SERVER_URL}/api/v5/organization/${orgId}/operators`);
+        setOperators(Array.isArray(data) ? data : []);
       } catch (e) {
         setOperators([]);
       }
     };
-    if (admin && (admin.orgId || admin.organizationId || (admin.organization && admin.organization._id))) {
+    // if (admin && (admin.orgId || admin.organizationId || (admin.organization && admin.organization._id))) {
       fetchOperators();
-    }
+    // }
   }, [admin, query.page]);
 
   // Define all status options
@@ -186,7 +191,7 @@ const Tasks = () => {
                   </button>
 
                   <button
-                    className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs"
+                    className="ml-4 px-3 py-1 bg-primary text-white rounded transition-colors text-xs"
                     onClick={() => {
                       setEditTask(task);
                       setEditTaskModalOpen(true);

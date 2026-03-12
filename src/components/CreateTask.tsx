@@ -65,7 +65,6 @@ const NewTask = ({ open, handelClick, task, operators }: { open: boolean; handel
     const uploadRef = useRef<HTMLInputElement>(null)
     const { query } = useRouter()
     const [name, setName] = useState(task?.name || "")
-    console.log(operators)
 
     const [dueDate, setDueDate] = useState(() => {
         return task?.dueDate
