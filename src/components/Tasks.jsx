@@ -7,6 +7,9 @@ import Reviews from './modals/Reviews';
 import TaskViewModal from './modals/TaskViewModal';
 import { getCookie } from "cookies-next";
 import { SERVER_URL } from '@/pages/_app';
+import NewTask from './CreateTask';
+import { checkAccess } from '@/utils/accessUtils';
+import { accessAtom } from '@/atoms/adminAtom';
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -14,9 +17,16 @@ const Tasks = () => {
   const [dropdownOpen, setDropdownOpen] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [newTaskModalOpen, setNewTaskModalOpen] = useState(false);
+  const [editTask, setEditTask] = useState(null);
+  const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
   const [admin] = useAtom(adminAtom);
   const router = useRouter();
+  const { query } = useRouter()
+
   const user = getCookie("user");
+  const [access, setAccess] = useAtom(accessAtom);
+  const [operators, setOperators] = useState([]);
 
   const getTasks = async () => {
     try {
@@ -87,7 +97,20 @@ const Tasks = () => {
 
   useEffect(() => {
     getTasks();
-  }, []);
+    // Fetch operators
+    const fetchOperators = async () => {
+      try {
+        const { data } = await axios.get(`${SERVER_URL}/api/v5/organization/${query.page}/operators`);
+        console.log("Fetched operators:", data);
+        setOperators(data);
+      } catch (e) {
+        setOperators([]);
+      }
+    };
+    if (admin && (admin.orgId || admin.organizationId || (admin.organization && admin.organization._id))) {
+      fetchOperators();
+    }
+  }, [admin, query.page]);
 
   // Define all status options
   const allStatusOptions = [
@@ -115,6 +138,12 @@ const Tasks = () => {
 
   return (
     <div>
+      <button
+        className="mb-4 px-5 py-2 bg-warning text-white rounded-lg font-semibold shadow hover:bg-yellow-600 transition-colors"
+        onClick={() => setNewTaskModalOpen(true)}
+      >
+        + Create Task
+      </button>
       <table className="table-auto w-full">
         <thead className="bg-gold text-white text-left rounded-md">
           <tr>
@@ -156,9 +185,19 @@ const Tasks = () => {
                     {task.lock ? '🔐' : '🔓'}
                   </button>
 
+                  <button
+                    className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs"
+                    onClick={() => {
+                      setEditTask(task);
+                      setEditTaskModalOpen(true);
+                    }}
+                  >
+                    Edit Task
+                  </button>
+
                   {dropdownOpen === task._id && (
                     <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-md z-10">
-                      {(isAdminRoute ? allStatusOptions : userStatusOptions).map((option) => (
+                      {((isAdminRoute || checkAccess(access, 'Update Task Status')) ? allStatusOptions : userStatusOptions).map((option) => (
                         <button
                           key={option.value}
                           onClick={() => { updateStatus(task._id, option.value) }}
@@ -167,7 +206,6 @@ const Tasks = () => {
                           {option.label}
                         </button>
                       ))}
-
                     </div>
                   )}
                 </td>
@@ -191,6 +229,21 @@ const Tasks = () => {
           setViewModalOpen(false);
           setSelectedTask(null);
         }}
+      />
+      <NewTask
+        open={newTaskModalOpen}
+        handelClick={() => setNewTaskModalOpen(false)}
+        task={null}
+        operators={operators}
+      />
+      <NewTask
+        open={editTaskModalOpen}
+        handelClick={() => {
+          setEditTaskModalOpen(false);
+          setEditTask(null);
+        }}
+        task={editTask}
+        operators={operators}
       />
     </div>
   );
