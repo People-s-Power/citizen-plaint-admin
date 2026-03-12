@@ -8,10 +8,11 @@ import { Modal } from "rsuite"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { useAtom } from "jotai"
-import { adminAtom } from "@/atoms/adminAtom"
+import { accessAtom, adminAtom } from "@/atoms/adminAtom"
 import Link from "next/link"
 import Reviews from "@/components/modals/Reviews"
 import AccessSelectionModal from "@/components/modals/AccessSelectionModal"
+import { checkAccess } from "@/utils/accessUtils"
 
 export interface Operator {
     userId: string
@@ -21,6 +22,8 @@ export interface Operator {
 const TeamComp = () => {
     const [author] = useAtom(adminAtom)
     const [admins, setAdmins] = useState<any[]>([])
+    const [access, setAccess] = useAtom(accessAtom);
+
     const { query } = useRouter()
     const [role, setRole] = useState("")
     const [loading, setLoading] = useState(false)
@@ -69,11 +72,17 @@ const TeamComp = () => {
 
     const getAdmins = async (orgId: string) => {
         try {
-            const res = await axios(`/organization/${orgId}/operators`)
+            const res = await axios(`${SERVER_URL}/api/v5/organization/${orgId}/operators`)
             console.log(res.data)
-            setAdmins(res.data as any)
+            // Defensive: ensure admins is always an array
+            let adminsArr = res.data
+            if (!Array.isArray(adminsArr)) {
+                adminsArr = []
+            }
+            setAdmins(adminsArr)
         } catch (error) {
             console.log(error)
+            setAdmins([])
         }
     }
 
@@ -246,13 +255,15 @@ const TeamComp = () => {
                             {/* <Link href={`/addadmin?page=${query.page}`}>
                                     <button className="bg-warning text-white rounded px-4 py-1.5 h-auto">Add admins</button>
                                 </Link> */}
-                            <Link href={`/professional/addprofessional?page=${query.page}`}>
-                                <button className="bg-warning text-white rounded px-4 py-1.5 h-auto">Hire a Virtual Assistant</button>
-                            </Link>
+                            {checkAccess(access, 'Add Team Member') && (
+                                <Link href={`/professional/addprofessional?page=${query.page}`}>
+                                    <button className="bg-warning text-white rounded px-4 py-1.5 h-auto">Hire a Virtual Assistant</button>
+                                </Link>
+                            )}
                         </div>
                     </section>
 
-                    {admins?.length ? (
+                    {Array.isArray(admins) && admins.length ? (
                         <table className="table-auto my-3 w-full border !border-spacing-1 !border-slate-600">
                             <thead>
                                 <tr className="!bg-gray-100">
@@ -308,15 +319,17 @@ const TeamComp = () => {
                                                 >
                                                     <span>&#x270E;</span> Edit Role
                                                 </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedUser(org)
-                                                        setShowAccessModal(true)
-                                                    }}
-                                                    className="bg-transparent w-20 p-2 hover:bg-gray-100"
-                                                >
-                                                    <span>&#x1F512;</span> Edit Access
-                                                </button>
+                                                {checkAccess(access, 'Edit Team Member Role') && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedUser(org)
+                                                            setShowAccessModal(true)
+                                                        }}
+                                                        className="bg-transparent w-20 p-2 hover:bg-gray-100"
+                                                    >
+                                                        <span>&#x1F512;</span> Edit Access
+                                                    </button>
+                                                )}
                                             </td>
                                             {/* <td className="border px-1 pl-2 py-1 border-slate-600">
                                                 
@@ -339,14 +352,16 @@ const TeamComp = () => {
                                                     ))}
                                                 </div>
                                             </td>
-                                            <td
-                                                className="border px-1 pl-2 py-1 border-slate-600 cursor-pointer"
-                                                onClick={() => {
-                                                    removeAdmin(org.id || org._id)
-                                                }}
-                                            >
-                                                &#10006;
-                                            </td>
+                                            {checkAccess(access, 'Remove Team Member') && (
+                                                <td
+                                                    className="border px-1 pl-2 py-1 border-slate-600 cursor-pointer"
+                                                    onClick={() => {
+                                                        removeAdmin(org.id || org._id)
+                                                    }}
+                                                >
+                                                    &#10006;
+                                                </td>
+                                            )}
                                         </tr>
                                     ))) : (
                                     <tr>

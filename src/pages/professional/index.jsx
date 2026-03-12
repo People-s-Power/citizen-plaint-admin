@@ -463,7 +463,7 @@ const Professionals = () => {
                   <div onClick={() => setActive("social")} className="cursor-pointer">
                     <span className={active === 'social' ? 'inline-block border-b border-warning' : ''}>Social Connect</span>
                   </div>
-                  {checkAccess(access, 'View Team') && (
+                  {checkAccess(access, 'View Team Members') && (
                     <div onClick={() => setActive("team")} className="cursor-pointer">
                       <span className={active === 'team' ? 'inline-block border-b border-warning' : ''}>Team</span>
                     </div>

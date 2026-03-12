@@ -2,6 +2,8 @@
 
 "use client"
 import React, { useState, useEffect } from "react"
+import { useFlutterwaveScript } from "@/hooks/useFlutterwaveScript"
+import { usePaystackScript } from "@/hooks/usePaystackScript"
 import FrontLayout from "@/layout/FrontLayout"
 import Head from "next/head"
 import axios from "axios"
@@ -44,6 +46,8 @@ const PROFESSIONS = [
 
 const Addadmin = () => {
     const [author] = useAtom(adminAtom)
+    useFlutterwaveScript();
+    usePaystackScript();
     const [professionals, setProfessionalas] = useState<IUser[]>([])
     const [profession, setProfession] = useState("General Administrative Assistant")
     const { query } = useRouter()
@@ -131,26 +135,75 @@ const Addadmin = () => {
     };
 
     // Handle initiating payment for a professional
-    const handlePayForProfessional = async (professionalId: string, price: string, isGVA: boolean, name?: string) => {
-        try {
-            const res = await axios.post(SERVER_URL + "/api/v5/organization/initiate-payment", {
-                professionalID: professionalId,
-                orgId: query.page,
-                profession: profession,
-                price: price,
-                isGVA: isGVA,
-            });
+    const FLUTTERWAVE_TEST_KEY = "FLWPUBK_TEST-xxxxxxxxxxxxxxxxxxxxx-X"; // Replace with your test key
+    const PAYSTACK_TEST_KEY = "pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxx"; // Replace with your test key
 
-            if (res.data?.authorization_url) {
-                window.location.href = res.data.authorization_url;
-            } else if (res.status.toString().startsWith("2")) {
-                // Payment not required or handled differently, show access modal
-                setPendingProfessional({ id: professionalId, price, isGVA, name });
-                setShowAccessModal(true);
-            }
-        } catch (error) {
-            toast.error("Failed to initiate payment");
+    const handlePaystackPayment = (amount: string) => {
+        if (!(window as any).PaystackPop) {
+            toast.error("Paystack script not loaded. Please try again.");
+            return;
         }
+        const handler = (window as any).PaystackPop.setup({
+            key: PAYSTACK_TEST_KEY,
+            email: (author as any)?.email || 'test@example.com',
+            amount: Number(amount) * 100, // Paystack expects kobo
+            currency: 'NGN',
+            ref: `GAA-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+            callback: function (response: any) {
+                setShowPricing(false);
+                setShowGAAList(true);
+                setPaymentSuccess(true);
+                toast.success('Payment successful! Now select your assistant.');
+            },
+            onClose: function () {
+                toast.info('Payment cancelled.');
+            }
+        });
+        handler.openIframe();
+    };
+
+    const handlePayForProfessional = async (professionalId: string, price: string, isGVA: boolean, name?: string) => {
+        if (profession !== "General Administrative Assistant") return;
+        const isNigeria = (author as any)?.country === 'Nigeria';
+        if (isNigeria) {
+            handlePaystackPayment(price);
+            return;
+        }
+        // Only trigger Flutterwave for non-NGN
+        if (!(window as any).FlutterwaveCheckout) {
+            toast.error("Flutterwave script not loaded. Please try again.");
+            return;
+        }
+        const txRef = `GAA-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+        (window as any).FlutterwaveCheckout({
+            public_key: FLUTTERWAVE_TEST_KEY,
+            tx_ref: txRef,
+            amount: Number(price),
+            currency: 'USD',
+            payment_options: 'card,banktransfer,ussd',
+            customer: {
+                email: (author as any)?.email || 'test@example.com',
+                name: (author as any)?.firstName + ' ' + (author as any)?.lastName,
+            },
+            customizations: {
+                title: 'ExpertHub GAA Payment',
+                description: 'Payment for General Administrative Assistant',
+                logo: '/images/logo.svg',
+            },
+            callback: function (response: any) {
+                if (response.status === 'successful') {
+                    setShowPricing(false);
+                    setShowGAAList(true);
+                    setPaymentSuccess(true);
+                    toast.success('Payment successful! Now select your assistant.');
+                } else {
+                    toast.error('Payment not completed.');
+                }
+            },
+            onclose: function () {
+                toast.info('Payment cancelled.');
+            },
+        });
     };
 
     useEffect(() => {
@@ -273,7 +326,7 @@ const Addadmin = () => {
                                 </div>
                             ) : (
                                 <div>
-                                        <Link href={`/professional?page=${query.page}`}>
+                                    <Link href={`/professional?page=${query.page}`}>
                                         <button className="bg-warning text-white rounded px-4 py-1.5 h-auto">Admins</button>
                                     </Link>
                                 </div>
@@ -334,7 +387,7 @@ const Addadmin = () => {
                                         <button
                                             className="bg-primary text-white w-full rounded-full px-4 py-2"
                                             onClick={() => {
-                                                handlePayForProfessional("", "80000", true);
+                                                handlePayForProfessional("", (author as any)?.country === 'Nigeria' ? "80000" : "850", true);
                                             }}
                                         >
                                             Hire Now
@@ -373,7 +426,7 @@ const Addadmin = () => {
                                         <button
                                             className="bg-primary text-white w-full rounded-full px-4 py-2"
                                             onClick={() => {
-                                                handlePayForProfessional("", "50000", true);
+                                                handlePayForProfessional("", (author as any)?.country === 'Nigeria' ? "50000" : "450", true);
                                             }}
                                         >
                                             Hire Now
