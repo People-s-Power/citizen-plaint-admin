@@ -5,10 +5,10 @@ import axios from "axios";
 import ReactTimeAgo from "react-time-ago";
 import { useAtom } from "jotai";
 import {
-    Send,
-    Paperclip, Search,
-    ChevronLeft,
-    Trash2
+  Send,
+  Paperclip, Search,
+  ChevronLeft,
+  Trash2
 } from "lucide-react";
 
 import { adminAtom, accessAtom } from "@/atoms/adminAtom";
@@ -20,7 +20,7 @@ import Online from "../Online";
 import { MessagingTabs } from "../messagingTab";
 import { getCookie } from "cookies-next";
 
-const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
+const MessagesComponent = ({ dataOwnerId }: { dataOwnerId: string }) => {
   const { query } = useRouter();
 
   const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
@@ -50,19 +50,19 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
   };
 
   const getUser = async () => {
-      try {
-        const { data } = await axios.get(
-          `/user/single/${user}`,
-        );
-        setUserDeeds(data.data.user)
-      } catch (e) {
-        console.error(e);
-      }
+    try {
+      const { data } = await axios.get(
+        `/user/single/${user}`,
+      );
+      setUserDeeds(data.data.user)
+    } catch (e) {
+      console.error(e);
     }
+  }
 
-    useEffect(() => {
-      getUser();
-    }, []);
+  useEffect(() => {
+    getUser();
+  }, []);
 
   const handleImage = async (e) => {
     try {
@@ -102,22 +102,22 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
 
   useEffect(() => {
     if (socket.connected) {
-        socket.on("dm", (updatedDm) => {
-            if (show && updatedDm._id === show._id) {
-                setShow(updatedDm);
-            }
-            getDm();
-        });
+      socket.on("dm", (updatedDm) => {
+        if (show && updatedDm._id === show._id) {
+          setShow(updatedDm);
+        }
+        getDm();
+      });
 
-        socket.on("dm_updated", () => {
-            getDm();
-        });
+      socket.on("dm_updated", () => {
+        getDm();
+      });
     }
     return () => {
-        socket.off("dm");
-        socket.off("dm_updated");
+      socket.off("dm");
+      socket.off("dm_updated");
     };
-}, [show, socket.connected]);
+  }, [show, socket.connected]);
 
   const sendDm = async (id, from?) => {
 
@@ -134,7 +134,7 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
         dmType: "consumer-to-org",
         delegateData: {
           senderId: userDeeds?.id ?? null,
-          senderName:  userDeeds? `${userDeeds?.firstName} ${userDeeds?.lastName}` : "Unknown",
+          senderName: userDeeds ? `${userDeeds?.firstName} ${userDeeds?.lastName}` : "Unknown",
           orgId: query.page,
           isDelegate: true,
         },
@@ -204,19 +204,44 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [show]);
 
+  // Throttle function to limit how often sendTyping is called
+  const throttle = (func, limit) => {
+    let inThrottle;
+    return function (...args) {
+      if (!inThrottle) {
+        func.apply(this, args);
+        inThrottle = true;
+        setTimeout(() => (inThrottle = false), limit);
+      }
+    };
+  };
+
+  const sendTyping = (id) => {
+    if (socket?.connected && id) {
+      socket.emit("typing", {
+        to: id,
+        userName: active?.name || "User",
+        chatId: show?.id || null,
+      });
+    }
+  };
+
+  // Throttled version for onChange
+  const throttledSendTyping = useRef(throttle(sendTyping, 1200)).current;
+
   useEffect(() => {
     if (socket) {
       socket.on("typing", (data) => {
-        setTypingData(data);
+        // Only show typing if it's for the current chat
+        if (!show || (data?.chatId && data.chatId !== show.id)) return;
+        setTypingData((data.userName || "Someone") + " is typing...");
         setTimeout(() => setTypingData(""), 4000);
       });
     }
-  }, []);
-
-  const sendTyping = (id) => {
-    if (socket?.connected)
-      socket.emit("typing", { to: id, userName: active?.name || "User" });
-  };
+    return () => {
+      if (socket) socket.off("typing");
+    };
+  }, [show, socket]);
 
   return (
     <div>
@@ -230,9 +255,8 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
 
         {/* --- CONVERSATION LIST (LEFT) --- */}
         <div
-          className={`w-full md:w-[350px] border-r flex flex-col bg-slate-50 ${
-            show ? "hidden md:flex" : "flex"
-          }`}
+          className={`w-full md:w-[350px] border-r flex flex-col bg-slate-50 ${show ? "hidden md:flex" : "flex"
+            }`}
         >
           <div className="p-4 bg-white border-b">
             <h2 className="text-xl font-bold text-slate-800">Messages</h2>
@@ -281,11 +305,10 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
                       item.messages[item.messages.length - 1]?._id
                     );
                   }}
-                  className={`flex p-4 border-b cursor-pointer transition-all hover:bg-white ${
-                    show?.id === item.id
+                  className={`flex p-4 border-b cursor-pointer transition-all hover:bg-white ${show?.id === item.id
                       ? "bg-white border-l-4 border-l-orange-500 shadow-sm"
                       : ""
-                  }`}
+                    }`}
                 >
                   <div className="relative">
                     <img
@@ -300,11 +323,10 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
                   <div className="ml-3 flex-1 overflow-hidden">
                     <div className="flex justify-between items-center">
                       <p
-                        className={`text-sm truncate ${
-                          isUnread
+                        className={`text-sm truncate ${isUnread
                             ? "font-bold text-slate-900"
                             : "text-slate-600"
-                        }`}
+                          }`}
                       >
                         {otherUser?.name}
                       </p>
@@ -324,11 +346,10 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
                       )}
                     </div>
                     <p
-                      className={`text-xs truncate mt-1 ${
-                        isUnread
+                      className={`text-xs truncate mt-1 ${isUnread
                           ? "text-slate-800 font-medium"
                           : "text-slate-400"
-                      }`}
+                        }`}
                     >
                       {item.messages[item.messages.length - 1]?.text}
                     </p>
@@ -344,9 +365,8 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
 
         {/* --- CHAT VIEW (RIGHT) --- */}
         <div
-          className={`flex-1 flex flex-col bg-slate-50 ${
-            !show ? "hidden md:flex items-center justify-center" : "flex"
-          }`}
+          className={`flex-1 flex flex-col bg-slate-50 ${!show ? "hidden md:flex items-center justify-center" : "flex"
+            }`}
         >
           {show ? (
             <>
@@ -399,16 +419,14 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
                   return (
                     <div
                       key={index}
-                      className={`flex ${
-                        isMe ? "justify-end" : "justify-start"
-                      }`}
+                      className={`flex ${isMe ? "justify-end" : "justify-start"
+                        }`}
                     >
                       <div
-                        className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm text-sm ${
-                          isMe
+                        className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm text-sm ${isMe
                             ? "bg-[#d1d5db] text-black rounded-tr-none"
                             : "bg-white text-slate-800 rounded-tl-none border border-slate-200"
-                        }`}
+                          }`}
                       >
                         {/* --- ADDED SENDER NAME --- */}
                         {item.metadata?.isDelegate && (
@@ -478,7 +496,14 @@ const MessagesComponent = ({dataOwnerId}: {dataOwnerId: string}) => {
                       placeholder="Write your message..."
                       rows={1}
                       value={message}
-                      onChange={(e) => setMessage(e.target.value)}
+                      onChange={(e) => {
+                        setMessage(e.target.value);
+                        const rid =
+                          show?.users?.[0]?._id === query.page || show?.users?.[0]?._id === dataOwnerId
+                            ? show?.users?.[1]?._id
+                            : show?.users?.[0]?._id;
+                        if (rid) throttledSendTyping(rid);
+                      }}
                       onFocus={() => {
                         const rid =
                           show?.users?.[0]?._id === query.page || show?.users?.[0]?._id === dataOwnerId
