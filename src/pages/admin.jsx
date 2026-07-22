@@ -9,6 +9,7 @@ import router, { useRouter } from "next/router"
 import Subscriptions from "@/components/Subscriptions";
 import Withdrawal from "@/components/Withdrawal";
 import Tasks from "@/components/Tasks";
+import HireRequests from "@/components/HireRequests";
 
 export default function Home() {
   const [active, setActive] = useState("summary");
@@ -111,6 +112,9 @@ export default function Home() {
             <div onClick={() => router.push("?page=withdrawal")} className="cursor-pointer">
               <span className={active === 'withdrawal' ? 'inline-block border-b border-warning' : ''}>Withdrawal</span>
             </div>
+            <div onClick={() => router.push("?page=hire-requests")} className="cursor-pointer">
+              <span className={active === 'hire-requests' ? 'inline-block border-b border-warning' : ''}>Hire Requests</span>
+            </div>
           </div>
           <div className="w-[80%]">
             {(() => {
@@ -146,6 +150,8 @@ export default function Home() {
                   return <div className="text-center my-8">
                     Coming Soon
                   </div>;
+                case "hire-requests":
+                  return <HireRequests users={users} />;
               }
             })()}
           </div>
