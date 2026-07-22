@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 
 const SERVER_URL = "https://people-powapi-v5-5ifxz.ondigitalocean.app"
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || "experthub-admin-2024-secure"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -14,13 +15,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (limit) params.append("limit", String(limit))
 
     const url = `${SERVER_URL}/api/v5/organization/available-professionals?${params.toString()}`
-    const token = req.headers.authorization || ""
 
     const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: token } : {}),
+        "x-admin-api-key": ADMIN_API_KEY,
       },
     })
 
