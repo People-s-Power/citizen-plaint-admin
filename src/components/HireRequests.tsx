@@ -3,7 +3,6 @@ import axios from "axios"
 import { Modal } from "rsuite"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { HTTP_URI } from "@/utils/constants"
 
 interface HireRequest {
   _id: string
@@ -52,7 +51,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
   const fetchRequests = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`${HTTP_URI}/organization/hire-requests`, {
+      const res = await axios.get(`/api/hire-requests`, {
         params: { status: statusFilter || undefined, page: 1, limit: 50 },
       })
       const data = res.data?.requests || res.data || []
@@ -71,7 +70,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
 
   const fetchProfessionals = async (search?: string) => {
     try {
-      const res = await axios.get(`${HTTP_URI}/organization/available-professionals`, {
+      const res = await axios.get(`/api/hire-requests/professionals`, {
         params: { search: search || undefined, limit: 20 },
       })
       setProfessionals(Array.isArray(res.data) ? res.data : [])
@@ -98,7 +97,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     if (!selectedRequest) return
     setAssigningId(professionalId)
     try {
-      await axios.post(`${HTTP_URI}/organization/hire-request/assign`, {
+      await axios.post(`/api/hire-requests/assign`, {
         hireRequestId: selectedRequest._id,
         professionalId,
         notes: adminNotes,
