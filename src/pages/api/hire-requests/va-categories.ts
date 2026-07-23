@@ -9,15 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { search, limit, category } = req.query
-    const params = new URLSearchParams()
-    if (search) params.append("search", String(search))
-    if (limit) params.append("limit", String(limit))
-    if (category) params.append("category", String(category))
-
-    const url = `${SERVER_URL}/api/v5/organization/available-professionals?${params.toString()}`
-
-    const response = await fetch(url, {
+    const response = await fetch(`${SERVER_URL}/api/v5/organization/va-categories`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -33,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json(data)
   } catch (error: any) {
-    console.error("Available professionals proxy error:", error)
+    console.error("VA categories proxy error:", error)
     return res.status(500).json({ message: error.message || "Internal server error" })
   }
 }

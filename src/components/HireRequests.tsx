@@ -8,6 +8,8 @@ import "react-toastify/dist/ReactToastify.css"
 // so requests hit the local Next.js API routes instead of the old admin backend
 const api = axios.create({ baseURL: "" })
 
+const DEFAULT_CATEGORY = "General Administrative Assistant"
+
 interface HireRequest {
   _id?: string
   id?: string
@@ -47,7 +49,7 @@ interface Professional {
   lastName?: string
   email?: string
   image?: string
-  accountType?: string
+  vaCategory?: string
   orgOperating?: any[]
 }
 
@@ -63,6 +65,9 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
   const [profSearch, setProfSearch] = useState("")
   const [assigningId, setAssigningId] = useState<string | null>(null)
   const [adminNotes, setAdminNotes] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_CATEGORY)
+  const [categories, setCategories] = useState<string[]>([DEFAULT_CATEGORY])
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false)
 
   const fetchRequests = useCallback(async () => {
     setLoading(true)
@@ -84,14 +89,28 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     fetchRequests()
   }, [fetchRequests])
 
-  const fetchProfessionals = async (search?: string) => {
+  const fetchCategories = async () => {
+    if (categoriesLoaded) return
+    try {
+      const res = await api.get(`/api/hire-requests/va-categories`)
+      const data: string[] = Array.isArray(res.data) ? res.data : []
+      if (data.length > 0) {
+        setCategories(data)
+        setCategoriesLoaded(true)
+      }
+    } catch {
+      // Silently fall back to the default category already in state
+    }
+  }
+
+  const fetchProfessionals = async (category: string, search?: string) => {
     try {
       const res = await api.get(`/api/hire-requests/professionals`, {
-        params: { search: search || undefined, limit: 20 },
+        params: { category, search: search || undefined, limit: 20 },
       })
       setProfessionals(Array.isArray(res.data) ? res.data : [])
     } catch {
-      // Fallback: filter from users prop (existing professionals)
+      // Fallback: filter from users prop
       const filtered = (users || []).filter(
         (u: any) =>
           (u.accountType === "Admin" || u.accountType === "Editor") &&
@@ -106,7 +125,15 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     setShowAssignModal(true)
     setAdminNotes("")
     setProfSearch("")
-    fetchProfessionals()
+    setSelectedCategory(DEFAULT_CATEGORY)
+    fetchCategories()
+    fetchProfessionals(DEFAULT_CATEGORY)
+  }
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category)
+    setProfSearch("")
+    fetchProfessionals(category)
   }
 
   const handleAssign = async (professionalId: string) => {
@@ -330,7 +357,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
       <Modal open={showAssignModal} onClose={() => { setShowAssignModal(false); setSelectedRequest(null) }} size="md">
         <Modal.Header>
           <div className="border-b border-gray-200 pb-3 w-full">
-            <Modal.Title className="text-lg font-bold">Assign General Administrative Assistant</Modal.Title>
+            <Modal.Title className="text-lg font-bold">Assign a Professional</Modal.Title>
             {selectedRequest && (
               <p className="text-sm text-gray-500 mt-1">
                 For: <span className="font-medium">{selectedRequest.clientName || selectedRequest.userName || selectedRequest.userEmail}</span>
@@ -340,21 +367,34 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                 <span className="font-medium">{formatAmount(selectedRequest.amountPaid)}</span>
               </p>
             )}
-            <p className="text-xs text-amber-600 mt-1">
-              Only verified General Administrative Assistants are shown below.
-            </p>
           </div>
         </Modal.Header>
         <Modal.Body>
+          {/* Category Filter */}
+          <div className="mb-4">
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
+              Professional Category
+            </label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 text-gray-800"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Search */}
           <div className="mb-4">
             <input
               type="text"
-              placeholder="Search GVA professionals by name..."
+              placeholder={`Search ${selectedCategory} by name...`}
               value={profSearch}
               onChange={(e) => {
                 setProfSearch(e.target.value)
-                fetchProfessionals(e.target.value)
+                fetchProfessionals(selectedCategory, e.target.value)
               }}
               className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
@@ -375,8 +415,8 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
             {professionals.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p className="font-medium">No General Administrative Assistants found</p>
-                <p className="text-sm mt-1">Only users with the Professional operator role in at least one organization will appear here.</p>
+                <p className="font-medium">No {selectedCategory}s found</p>
+                <p className="text-sm mt-1">Only verified professionals in this category will appear here.</p>
               </div>
             ) : (
               professionals.map((prof) => (
@@ -395,6 +435,9 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                         {prof.name || `${prof.firstName || ""} ${prof.lastName || ""}`.trim() || "—"}
                       </p>
                       <p className="text-xs text-gray-500">{prof.email || ""}</p>
+                      {prof.vaCategory && (
+                        <p className="text-xs text-amber-600 font-medium mt-0.5">{prof.vaCategory}</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
