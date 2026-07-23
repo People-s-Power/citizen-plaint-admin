@@ -390,34 +390,40 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
           </div>
         </Modal.Header>
         <Modal.Body>
-          {/* Category Filter */}
-          <div className="mb-4">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
-              Professional Category
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 text-gray-800"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
+          {/* Search & Category Filter */}
+          <div className="mb-4 flex flex-col sm:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
+                Search Professional
+              </label>
+              <input
+                type="text"
+                placeholder={`Search by name...`}
+                value={profSearch}
+                onChange={(e) => {
+                  setProfSearch(e.target.value)
+                  filterProfessionals(selectedCategory, e.target.value)
+                }}
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+            </div>
 
-          {/* Search */}
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder={`Search ${selectedCategory} by name...`}
-              value={profSearch}
-              onChange={(e) => {
-                setProfSearch(e.target.value)
-                filterProfessionals(selectedCategory, e.target.value)
-              }}
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
+            {/* Category Filter */}
+            <div className="w-full sm:w-[45%]">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
+                Category
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 text-gray-800"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Admin Notes */}
