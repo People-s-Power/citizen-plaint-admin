@@ -391,7 +391,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
         </Modal.Header>
         <Modal.Body>
           {/* Search & Category Filter */}
-          <div className="mb-4 flex flex-col sm:flex-row gap-4">
+          <div className="mb-4 flex flex-row items-end gap-3">
             {/* Search */}
             <div className="flex-1">
               <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
@@ -410,7 +410,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
             </div>
 
             {/* Category Filter */}
-            <div className="w-full sm:w-[45%]">
+            <div className="w-[45%] shrink-0">
               <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
                 Category
               </label>
