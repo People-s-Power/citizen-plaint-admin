@@ -27,6 +27,8 @@ interface HireRequest {
   amountPaid: number
   assignedProfessionalId?: string
   assignedProfessionalName?: string
+  assignedProfessionalEmail?: string
+  assignedProfessionalImage?: string
   assignedAt?: string
   assignedBy?: string
   adminNotes?: string
@@ -126,7 +128,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
         professionalId: profId,
         notes: adminNotes,
       })
-      toast.success("Professional assigned successfully! Email notification sent to the client.")
+      toast.success("Professional assigned successfully! Email notifications sent to both the client and the professional.")
       setShowAssignModal(false)
       setSelectedRequest(null)
       fetchRequests()
@@ -160,6 +162,8 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     if (diffDays < 30) return `${diffDays}d ago`
     return `${Math.floor(diffDays / 30)}mo ago`
   }
+
+  const isAssignedView = statusFilter === "assigned"
 
   return (
     <div>
@@ -223,7 +227,8 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                 <th className="px-5 py-3">Plan</th>
                 <th className="px-5 py-3">Payment</th>
                 <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Submitted</th>
+                {isAssignedView && <th className="px-5 py-3">Assigned To</th>}
+                <th className="px-5 py-3">{isAssignedView ? "Assigned Date" : "Submitted"}</th>
                 <th className="px-5 py-3">Action</th>
               </tr>
             </thead>
@@ -263,13 +268,42 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                     >
                       {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
                     </span>
-                    {req.status === "assigned" && req.assignedProfessionalName && (
-                      <p className="text-xs text-green-600 mt-1 font-medium">→ {req.assignedProfessionalName}</p>
-                    )}
                   </td>
+                  {isAssignedView && (
+                    <td className="px-5 py-4">
+                      {req.assignedProfessionalName ? (
+                        <div className="flex items-center gap-2">
+                          {req.assignedProfessionalImage && (
+                            <img
+                              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                              src={req.assignedProfessionalImage}
+                              alt=""
+                            />
+                          )}
+                          <div>
+                            <p className="font-semibold text-green-700 text-sm">{req.assignedProfessionalName}</p>
+                            {req.assignedProfessionalEmail && (
+                              <p className="text-xs text-gray-400">{req.assignedProfessionalEmail}</p>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Not populated</span>
+                      )}
+                    </td>
+                  )}
                   <td className="px-5 py-4">
-                    <p className="text-sm text-gray-700">{formatDate(req.createdAt)}</p>
-                    <p className="text-xs text-gray-400">{timeAgo(req.createdAt)}</p>
+                    {isAssignedView && req.assignedAt ? (
+                      <>
+                        <p className="text-sm text-gray-700">{formatDate(req.assignedAt)}</p>
+                        <p className="text-xs text-gray-400">{timeAgo(req.assignedAt)}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-700">{formatDate(req.createdAt)}</p>
+                        <p className="text-xs text-gray-400">{timeAgo(req.createdAt)}</p>
+                      </>
+                    )}
                   </td>
                   <td className="px-5 py-4">
                     {req.status === "pending" ? (
@@ -279,6 +313,8 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                       >
                         Assign
                       </button>
+                    ) : req.status === "assigned" ? (
+                      <span className="text-xs text-green-600 font-medium">✓ Assigned</span>
                     ) : (
                       <span className="text-xs text-gray-400">Done</span>
                     )}
@@ -294,16 +330,19 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
       <Modal open={showAssignModal} onClose={() => { setShowAssignModal(false); setSelectedRequest(null) }} size="md">
         <Modal.Header>
           <div className="border-b border-gray-200 pb-3 w-full">
-            <Modal.Title className="text-lg font-bold">Assign Professional</Modal.Title>
+            <Modal.Title className="text-lg font-bold">Assign General Administrative Assistant</Modal.Title>
             {selectedRequest && (
               <p className="text-sm text-gray-500 mt-1">
-                For: <span className="font-medium">{selectedRequest.userName || selectedRequest.userEmail}</span>
+                For: <span className="font-medium">{selectedRequest.clientName || selectedRequest.userName || selectedRequest.userEmail}</span>
                 {" · "}
                 <span className="font-medium capitalize">{selectedRequest.planType}</span> plan
                 {" · "}
                 <span className="font-medium">{formatAmount(selectedRequest.amountPaid)}</span>
               </p>
             )}
+            <p className="text-xs text-amber-600 mt-1">
+              Only verified General Administrative Assistants are shown below.
+            </p>
           </div>
         </Modal.Header>
         <Modal.Body>
@@ -311,7 +350,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
           <div className="mb-4">
             <input
               type="text"
-              placeholder="Search professionals by name..."
+              placeholder="Search GVA professionals by name..."
               value={profSearch}
               onChange={(e) => {
                 setProfSearch(e.target.value)
@@ -336,8 +375,8 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
             {professionals.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p className="font-medium">No professionals found</p>
-                <p className="text-sm mt-1">Try a different search</p>
+                <p className="font-medium">No General Administrative Assistants found</p>
+                <p className="text-sm mt-1">Only users with the Professional operator role in at least one organization will appear here.</p>
               </div>
             ) : (
               professionals.map((prof) => (
@@ -355,7 +394,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                       <p className="font-medium text-gray-900 text-sm">
                         {prof.name || `${prof.firstName || ""} ${prof.lastName || ""}`.trim() || "—"}
                       </p>
-                      <p className="text-xs text-gray-500">{prof.email || prof.accountType || ""}</p>
+                      <p className="text-xs text-gray-500">{prof.email || ""}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
