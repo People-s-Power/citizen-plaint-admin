@@ -108,15 +108,19 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     if (!selectedRequest) return
     setAssigningId(professionalId)
     try {
-      const requestId = selectedRequest._id || (selectedRequest as any).id
-      if (!requestId || !professionalId) {
-        toast.error("Missing hire request ID or professional ID")
+      // Mongoose documents may serialize _id as ObjectId or string depending on transport
+      const raw = selectedRequest as any
+      const requestId = String(raw._id || raw.id || raw._doc?._id || "").trim()
+      const profId = String(professionalId || "").trim()
+      if (!requestId || !profId) {
+        console.error("Assign debug — selectedRequest keys:", Object.keys(raw), "raw._id:", raw._id, "raw.id:", raw.id)
+        toast.error(`Missing hire request ID (got: ${requestId || 'empty'}) or professional ID (got: ${profId || 'empty'})`)
         setAssigningId(null)
         return
       }
       await api.post(`/api/hire-requests/assign`, {
         hireRequestId: requestId,
-        professionalId,
+        professionalId: profId,
         notes: adminNotes,
       })
       toast.success("Professional assigned successfully! Email notification sent to the client.")
