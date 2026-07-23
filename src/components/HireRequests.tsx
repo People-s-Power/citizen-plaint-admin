@@ -49,11 +49,29 @@ interface Professional {
   lastName?: string
   email?: string
   image?: string
-  vaCategory?: string
+  profession?: any
   orgOperating?: any[]
 }
 
 const getProfId = (prof: Professional) => String(prof._id || prof.id || "").trim()
+
+const PROFESSIONS = [
+  "General Administrative Assistant",
+  "Social Media Manager ",
+  "Real Estate",
+  "Virtual Research",
+  "Virtual Data Entry",
+  "Virtual Book keeper",
+  "Virtual ecommerce",
+  "Customer Service Provider (Phone/Chat",
+  "Content Writer",
+  "Website Management",
+  "Public Relation Assistant",
+  "Graphic designs",
+  "Appointment/Calendar setter",
+  "Email Management",
+  "Campaign/petition Writer",
+]
 
 const HireRequests = ({ users = [] }: { users?: any[] }) => {
   const [requests, setRequests] = useState<HireRequest[]>([])
@@ -66,8 +84,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
   const [assigningId, setAssigningId] = useState<string | null>(null)
   const [adminNotes, setAdminNotes] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_CATEGORY)
-  const [categories, setCategories] = useState<string[]>([DEFAULT_CATEGORY])
-  const [categoriesLoaded, setCategoriesLoaded] = useState(false)
+  const categories = PROFESSIONS
 
   const fetchRequests = useCallback(async () => {
     setLoading(true)
@@ -89,35 +106,39 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     fetchRequests()
   }, [fetchRequests])
 
-  const fetchCategories = async () => {
-    if (categoriesLoaded) return
-    try {
-      const res = await api.get(`/api/hire-requests/va-categories`)
-      const data: string[] = Array.isArray(res.data) ? res.data : []
-      if (data.length > 0) {
-        setCategories(data)
-        setCategoriesLoaded(true)
+  const filterProfessionals = (category: string, search?: string) => {
+    const filtered = (users || []).filter((u: any) => {
+      // Must be Admin or Editor to be a professional user? 
+      // User.jsx filters by accountType === 'Admin' | 'Editor'. Let's keep it safe.
+      // Wait, actually, if they have a profession, they are a professional. 
+      // But let's check what the old fallback did:
+      // (u.accountType === "Admin" || u.accountType === "Editor")
+      // Let's just trust the profession field if category is set.
+      
+      // Filter by search
+      if (search && search.trim() !== "") {
+        const val = search.trim().toLowerCase();
+        const matchesName = (u.name || "").toLowerCase().includes(val) || 
+                            (u.firstName || "").toLowerCase().includes(val) || 
+                            (u.lastName || "").toLowerCase().includes(val);
+        if (!matchesName) return false;
       }
-    } catch {
-      // Silently fall back to the default category already in state
-    }
-  }
 
-  const fetchProfessionals = async (category: string, search?: string) => {
-    try {
-      const res = await api.get(`/api/hire-requests/professionals`, {
-        params: { category, search: search || undefined, limit: 20 },
-      })
-      setProfessionals(Array.isArray(res.data) ? res.data : [])
-    } catch {
-      // Fallback: filter from users prop
-      const filtered = (users || []).filter(
-        (u: any) =>
-          (u.accountType === "Admin" || u.accountType === "Editor") &&
-          (!search || (u.name || "").toLowerCase().includes(search.toLowerCase()))
-      )
-      setProfessionals(filtered)
-    }
+      // Filter by category
+      if (category && category !== "All") {
+        if (!u.profession) return false;
+        
+        if (Array.isArray(u.profession)) {
+          const hasMatchingProf = u.profession.some((p: any) => p.name === category || p === category);
+          if (!hasMatchingProf) return false;
+        } else if (u.profession !== category) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+    setProfessionals(filtered);
   }
 
   const openAssignModal = (request: HireRequest) => {
@@ -126,14 +147,13 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     setAdminNotes("")
     setProfSearch("")
     setSelectedCategory(DEFAULT_CATEGORY)
-    fetchCategories()
-    fetchProfessionals(DEFAULT_CATEGORY)
+    filterProfessionals(DEFAULT_CATEGORY)
   }
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category)
     setProfSearch("")
-    fetchProfessionals(category)
+    filterProfessionals(category)
   }
 
   const handleAssign = async (professionalId: string) => {
@@ -394,7 +414,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
               value={profSearch}
               onChange={(e) => {
                 setProfSearch(e.target.value)
-                fetchProfessionals(selectedCategory, e.target.value)
+                filterProfessionals(selectedCategory, e.target.value)
               }}
               className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
@@ -435,8 +455,12 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                         {prof.name || `${prof.firstName || ""} ${prof.lastName || ""}`.trim() || "—"}
                       </p>
                       <p className="text-xs text-gray-500">{prof.email || ""}</p>
-                      {prof.vaCategory && (
-                        <p className="text-xs text-amber-600 font-medium mt-0.5">{prof.vaCategory}</p>
+                      {prof.profession && (
+                        <p className="text-xs text-amber-600 font-medium mt-0.5">
+                          {Array.isArray(prof.profession) 
+                            ? prof.profession.map((p: any) => p.name || p).join(", ")
+                            : prof.profession}
+                        </p>
                       )}
                     </div>
                   </div>
