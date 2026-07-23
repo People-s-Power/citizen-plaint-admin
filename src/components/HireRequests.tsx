@@ -9,10 +9,14 @@ import "react-toastify/dist/ReactToastify.css"
 const api = axios.create({ baseURL: "" })
 
 interface HireRequest {
-  _id: string
+  _id?: string
+  id?: string
   orgId: string
   orgName?: string
-  userId: string
+  userId?: string
+  clientUserId?: string
+  clientName?: string
+  clientEmail?: string
   userName?: string
   userEmail?: string
   planType: "full-time" | "part-time"
@@ -26,9 +30,12 @@ interface HireRequest {
   assignedAt?: string
   assignedBy?: string
   adminNotes?: string
+  notes?: string
   createdAt: string
   updatedAt: string
 }
+
+const getRequestId = (req: HireRequest) => req._id || req.id || ""
 
 interface Professional {
   _id: string
@@ -101,8 +108,14 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     if (!selectedRequest) return
     setAssigningId(professionalId)
     try {
+      const requestId = selectedRequest._id || (selectedRequest as any).id
+      if (!requestId || !professionalId) {
+        toast.error("Missing hire request ID or professional ID")
+        setAssigningId(null)
+        return
+      }
       await api.post(`/api/hire-requests/assign`, {
-        hireRequestId: selectedRequest._id,
+        hireRequestId: requestId,
         professionalId,
         notes: adminNotes,
       })
@@ -209,9 +222,9 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {requests.map((req) => (
-                <tr key={req._id} className="hover:bg-gray-50 transition-colors">
+                <tr key={getRequestId(req)} className="hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-4">
-                    <p className="font-semibold text-gray-900 text-sm">{req.userName || req.userEmail || "—"}</p>
+                    <p className="font-semibold text-gray-900 text-sm">{req.clientName || req.userName || req.clientEmail || req.userEmail || "—"}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{req.orgName || req.orgId}</p>
                     {req.userEmail && <p className="text-xs text-gray-400">{req.userEmail}</p>}
                   </td>
