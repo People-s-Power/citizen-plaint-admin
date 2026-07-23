@@ -38,7 +38,8 @@ interface HireRequest {
 const getRequestId = (req: HireRequest) => req._id || req.id || ""
 
 interface Professional {
-  _id: string
+  _id?: string
+  id?: string
   name?: string
   firstName?: string
   lastName?: string
@@ -47,6 +48,8 @@ interface Professional {
   accountType?: string
   orgOperating?: any[]
 }
+
+const getProfId = (prof: Professional) => String(prof._id || prof.id || "").trim()
 
 const HireRequests = ({ users = [] }: { users?: any[] }) => {
   const [requests, setRequests] = useState<HireRequest[]>([])
@@ -339,7 +342,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
             ) : (
               professionals.map((prof) => (
                 <div
-                  key={prof._id}
+                  key={getProfId(prof)}
                   className="p-3 flex items-center justify-between bg-[#F5F6FA] rounded-lg hover:bg-amber-50 transition"
                 >
                   <div className="flex items-center gap-3">
@@ -360,15 +363,15 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                       <span className="text-xs text-gray-500">{prof.orgOperating.length} Orgs</span>
                     )}
                     <button
-                      onClick={() => handleAssign(prof._id)}
-                      disabled={assigningId === prof._id}
+                      onClick={() => handleAssign(getProfId(prof))}
+                      disabled={assigningId === getProfId(prof)}
                       className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
-                        assigningId === prof._id
+                        assigningId === getProfId(prof)
                           ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                           : "bg-warning text-white hover:opacity-90"
                       }`}
                     >
-                      {assigningId === prof._id ? "Assigning..." : "Assign"}
+                      {assigningId === getProfId(prof) ? "Assigning..." : "Assign"}
                     </button>
                   </div>
                 </div>
