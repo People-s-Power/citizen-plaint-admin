@@ -10,6 +10,7 @@ import Subscriptions from "@/components/Subscriptions";
 import Withdrawal from "@/components/Withdrawal";
 import Tasks from "@/components/Tasks";
 import HireRequests from "@/components/HireRequests";
+import RemovalLogs from "@/components/RemovalLogs";
 
 export default function Home() {
   const [active, setActive] = useState("summary");
@@ -115,6 +116,9 @@ export default function Home() {
             <div onClick={() => router.push("?page=hire-requests")} className="cursor-pointer">
               <span className={active === 'hire-requests' ? 'inline-block border-b border-warning' : ''}>Hire Requests</span>
             </div>
+            <div onClick={() => router.push("?page=removal-logs")} className="cursor-pointer">
+              <span className={active === 'removal-logs' ? 'inline-block border-b border-red-500 text-red-600' : ''}>Removal Logs</span>
+            </div>
           </div>
           <div className="w-[80%]">
             {(() => {
@@ -152,6 +156,8 @@ export default function Home() {
                   </div>;
                 case "hire-requests":
                   return <HireRequests users={users} />;
+                case "removal-logs":
+                  return <RemovalLogs users={users} />;
               }
             })()}
           </div>
