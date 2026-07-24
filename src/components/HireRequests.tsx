@@ -35,6 +35,16 @@ interface HireRequest {
   assignedBy?: string
   adminNotes?: string
   notes?: string
+  requirementsInfo?: {
+    businessDescription?: string
+    keyTasks?: string[]
+    preferredTimezone?: string
+    workingHours?: string
+    industry?: string
+    communicationPreference?: string[]
+    specialRequirements?: string
+    urgency?: string
+  } | null
   createdAt: string
   updatedAt: string
 }
@@ -84,6 +94,9 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
   const [assigningId, setAssigningId] = useState<string | null>(null)
   const [adminNotes, setAdminNotes] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_CATEGORY)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [detailsRequest, setDetailsRequest] = useState<HireRequest | null>(null)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const categories = PROFESSIONS
 
   const fetchRequests = useCallback(async () => {
@@ -353,18 +366,74 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                     )}
                   </td>
                   <td className="px-5 py-4">
-                    {req.status === "pending" ? (
-                      <button
-                        onClick={() => openAssignModal(req)}
-                        className="px-4 py-2 bg-warning text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-all shadow-sm"
-                      >
-                        Assign
-                      </button>
-                    ) : req.status === "assigned" ? (
-                      <span className="text-xs text-green-600 font-medium">✓ Assigned</span>
-                    ) : (
-                      <span className="text-xs text-gray-400">Done</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {req.status === "pending" ? (
+                        <button
+                          onClick={() => openAssignModal(req)}
+                          className="px-4 py-2 bg-warning text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-all shadow-sm"
+                        >
+                          Assign
+                        </button>
+                      ) : req.status === "assigned" ? (
+                        <span className="text-xs text-green-600 font-medium">✓ Assigned</span>
+                      ) : (
+                        <span className="text-xs text-gray-400">Done</span>
+                      )}
+                      {/* Ellipsis menu */}
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setOpenMenuId(openMenuId === getRequestId(req) ? null : getRequestId(req))
+                          }}
+                          className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-400 hover:text-gray-700"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <circle cx="8" cy="3" r="1.5" />
+                            <circle cx="8" cy="8" r="1.5" />
+                            <circle cx="8" cy="13" r="1.5" />
+                          </svg>
+                        </button>
+                        {openMenuId === getRequestId(req) && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                            <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px]">
+                              <button
+                                onClick={() => {
+                                  setDetailsRequest(req)
+                                  setShowDetailsModal(true)
+                                  setOpenMenuId(null)
+                                }}
+                                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                  <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                View Details
+                              </button>
+                              {req.status === "pending" && (
+                                <button
+                                  onClick={() => {
+                                    openAssignModal(req)
+                                    setOpenMenuId(null)
+                                  }}
+                                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="8.5" cy="7" r="4" />
+                                    <line x1="20" y1="8" x2="20" y2="14" />
+                                    <line x1="23" y1="11" x2="17" y2="11" />
+                                  </svg>
+                                  Assign Professional
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -490,6 +559,176 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
               ))
             )}
           </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* View Details Modal */}
+      <Modal open={showDetailsModal} onClose={() => { setShowDetailsModal(false); setDetailsRequest(null) }} size="md">
+        <Modal.Header>
+          <div className="border-b border-gray-200 pb-3 w-full">
+            <Modal.Title className="text-lg font-bold">Hire Request Details</Modal.Title>
+            {detailsRequest && (
+              <p className="text-sm text-gray-500 mt-1">
+                {detailsRequest.clientName || detailsRequest.userName || "Client"} · {detailsRequest.orgName || detailsRequest.orgId}
+              </p>
+            )}
+          </div>
+        </Modal.Header>
+        <Modal.Body>
+          {detailsRequest && (
+            <div className="space-y-6">
+              {/* Request Summary */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase">Plan Type</p>
+                  <p className="text-sm font-bold text-gray-900 mt-1 capitalize">{detailsRequest.planType}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase">Amount Paid</p>
+                  <p className="text-sm font-bold text-gray-900 mt-1">{formatAmount(detailsRequest.amountPaid)}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase">Payment Method</p>
+                  <p className="text-sm font-bold text-gray-900 mt-1 capitalize">{detailsRequest.paymentMethod}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase">Status</p>
+                  <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold mt-1 ${
+                    detailsRequest.status === "pending" ? "bg-amber-100 text-amber-700"
+                    : detailsRequest.status === "assigned" ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                  }`}>
+                    {detailsRequest.status.charAt(0).toUpperCase() + detailsRequest.status.slice(1)}
+                  </span>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase">Client Email</p>
+                  <p className="text-sm text-gray-900 mt-1">{detailsRequest.clientEmail || detailsRequest.userEmail || "—"}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase">Submitted</p>
+                  <p className="text-sm text-gray-900 mt-1">{formatDate(detailsRequest.createdAt)}</p>
+                </div>
+              </div>
+
+              {/* Requirements Info Section */}
+              {detailsRequest.requirementsInfo ? (
+                <div className="border border-amber-200 bg-amber-50 rounded-xl p-5">
+                  <h4 className="text-sm font-bold text-amber-800 mb-4 flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    Client Requirements
+                  </h4>
+                  <div className="space-y-4">
+                    {detailsRequest.requirementsInfo.businessDescription && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Business Description</p>
+                        <p className="text-sm text-gray-800 bg-white rounded-lg p-3">{detailsRequest.requirementsInfo.businessDescription}</p>
+                      </div>
+                    )}
+                    {detailsRequest.requirementsInfo.industry && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Industry</p>
+                        <span className="inline-block px-3 py-1 bg-white rounded-full text-sm font-medium text-gray-700">{detailsRequest.requirementsInfo.industry}</span>
+                      </div>
+                    )}
+                    {detailsRequest.requirementsInfo.keyTasks && detailsRequest.requirementsInfo.keyTasks.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Key Tasks</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {detailsRequest.requirementsInfo.keyTasks.map((task, i) => (
+                            <span key={i} className="inline-block px-2.5 py-1 bg-white rounded-full text-xs font-medium text-gray-700 border border-gray-200">
+                              {task}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {detailsRequest.requirementsInfo.preferredTimezone && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Preferred Timezone</p>
+                        <p className="text-sm text-gray-800">{detailsRequest.requirementsInfo.preferredTimezone}</p>
+                      </div>
+                    )}
+                    {detailsRequest.requirementsInfo.workingHours && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Working Hours</p>
+                        <p className="text-sm text-gray-800">{detailsRequest.requirementsInfo.workingHours}</p>
+                      </div>
+                    )}
+                    {detailsRequest.requirementsInfo.communicationPreference && detailsRequest.requirementsInfo.communicationPreference.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Communication Preferences</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {detailsRequest.requirementsInfo.communicationPreference.map((pref, i) => (
+                            <span key={i} className="inline-block px-2.5 py-1 bg-white rounded-full text-xs font-medium text-gray-700 border border-gray-200">
+                              {pref}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {detailsRequest.requirementsInfo.specialRequirements && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Special Requirements</p>
+                        <p className="text-sm text-gray-800 bg-white rounded-lg p-3">{detailsRequest.requirementsInfo.specialRequirements}</p>
+                      </div>
+                    )}
+                    {detailsRequest.requirementsInfo.urgency && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Urgency</p>
+                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                          detailsRequest.requirementsInfo.urgency === "immediate" ? "bg-red-100 text-red-700"
+                          : detailsRequest.requirementsInfo.urgency === "this-week" ? "bg-orange-100 text-orange-700"
+                          : detailsRequest.requirementsInfo.urgency === "next-week" ? "bg-blue-100 text-blue-700"
+                          : "bg-green-100 text-green-700"
+                        }`}>
+                          {detailsRequest.requirementsInfo.urgency === "immediate" ? "Immediately (within 24 hours)"
+                          : detailsRequest.requirementsInfo.urgency === "this-week" ? "This week"
+                          : detailsRequest.requirementsInfo.urgency === "next-week" ? "Next week"
+                          : "Flexible / No rush"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-gray-200 bg-gray-50 rounded-xl p-5 text-center">
+                  <p className="text-sm text-gray-500 italic">No requirements information submitted by the client.</p>
+                </div>
+              )}
+
+              {/* Admin Notes */}
+              {(detailsRequest.notes || detailsRequest.adminNotes) && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Admin Notes</p>
+                  <p className="text-sm text-gray-800">{detailsRequest.notes || detailsRequest.adminNotes}</p>
+                </div>
+              )}
+
+              {/* Assigned Professional Info */}
+              {detailsRequest.assignedProfessionalName && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-xs font-semibold text-green-700 uppercase mb-2">Assigned Professional</p>
+                  <div className="flex items-center gap-3">
+                    {detailsRequest.assignedProfessionalImage && (
+                      <img className="w-10 h-10 rounded-full object-cover" src={detailsRequest.assignedProfessionalImage} alt="" />
+                    )}
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">{detailsRequest.assignedProfessionalName}</p>
+                      {detailsRequest.assignedProfessionalEmail && <p className="text-xs text-gray-500">{detailsRequest.assignedProfessionalEmail}</p>}
+                      {detailsRequest.assignedAt && <p className="text-xs text-gray-400 mt-0.5">Assigned on {formatDate(detailsRequest.assignedAt)}</p>}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </Modal.Body>
       </Modal>
 
