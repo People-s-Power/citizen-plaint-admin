@@ -97,6 +97,14 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [detailsRequest, setDetailsRequest] = useState<HireRequest | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [showReassignModal, setShowReassignModal] = useState(false)
+  const [reassignRequest, setReassignRequest] = useState<HireRequest | null>(null)
+  const [reassignSearch, setReassignSearch] = useState("")
+  const [reassignCategory, setReassignCategory] = useState<string>(DEFAULT_CATEGORY)
+  const [reassignProfessionals, setReassignProfessionals] = useState<Professional[]>([])
+  const [reassignReason, setReassignReason] = useState("")
+  const [reassignNotes, setReassignNotes] = useState("")
+  const [reassigningId, setReassigningId] = useState<string | null>(null)
   const categories = PROFESSIONS
 
   const fetchRequests = useCallback(async () => {
@@ -221,6 +229,96 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     const diffDays = Math.floor(diffHours / 24)
     if (diffDays < 30) return `${diffDays}d ago`
     return `${Math.floor(diffDays / 30)}mo ago`
+  }
+
+  const filterReassignProfessionals = (category: string, search?: string) => {
+    const currentProfId = reassignRequest?.assignedProfessionalId || ""
+    const filtered = (users || []).filter((u: any) => {
+      // Exclude the currently assigned professional
+      if (currentProfId && (String(u._id) === String(currentProfId) || String(u.id) === String(currentProfId))) {
+        return false
+      }
+
+      // Filter by search
+      if (search && search.trim() !== "") {
+        const val = search.trim().toLowerCase()
+        const matchesName =
+          (u.name || "").toLowerCase().includes(val) ||
+          (u.firstName || "").toLowerCase().includes(val) ||
+          (u.lastName || "").toLowerCase().includes(val)
+        if (!matchesName) return false
+      }
+
+      // Filter by category
+      if (category && category !== "All") {
+        if (!u.profession) return false
+        if (Array.isArray(u.profession)) {
+          const hasMatchingProf = u.profession.some((p: any) => p.name === category || p === category)
+          if (!hasMatchingProf) return false
+        } else if (u.profession !== category) {
+          return false
+        }
+      }
+
+      return true
+    })
+    setReassignProfessionals(filtered)
+  }
+
+  const openReassignModal = (request: HireRequest) => {
+    setReassignRequest(request)
+    setShowReassignModal(true)
+    setReassignReason("")
+    setReassignNotes("")
+    setReassignSearch("")
+    setReassignCategory(DEFAULT_CATEGORY)
+    // We need to filter after setting the request since filterReassignProfessionals
+    // uses reassignRequest, but state isn't updated yet. Use the request directly:
+    const currentProfId = request.assignedProfessionalId || ""
+    const filtered = (users || []).filter((u: any) => {
+      if (currentProfId && (String(u._id) === String(currentProfId) || String(u.id) === String(currentProfId))) return false
+      if (!u.profession) return false
+      if (Array.isArray(u.profession)) {
+        return u.profession.some((p: any) => p.name === DEFAULT_CATEGORY || p === DEFAULT_CATEGORY)
+      }
+      return u.profession === DEFAULT_CATEGORY
+    })
+    setReassignProfessionals(filtered)
+  }
+
+  const handleReassignCategoryChange = (category: string) => {
+    setReassignCategory(category)
+    setReassignSearch("")
+    filterReassignProfessionals(category)
+  }
+
+  const handleReassign = async (newProfessionalId: string) => {
+    if (!reassignRequest) return
+    setReassigningId(newProfessionalId)
+    try {
+      const raw = reassignRequest as any
+      const requestId = String(raw._id || raw.id || raw._doc?._id || "").trim()
+      const profId = String(newProfessionalId || "").trim()
+      if (!requestId || !profId) {
+        toast.error(`Missing hire request ID or professional ID`)
+        setReassigningId(null)
+        return
+      }
+      await api.post(`/api/hire-requests/reassign`, {
+        hireRequestId: requestId,
+        newProfessionalId: profId,
+        reason: reassignReason,
+        notes: reassignNotes,
+      })
+      toast.success("Professional reassigned successfully! Email notifications sent to the client and the new professional.")
+      setShowReassignModal(false)
+      setReassignRequest(null)
+      fetchRequests()
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to reassign professional")
+    } finally {
+      setReassigningId(null)
+    }
   }
 
   const isAssignedView = statusFilter === "assigned"
@@ -427,6 +525,23 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                                     <line x1="23" y1="11" x2="17" y2="11" />
                                   </svg>
                                   Assign Professional
+                                </button>
+                              )}
+                              {req.status === "assigned" && (
+                                <button
+                                  onClick={() => {
+                                    openReassignModal(req)
+                                    setOpenMenuId(null)
+                                  }}
+                                  className="w-full text-left px-4 py-2.5 text-sm text-orange-600 hover:bg-orange-50 flex items-center gap-2"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                  </svg>
+                                  Reassign Professional
                                 </button>
                               )}
                             </div>
@@ -729,6 +844,156 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
               )}
             </div>
           )}
+        </Modal.Body>
+      </Modal>
+
+      {/* Reassign Professional Modal */}
+      <Modal open={showReassignModal} onClose={() => { setShowReassignModal(false); setReassignRequest(null) }} size="md">
+        <Modal.Header>
+          <div className="border-b border-gray-200 pb-3 w-full">
+            <Modal.Title className="text-lg font-bold flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-orange-100 text-orange-600 text-sm">🔄</span>
+              Reassign Professional
+            </Modal.Title>
+            {reassignRequest && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  For: <span className="font-medium">{reassignRequest.clientName || reassignRequest.userName || reassignRequest.userEmail}</span>
+                  {" · "}
+                  <span className="font-medium capitalize">{reassignRequest.planType}</span> plan
+                  {" · "}
+                  <span className="font-medium">{formatAmount(reassignRequest.amountPaid)}</span>
+                </p>
+                {reassignRequest.assignedProfessionalName && (
+                  <div className="mt-2 flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                    {reassignRequest.assignedProfessionalImage && (
+                      <img className="w-7 h-7 rounded-full object-cover flex-shrink-0" src={reassignRequest.assignedProfessionalImage} alt="" />
+                    )}
+                    <div>
+                      <p className="text-xs text-orange-700 font-medium">
+                        Currently assigned: <span className="font-bold">{reassignRequest.assignedProfessionalName}</span>
+                      </p>
+                      {reassignRequest.assignedProfessionalEmail && (
+                        <p className="text-xs text-orange-500">{reassignRequest.assignedProfessionalEmail}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </Modal.Header>
+        <Modal.Body>
+          {/* Reason for Reassignment */}
+          <div className="mb-4">
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
+              Reason for Reassignment
+            </label>
+            <textarea
+              value={reassignReason}
+              onChange={(e) => setReassignReason(e.target.value)}
+              placeholder="Why is this VA being replaced? (e.g., performance issue, client request, availability conflict...)"
+              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm resize-none h-20 focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+
+          {/* Search & Category Filter */}
+          <div className="mb-4 flex flex-row items-end gap-3">
+            <div className="flex-1">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
+                Search New Professional
+              </label>
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={reassignSearch}
+                onChange={(e) => {
+                  setReassignSearch(e.target.value)
+                  filterReassignProfessionals(reassignCategory, e.target.value)
+                }}
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+            </div>
+            <div className="w-[45%] shrink-0">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
+                Category
+              </label>
+              <select
+                value={reassignCategory}
+                onChange={(e) => handleReassignCategoryChange(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Admin Notes */}
+          <div className="mb-4">
+            <label className="text-xs font-medium text-gray-600 block mb-1">Admin Notes (optional)</label>
+            <textarea
+              value={reassignNotes}
+              onChange={(e) => setReassignNotes(e.target.value)}
+              placeholder="Internal notes about this reassignment..."
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm resize-none h-16 focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+
+          {/* New Professional List */}
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {reassignProfessionals.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p className="font-medium">No {reassignCategory}s found</p>
+                <p className="text-sm mt-1">Only verified professionals in this category will appear here.</p>
+              </div>
+            ) : (
+              reassignProfessionals.map((prof) => (
+                <div
+                  key={getProfId(prof)}
+                  className="p-3 flex items-center justify-between bg-[#F5F6FA] rounded-lg hover:bg-orange-50 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      className="w-10 h-10 rounded-full object-cover"
+                      src={prof.image || "/user.png"}
+                      alt=""
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm">
+                        {prof.name || `${prof.firstName || ""} ${prof.lastName || ""}`.trim() || "—"}
+                      </p>
+                      <p className="text-xs text-gray-500">{prof.email || ""}</p>
+                      {prof.profession && (
+                        <p className="text-xs text-amber-600 font-medium mt-0.5">
+                          {Array.isArray(prof.profession)
+                            ? prof.profession.map((p: any) => p.name || p).join(", ")
+                            : prof.profession}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {prof.orgOperating && (
+                      <span className="text-xs text-gray-500">{prof.orgOperating.length} Orgs</span>
+                    )}
+                    <button
+                      onClick={() => handleReassign(getProfId(prof))}
+                      disabled={reassigningId === getProfId(prof)}
+                      className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                        reassigningId === getProfId(prof)
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-orange-500 text-white hover:bg-orange-600"
+                      }`}
+                    >
+                      {reassigningId === getProfId(prof) ? "Reassigning..." : "Reassign"}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </Modal.Body>
       </Modal>
 
