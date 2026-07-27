@@ -58,7 +58,7 @@ const ProfAuth = () => {
       // Prepare services with integrated pricing data
       const profession = selectedServices.map(service => ({
         name: service,
-        price: GVA_SERVICES.includes(service) ? undefined : servicePricing[service],
+        price: GVA_SERVICES.includes(service) ? null : String(servicePricing[service]),
         isGVA: GVA_SERVICES.includes(service)
       }));
 
