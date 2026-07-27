@@ -98,9 +98,6 @@ export default function Home() {
             <div onClick={() => router.push("?page=tasks")} className="cursor-pointer">
               <span className={active === 'tasks' ? 'inline-block border-b border-warning' : ''}>Manage Tasks</span>
             </div>
-            <div onClick={() => router.push("?page=social")} className="cursor-pointer">
-              <span className={active === 'social' ? 'inline-block border-b border-warning' : ''}>Social Connect</span>
-            </div>
             <div onClick={() => router.push("?page=user")} className="cursor-pointer">
               <span className={active === 'user' ? 'inline-block border-b border-warning' : ''}>User</span>
             </div>
