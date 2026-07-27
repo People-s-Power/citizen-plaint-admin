@@ -56,11 +56,17 @@ const ProfAuth = () => {
       setLoading(true);
 
       // Prepare services with integrated pricing data
-      const profession = selectedServices.map(service => ({
-        name: service,
-        price: GVA_SERVICES.includes(service) ? null : String(servicePricing[service]),
-        isGVA: GVA_SERVICES.includes(service)
-      }));
+      const profession = selectedServices.map(service => {
+        const entry = {
+          name: service,
+          isGVA: GVA_SERVICES.includes(service)
+        };
+        // Only include price as a string for non-GVA services that have pricing set
+        if (!GVA_SERVICES.includes(service) && servicePricing[service]) {
+          entry.price = String(servicePricing[service]);
+        }
+        return entry;
+      });
 
       const { data } = await axios.post("/auth", {
         name: name,
