@@ -6,6 +6,7 @@ import { setCookie } from "cookies-next";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { adminApi } from "@/lib/adminApi";
 
 const auth = () => {
   const [email, setEmail] = useState("");
@@ -18,25 +19,20 @@ const auth = () => {
     }
     try {
       setLoading(true)
-      const { data } = await axios.post(
-        "/admin/login",
-        {
-          email: email,
-          password: password,
-        }
-      );
-      console.log(data);
-      setCookie("token", data.meta.token);
-      localStorage.setItem("token", data.meta.token);
+      const data = await adminApi.login(email, password);
+      console.log("Login successful:", data);
+      
+      setCookie("token", data.token);
+      localStorage.setItem("token", data.token);
+      
       // Set Jotai global state
-      setAdmin(data.data.admin);
+      setAdmin(data.admin);
       window.location.href = "/admin";
-
 
     } catch (e) {
       console.log(e);
       setLoading(false)
-      toast.warn(e?.response.data.message)
+      toast.warn(e?.message || "Login failed")
     }
   };
   return (
