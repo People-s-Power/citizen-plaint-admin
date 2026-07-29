@@ -209,14 +209,16 @@ const Addadmin = () => {
     useEffect(() => {
         const GET_PROFESSIONALS_URL = "/user"
         axios.get(GET_PROFESSIONALS_URL).then((response) => {
-            console.log(response);
-            Array.isArray(response.data?.data?.users) &&
+            // console.log(response);
+            const usersData = Array.isArray(response.data) ? response.data : response.data?.data?.users || [];
+            if (Array.isArray(usersData)) {
                 setProfessionalas(
-                    response.data.data.users.map((d: any) => {
+                    usersData.map((d: any) => {
                         if (d.name) return d
                         return { ...d, name: d.firstName + " " + d.lastName }
                     })
                 )
+            }
         })
     }, [])
 

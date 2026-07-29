@@ -12,9 +12,10 @@ const Reports = () => {
 
   const getReport = () => {
     try {
-      axios.get("/report").then((res) => {
-        console.log(res.data.data);
-        setReports(res.data.data.reports);
+      axios.get("/reports").then((res) => {
+        // console.log(res.data);
+        const reportsData = Array.isArray(res.data) ? res.data : res.data?.data?.reports || [];
+        setReports(reportsData);
       });
     } catch (err) {
       console.log(err);

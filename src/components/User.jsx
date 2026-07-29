@@ -61,8 +61,9 @@ const User = () => {
   const getAll = () => {
     try {
       axios.get("/user").then((res) => {
-        console.log(res.data.data);
-        setUsers(res.data.data.users);
+        // console.log(res.data);
+        const users = Array.isArray(res.data) ? res.data : res.data?.data?.users || [];
+        setUsers(users);
       });
     } catch (err) {
       console.log(err);
@@ -71,9 +72,10 @@ const User = () => {
 
   const getOrgs = () => {
     try {
-      axios.get("/org").then((res) => {
-        console.log(res.data.data);
-        const orgs = (res.data?.data?.Organizations || []).map(org => ({
+      axios.get("/organization").then((res) => {
+        // console.log(res.data);
+        const orgsData = Array.isArray(res.data) ? res.data : res.data?.data?.Organizations || [];
+        const orgs = orgsData.map((org) => ({
           ...org,
           accountType: org.accountType || 'Organization',
           role: org.role || 'Organization',

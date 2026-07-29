@@ -54,8 +54,9 @@ export default function Home() {
   const getAll = () => {
     try {
       axios.get("/" + manage + "?page=1&limit=100").then((res) => {
-        // console.log(res.data.data);
-        setContents(res.data.data.petitons?.petitons || res.data.data[manage + 's'][manage + 's'] || res.data.data.victory.victory);
+        // console.log(res.data);
+        const data = Array.isArray(res.data) ? res.data : res.data?.data;
+        setContents(data?.petitons?.petitons || data?.[manage + 's']?.[manage + 's'] || data?.victory?.victory || data);
       });
     } catch (err) {
       console.log(err);
@@ -82,30 +83,19 @@ export default function Home() {
   }, [manage])
 
   useEffect(() => {
-    try {
-      axios.get("/admin/count").then((res) => {
-        // console.log(res.data.data);
-        setCounts(res.data.data);
-      });
-    } catch (err) {
-      console.log(err);
-    }
+    // Legacy endpoint: /admin/count
+    setCounts({});
     try {
       axios.get("/user").then((res) => {
-        // console.log(res.data.data);
-        setUsers(res.data.data.users);
+        // console.log(res.data);
+        const users = Array.isArray(res.data) ? res.data : res.data?.data?.users || [];
+        setUsers(users);
       });
     } catch (err) {
       console.log(err);
     }
-    try {
-      axios.get("/report").then((res) => {
-        // console.log(res.data.data);
-        setReports(res.data.data.reports);
-      });
-    } catch (err) {
-      console.log(err);
-    }
+    // Legacy endpoint: /report
+    setReports([]);
   }, []);
 
   return (

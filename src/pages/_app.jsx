@@ -24,6 +24,7 @@ TimeAgo.addLocale(en)
 import { io } from "socket.io-client"
 const org = cookie.get("org")
 export const socket = io(SERVER_URL, {
+  autoConnect: Boolean(org),
   query: {
     user_id: org,
   },

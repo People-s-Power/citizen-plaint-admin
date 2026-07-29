@@ -16,13 +16,8 @@ const Summary = ({ summary, users }) => {
 
   const [activities, setActivities] = useState([])
   const getActivities = async () => {
-    try {
-      const { data } = await axios.patch("auth/activities?page=1&limit=10")
-      setActivities(data.data.activities.activities)
-      console.log(data.data.activities.activities)
-    } catch (e) {
-      console.log(e)
-    }
+    // Legacy endpoint
+    setActivities([])
   }
 
   useEffect(() => {
