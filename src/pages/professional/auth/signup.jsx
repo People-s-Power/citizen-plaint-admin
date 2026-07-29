@@ -5,6 +5,7 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ReactSelect from "react-select";
+import { SERVER_URL } from "@/pages/_app";
 
 const PROFESSIONS = [
   "General Administrative Assistant",
@@ -56,26 +57,31 @@ const ProfAuth = () => {
       setLoading(true);
 
       // Prepare services with integrated pricing data
+      // Price is optional — omit for GVA services, send as string for others.
       const profession = selectedServices.map(service => {
-        const entry = {
-          name: service,
-          isGVA: GVA_SERVICES.includes(service)
-        };
-        // Only include price as a string for non-GVA services that have pricing set
-        if (!GVA_SERVICES.includes(service) && servicePricing[service]) {
+        const isGVA = GVA_SERVICES.includes(service);
+        const entry = { name: service, isGVA };
+        if (!isGVA && servicePricing[service]) {
           entry.price = String(servicePricing[service]);
         }
         return entry;
       });
 
-      const { data } = await axios.post("/auth", {
+      // Use the v5 API register endpoint (bypasses v1 validation issues)
+      const { data } = await axios.post(`${SERVER_URL}/api/v5/auth/register`, {
         name: name,
         email: email,
         password: password,
-        profession: profession, // Send services with integrated pricing
+        profession: profession,
       });
       console.log(data);
-      // setCookie("token", data.meta.token);
+      if (data?.token) {
+        setCookie("token", data.token);
+      }
+      if (data?.user?._id) {
+        setCookie("user", data.user._id);
+      }
+      toast.success("Account created successfully!");
       window.location.href = "/professional/auth";
     } catch (e) {
       console.log(e);
