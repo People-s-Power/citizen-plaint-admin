@@ -207,7 +207,7 @@ const Addadmin = () => {
     };
 
     useEffect(() => {
-        const GET_PROFESSIONALS_URL = "https://project-experthub.onrender.com/v1/user"
+        const GET_PROFESSIONALS_URL = "/user"
         axios.get(GET_PROFESSIONALS_URL).then((response) => {
             console.log(response);
             Array.isArray(response.data?.data?.users) &&

@@ -30,6 +30,10 @@ export function useAdminSession() {
       if (status === 401 || status === 403) {
         setAdmin(null)
         setCached(null as any)
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("token")
+          document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+        }
       }
       setError(e?.message || "Could not load your admin profile")
       return null
