@@ -87,7 +87,7 @@ const HeaderComp = () => {
             </div>
           </div>
         ) : (
-          <Link href="https://experthubllc.com/professional/auth">
+          <Link href="/">
             <button className="bg-warning px-6 py-2 text-white rounded-md font-semibold shadow hover:bg-yellow-600 transition">
               Login
             </button>
