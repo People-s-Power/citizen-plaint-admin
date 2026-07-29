@@ -11,9 +11,33 @@ import Withdrawal from "@/components/Withdrawal";
 import Tasks from "@/components/Tasks";
 import HireRequests from "@/components/HireRequests";
 import RemovalLogs from "@/components/RemovalLogs";
+import Administrators from "@/components/admin/Administrators";
+import { useAdminSession } from "@/hooks/useAdminSession";
+import { AdminPermission } from "@/lib/adminPermissions";
+
+/**
+ * Sidebar definition. Each entry declares the permission required to see it,
+ * so a Support admin never sees Withdrawals and an Analyst never sees
+ * Administrators. The backend enforces the same rules on every request — this
+ * is purely so people aren't shown doors they can't open.
+ */
+const NAV_ITEMS = [
+  { key: "summary", label: "Summary", permission: AdminPermission.DashboardView },
+  { key: "content", label: "Manage Content", permission: AdminPermission.ContentView },
+  { key: "tasks", label: "Manage Tasks", permission: AdminPermission.TasksView },
+  { key: "user", label: "User", permission: AdminPermission.UsersView },
+  { key: "report", label: "Report", permission: AdminPermission.ReportsView },
+  { key: "subscriptions", label: "Subscriptions", permission: AdminPermission.SubscriptionsView },
+  { key: "withdrawal", label: "Withdrawal", permission: AdminPermission.WithdrawalsView },
+  { key: "hire-requests", label: "Hire Requests", permission: AdminPermission.HireRequestsView },
+  { key: "removal-logs", label: "Removal Logs", permission: AdminPermission.RemovalLogsView, danger: true },
+  { key: "administrators", label: "Administrators", permission: AdminPermission.AdminsView },
+];
 
 export default function Home() {
   const [active, setActive] = useState("summary");
+  const { can, loading: sessionLoading } = useAdminSession();
+
   const [counts, setCounts] = useState([]);
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
@@ -89,33 +113,27 @@ export default function Home() {
       <FrontLayout>
         <div className="mx-20 pt-6 flex">
           <div className="w-[20%] space-y-6 text-lg font-medium">
-            <div onClick={() => router.push("?page=summary")} className="cursor-pointer">
-              <span className={active === 'summary' ? 'inline-block border-b border-warning' : ''}>Summary</span>
-            </div>
-            <div onClick={() => router.push("?page=content")} className="cursor-pointer">
-              <span className={active === 'content' ? 'inline-block border-b border-warning' : ''}>Manage Content</span>
-            </div>
-            <div onClick={() => router.push("?page=tasks")} className="cursor-pointer">
-              <span className={active === 'tasks' ? 'inline-block border-b border-warning' : ''}>Manage Tasks</span>
-            </div>
-            <div onClick={() => router.push("?page=user")} className="cursor-pointer">
-              <span className={active === 'user' ? 'inline-block border-b border-warning' : ''}>User</span>
-            </div>
-            <div onClick={() => router.push("?page=report")} className="cursor-pointer">
-              <span className={active === 'report' ? 'inline-block border-b border-warning' : ''}>Report</span>
-            </div>
-            <div onClick={() => router.push("?page=subscriptions")} className="cursor-pointer">
-              <span className={active === 'subscriptions' ? 'inline-block border-b border-warning' : ''}>Subscriptions</span>
-            </div>
-            <div onClick={() => router.push("?page=withdrawal")} className="cursor-pointer">
-              <span className={active === 'withdrawal' ? 'inline-block border-b border-warning' : ''}>Withdrawal</span>
-            </div>
-            <div onClick={() => router.push("?page=hire-requests")} className="cursor-pointer">
-              <span className={active === 'hire-requests' ? 'inline-block border-b border-warning' : ''}>Hire Requests</span>
-            </div>
-            <div onClick={() => router.push("?page=removal-logs")} className="cursor-pointer">
-              <span className={active === 'removal-logs' ? 'inline-block border-b border-red-500 text-red-600' : ''}>Removal Logs</span>
-            </div>
+            {/* While permissions load we show nothing rather than flashing
+                links the user may not be allowed to open. */}
+            {sessionLoading
+              ? <div className="text-sm text-gray-400">Loading…</div>
+              : NAV_ITEMS.filter((item) => can(item.permission)).map((item) => (
+                <div
+                  key={item.key}
+                  onClick={() => router.push(`?page=${item.key}`)}
+                  className="cursor-pointer"
+                >
+                  <span
+                    className={
+                      active === item.key
+                        ? `inline-block border-b ${item.danger ? 'border-red-500 text-red-600' : 'border-warning'}`
+                        : ''
+                    }
+                  >
+                    {item.label}
+                  </span>
+                </div>
+              ))}
           </div>
           <div className="w-[80%]">
             {(() => {
@@ -155,6 +173,8 @@ export default function Home() {
                   return <HireRequests users={users} />;
                 case "removal-logs":
                   return <RemovalLogs users={users} />;
+                case "administrators":
+                  return <Administrators />;
               }
             })()}
           </div>
