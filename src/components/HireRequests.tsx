@@ -170,7 +170,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
       console.error("Failed to load available professionals", error)
       const fallback = (users || []).filter((user: any) => {
         const professional = user as Professional
-        return Boolean(user?.professionPlanId) && matchesCategory(professional, category) && matchesSearch(professional, search)
+        return (user?.accountType === "Professional" || Boolean(user?.professionPlanId) || (Array.isArray(user?.profession) && user.profession.length > 0)) && matchesCategory(professional, category) && matchesSearch(professional, search)
       })
       setProfessionals(fallback)
     }
@@ -205,7 +205,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
         const professional = user as Professional
         const userId = String(user?._id || user?.id || "").trim()
         if (excludeId && userId === excludeId) return false
-        return Boolean(user?.professionPlanId) && matchesCategory(professional, category) && matchesSearch(professional, search)
+        return (user?.accountType === "Professional" || Boolean(user?.professionPlanId) || (Array.isArray(user?.profession) && user.profession.length > 0)) && matchesCategory(professional, category) && matchesSearch(professional, search)
       })
       setReassignProfessionals(fallback)
     }
