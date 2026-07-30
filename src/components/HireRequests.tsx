@@ -65,6 +65,31 @@ interface Professional {
 
 const getProfId = (prof: Professional) => String(prof._id || prof.id || "").trim()
 
+const getProfessionalCategoryNames = (prof: Professional) => {
+  if (!prof?.profession) return []
+  if (Array.isArray(prof.profession)) {
+    return prof.profession
+      .map((entry: any) => String(entry?.name || entry || "").trim())
+      .filter(Boolean)
+  }
+  return [String(prof.profession).trim()].filter(Boolean)
+}
+
+const matchesCategory = (prof: Professional, category: string) => {
+  if (!category || category === "All") return true
+  return getProfessionalCategoryNames(prof)
+    .map((entry) => entry.toLowerCase())
+    .includes(String(category).trim().toLowerCase())
+}
+
+const matchesSearch = (prof: Professional, search?: string) => {
+  const term = String(search || "").trim().toLowerCase()
+  if (!term) return true
+  return [prof.name, prof.firstName, prof.lastName, prof.email].some((entry) =>
+    String(entry || "").toLowerCase().includes(term),
+  )
+}
+
 const PROFESSIONS = [
   "General Administrative Assistant",
   "Social Media Manager ",
@@ -107,6 +132,69 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
   const [reassigningId, setReassigningId] = useState<string | null>(null)
   const categories = PROFESSIONS
 
+  const loadAssignableProfessionals = useCallback(async (category: string, search = "") => {
+    try {
+      const res = await api.get("/api/v5/organization/available-professionals", {
+        params: {
+          category: category && category !== "All" ? category : undefined,
+          search: search || undefined,
+          limit: 100,
+        },
+      })
+
+      const data =
+        res.data?.professionals ||
+        res.data?.data?.professionals ||
+        res.data?.data ||
+        res.data ||
+        []
+
+      setProfessionals(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error("Failed to load available professionals", error)
+      const fallback = (users || []).filter((user: any) => {
+        const professional = user as Professional
+        return Boolean(user?.professionPlanId) && matchesCategory(professional, category) && matchesSearch(professional, search)
+      })
+      setProfessionals(fallback)
+    }
+  }, [users])
+
+  const loadReassignableProfessionals = useCallback(async (category: string, search = "", excludeProfessionalId = "") => {
+    try {
+      const res = await api.get("/api/v5/organization/available-professionals", {
+        params: {
+          category: category && category !== "All" ? category : undefined,
+          search: search || undefined,
+          limit: 100,
+        },
+      })
+
+      const data =
+        res.data?.professionals ||
+        res.data?.data?.professionals ||
+        res.data?.data ||
+        res.data ||
+        []
+
+      const excludeId = String(excludeProfessionalId || "").trim()
+      const list = Array.isArray(data)
+        ? data.filter((prof: Professional) => getProfId(prof) !== excludeId)
+        : []
+      setReassignProfessionals(list)
+    } catch (error) {
+      console.error("Failed to load available professionals for reassignment", error)
+      const excludeId = String(excludeProfessionalId || "").trim()
+      const fallback = (users || []).filter((user: any) => {
+        const professional = user as Professional
+        const userId = String(user?._id || user?.id || "").trim()
+        if (excludeId && userId === excludeId) return false
+        return Boolean(user?.professionPlanId) && matchesCategory(professional, category) && matchesSearch(professional, search)
+      })
+      setReassignProfessionals(fallback)
+    }
+  }, [users])
+
   const fetchRequests = useCallback(async () => {
     setLoading(true)
     try {
@@ -127,54 +215,20 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     fetchRequests()
   }, [fetchRequests])
 
-  const filterProfessionals = (category: string, search?: string) => {
-    const filtered = (users || []).filter((u: any) => {
-      // Must be Admin or Editor to be a professional user? 
-      // User.jsx filters by accountType === 'Admin' | 'Editor'. Let's keep it safe.
-      // Wait, actually, if they have a profession, they are a professional. 
-      // But let's check what the old fallback did:
-      // (u.accountType === "Admin" || u.accountType === "Editor")
-      // Let's just trust the profession field if category is set.
-      
-      // Filter by search
-      if (search && search.trim() !== "") {
-        const val = search.trim().toLowerCase();
-        const matchesName = (u.name || "").toLowerCase().includes(val) || 
-                            (u.firstName || "").toLowerCase().includes(val) || 
-                            (u.lastName || "").toLowerCase().includes(val);
-        if (!matchesName) return false;
-      }
-
-      // Filter by category
-      if (category && category !== "All") {
-        if (!u.profession) return false;
-        
-        if (Array.isArray(u.profession)) {
-          const hasMatchingProf = u.profession.some((p: any) => p.name === category || p === category);
-          if (!hasMatchingProf) return false;
-        } else if (u.profession !== category) {
-          return false;
-        }
-      }
-      
-      return true;
-    });
-    setProfessionals(filtered);
-  }
-
   const openAssignModal = (request: HireRequest) => {
     setSelectedRequest(request)
     setShowAssignModal(true)
     setAdminNotes("")
     setProfSearch("")
-    setSelectedCategory(DEFAULT_CATEGORY)
-    filterProfessionals(DEFAULT_CATEGORY)
+    const initialCategory = request.profession || DEFAULT_CATEGORY
+    setSelectedCategory(initialCategory)
+    loadAssignableProfessionals(initialCategory)
   }
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category)
     setProfSearch("")
-    filterProfessionals(category)
+    loadAssignableProfessionals(category)
   }
 
   const handleAssign = async (professionalId: string) => {
@@ -231,65 +285,21 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     return `${Math.floor(diffDays / 30)}mo ago`
   }
 
-  const filterReassignProfessionals = (category: string, search?: string) => {
-    const currentProfId = reassignRequest?.assignedProfessionalId || ""
-    const filtered = (users || []).filter((u: any) => {
-      // Exclude the currently assigned professional
-      if (currentProfId && (String(u._id) === String(currentProfId) || String(u.id) === String(currentProfId))) {
-        return false
-      }
-
-      // Filter by search
-      if (search && search.trim() !== "") {
-        const val = search.trim().toLowerCase()
-        const matchesName =
-          (u.name || "").toLowerCase().includes(val) ||
-          (u.firstName || "").toLowerCase().includes(val) ||
-          (u.lastName || "").toLowerCase().includes(val)
-        if (!matchesName) return false
-      }
-
-      // Filter by category
-      if (category && category !== "All") {
-        if (!u.profession) return false
-        if (Array.isArray(u.profession)) {
-          const hasMatchingProf = u.profession.some((p: any) => p.name === category || p === category)
-          if (!hasMatchingProf) return false
-        } else if (u.profession !== category) {
-          return false
-        }
-      }
-
-      return true
-    })
-    setReassignProfessionals(filtered)
-  }
-
   const openReassignModal = (request: HireRequest) => {
     setReassignRequest(request)
     setShowReassignModal(true)
     setReassignReason("")
     setReassignNotes("")
     setReassignSearch("")
-    setReassignCategory(DEFAULT_CATEGORY)
-    // We need to filter after setting the request since filterReassignProfessionals
-    // uses reassignRequest, but state isn't updated yet. Use the request directly:
-    const currentProfId = request.assignedProfessionalId || ""
-    const filtered = (users || []).filter((u: any) => {
-      if (currentProfId && (String(u._id) === String(currentProfId) || String(u.id) === String(currentProfId))) return false
-      if (!u.profession) return false
-      if (Array.isArray(u.profession)) {
-        return u.profession.some((p: any) => p.name === DEFAULT_CATEGORY || p === DEFAULT_CATEGORY)
-      }
-      return u.profession === DEFAULT_CATEGORY
-    })
-    setReassignProfessionals(filtered)
+    const initialCategory = request.profession || DEFAULT_CATEGORY
+    setReassignCategory(initialCategory)
+    loadReassignableProfessionals(initialCategory, "", request.assignedProfessionalId || "")
   }
 
   const handleReassignCategoryChange = (category: string) => {
     setReassignCategory(category)
     setReassignSearch("")
-    filterReassignProfessionals(category)
+    loadReassignableProfessionals(category, "", reassignRequest?.assignedProfessionalId || "")
   }
 
   const handleReassign = async (newProfessionalId: string) => {
@@ -586,8 +596,9 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                 placeholder={`Search by name...`}
                 value={profSearch}
                 onChange={(e) => {
-                  setProfSearch(e.target.value)
-                  filterProfessionals(selectedCategory, e.target.value)
+                  const value = e.target.value
+                  setProfSearch(value)
+                  loadAssignableProfessionals(selectedCategory, value)
                 }}
                 className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
@@ -908,8 +919,9 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
                 placeholder="Search by name..."
                 value={reassignSearch}
                 onChange={(e) => {
-                  setReassignSearch(e.target.value)
-                  filterReassignProfessionals(reassignCategory, e.target.value)
+                  const value = e.target.value
+                  setReassignSearch(value)
+                  loadReassignableProfessionals(reassignCategory, value, reassignRequest?.assignedProfessionalId || "")
                 }}
                 className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
               />

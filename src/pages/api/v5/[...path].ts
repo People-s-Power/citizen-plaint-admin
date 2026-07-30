@@ -80,7 +80,7 @@ async function forwardToBackend(req: NextApiRequest, res: NextApiResponse, path:
   const token = getBearerToken(req)
   if (token) headers.Authorization = `Bearer ${token}`
 
-  if (path[0] === "admin") {
+  if (path[0] === "admin" || (path[0] === "organization" && path[1] === "available-professionals")) {
     const apiKey = getAdminApiKey()
     if (apiKey) headers["x-admin-api-key"] = apiKey
     if (token) headers["x-admin-actor-token"] = token
