@@ -214,7 +214,7 @@ const User = () => {
               Select a user category
             </option>
             <option value="All">All Users</option>
-            {/* <option value="Campaigner">Campaigner</option> */}
+            <option value="Professional">Professional / VA</option>
             <option value="Organization">Organization</option>
             {/* <option value="Staff">Staff</option> */}
             <option value="Admin">Admin</option>
@@ -310,7 +310,7 @@ const User = () => {
                   <td className="p-3 text-gray-700">{user?.email || "-"}</td>
                   <td className="p-3 text-gray-700">{user?.accountType || user?.role || "-"}</td>
                   <td className="p-3 text-gray-700">
-                    {user?.profession
+                      {user?.profession
                       ? (Array.isArray(user.profession)
                         ? user.profession.map(prof => prof.name).join(", ")
                         : user.profession)
