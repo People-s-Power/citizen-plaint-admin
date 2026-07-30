@@ -14,7 +14,7 @@ import {
   EmptyState,
   TableFooter,
 } from "@/components/ui/admin-kit";
-
+ 
 const PLAINT_ORG = "https://www.theplaint.org";
 const PLAINT_COM = "https://www.theplaint.com";
 
