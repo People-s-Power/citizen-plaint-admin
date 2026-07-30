@@ -1,18 +1,39 @@
-import React, { useEffect, useState } from "react";
-import { Dropdown, Checkbox } from "rsuite";
-import MessageModal from "./MessageModal";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import Select from "react-select";
+import MessageModal from "./MessageModal";
+import {
+  Panel,
+  Toolbar,
+  SearchInput,
+  Select,
+  Button,
+  RowAction,
+  Table,
+  THead,
+  TBody,
+  Th,
+  Tr,
+  Td,
+  CellStack,
+  StatusPill,
+  Tag,
+  Empty,
+  TableSkeleton,
+  EmptyState,
+  Callout,
+  TableFooter,
+  FilterCards,
+} from "@/components/ui/admin-kit";
 
 const PROFESSIONS = [
   "General Administrative Assistant",
-  "Social Media Manager ",
+  "Social Media Manager",
   "Real Estate",
   "Virtual Research",
   "Virtual Data Entry",
   "Virtual Book keeper",
   "Virtual ecommerce",
-  "Customer Service Provider (Phone/Chat",
+  "Customer Service Provider (Phone/Chat)",
   "Content Writer",
   "Website Management",
   "Public Relation Assistant",
@@ -22,354 +43,427 @@ const PROFESSIONS = [
   "Campaign/petition Writer",
 ];
 
-const User = () => {
-  const [modal, setModal] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [checkedAll, setCheckedAll] = useState(false);
-  const [categoryValue, setCategoryValue] = useState();
-  const [countries, setCountries] = useState([]);
-  const [country, setCountry] = useState();
-  const [role, setRole] = useState("");
-  const [professionValue, setProfessionValue] = useState("");
-  const [searchValue, setSearchValue] = useState("");
+const ROLES = [
+  { value: "All", label: "All account types" },
+  { value: "Professional", label: "Professional / VA" },
+  { value: "Organization", label: "Organization" },
+  { value: "Admin", label: "Admin" },
+  { value: "Editor", label: "Editor" },
+];
 
-  const category = [
-    { value: "human right awareness", label: "Human right awareness" },
-    { value: "social policy", label: "Social Policy" },
-    { value: "criminal justice", label: "Criminal Justice" },
-    { value: "human right action", label: "Human Right Action" },
-    { value: "environment", label: "Environment" },
-    { value: "health", label: "Health" },
-    { value: "disability", label: "Disability" },
-    { value: "equality", label: "Equality" },
-    { value: "others", label: "Others" },
-  ];
+const PUBLIC_SITE = "https://www.theplaint.org";
+
+/** Profession can arrive as a string or an array of `{ name }`. */
+const professionText = (profession) => {
+  if (!profession) return "";
+  if (Array.isArray(profession)) {
+    return profession.map((p) => p?.name).filter(Boolean).join(", ");
+  }
+  return String(profession);
+};
+
+const idOf = (user) => String(user?._id || user?.id || user?.email || "");
+
+const User = () => {
+  const [users, setUsers] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [working, setWorking] = useState(false);
+  const [notice, setNotice] = useState(null);
+  const [modal, setModal] = useState(false);
+
+  // Filters
+  const [searchValue, setSearchValue] = useState("");
+  const [role, setRole] = useState("All");
+  const [professionValue, setProfessionValue] = useState("All");
+  const [country, setCountry] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Selection is held as a Set of ids. The previous version pushed directly
+  // into a state array, which mutated it in place and never re-rendered, so
+  // the checkboxes and bulk actions silently disagreed.
+  const [selected, setSelected] = useState(() => new Set());
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [usersRes, orgsRes] = await Promise.all([
+        axios.get("/user"),
+        axios.get("/organization"),
+      ]);
+
+      const people = Array.isArray(usersRes.data)
+        ? usersRes.data
+        : usersRes.data?.data?.users || [];
+
+      const rawOrgs = Array.isArray(orgsRes.data)
+        ? orgsRes.data
+        : orgsRes.data?.data?.Organizations || orgsRes.data?.data?.organizations || [];
+
+      const orgs = rawOrgs.map((org) => ({
+        ...org,
+        accountType: org.accountType || "Organization",
+        role: org.role || "Organization",
+      }));
+
+      // Merge both directories, de-duplicating on id/email.
+      const seen = new Set();
+      const merged = [...people, ...orgs].filter((item) => {
+        const key = idOf(item);
+        if (!key) return true;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      setUsers(merged);
+      setSelected(new Set());
+    } catch (err) {
+      console.log(err);
+      setNotice({ tone: "danger", text: "Couldn't load the member directory. Try refreshing." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Get countries
+    load();
     axios
       .get(window.location.origin + "/api/getCountries")
       .then((res) => {
-        const calculated = res.data.map((country) => ({
-          label: country,
-          value: country,
-        }));
-        setCountries(calculated);
+        const list = (res.data || []).map((c) => ({ label: c, value: c }));
+        setCountries([{ value: "All", label: "All countries" }, ...list]);
       })
       .catch((err) => console.log(err));
   }, []);
 
-  const getAll = () => {
-    try {
-      axios.get("/user").then((res) => {
-        // console.log(res.data);
-        const users = Array.isArray(res.data) ? res.data : res.data?.data?.users || [];
-        setUsers(users);
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  const counts = useMemo(
+    () => ({
+      all: users.length,
+      active: users.filter((u) => u.isActive).length,
+      blocked: users.filter((u) => !u.isActive).length,
+    }),
+    [users],
+  );
 
-  const getOrgs = () => {
-    try {
-      axios.get("/organization").then((res) => {
-        // console.log(res.data);
-        const orgsData = Array.isArray(res.data) ? res.data : res.data?.data?.Organizations || [];
-        const orgs = orgsData.map((org) => ({
-          ...org,
-          accountType: org.accountType || 'Organization',
-          role: org.role || 'Organization',
-        }));
-        // Merge organizations into existing users array, avoiding duplicates by _id
-        setUsers(prev => {
-          const existing = Array.isArray(prev) ? prev : [];
-          const combined = [...existing, ...orgs];
-          const seen = new Set();
-          return combined.filter(item => {
-            const id = item && (item._id || item.id || item.email);
-            if (!id) return true; // keep items without id
-            if (seen.has(id)) return false;
-            seen.add(id);
-            return true;
-          });
-        });
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  const filtered = useMemo(() => {
+    const q = searchValue.trim().toLowerCase();
 
-  useEffect(() => {
-    getAll();
-    getOrgs();
-  }, []);
-
-  const [allChecked, setAllChecked] = useState([]);
-
-  const search = (value) => {
-    if (value === "") return getAll();
-    const matchingStrings = [];
-    for (const string of users) {
-      if (string.name.toLowerCase().includes(value)) {
-        matchingStrings.push(string);
+    return users.filter((user) => {
+      if (q) {
+        const haystack = [user.name, user.email, professionText(user.profession)]
+          .filter(Boolean)
+          .map((v) => String(v).toLowerCase());
+        if (!haystack.some((v) => v.includes(q))) return false;
       }
-    }
-    setAllUser(matchingStrings);
+
+      if (statusFilter === "active" && !user.isActive) return false;
+      if (statusFilter === "blocked" && user.isActive) return false;
+
+      if (role !== "All" && (user.accountType || user.role) !== role) return false;
+
+      if (professionValue !== "All") {
+        if (Array.isArray(user.profession)) {
+          if (!user.profession.some((p) => p?.name === professionValue)) return false;
+        } else if (user.profession !== professionValue) {
+          return false;
+        }
+      }
+
+      if (country !== "All" && user.country !== country) return false;
+
+      return true;
+    });
+  }, [users, searchValue, role, professionValue, country, statusFilter]);
+
+  const allVisibleSelected =
+    filtered.length > 0 && filtered.every((u) => selected.has(idOf(u)));
+
+  const toggleAllVisible = () => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        filtered.forEach((u) => next.delete(idOf(u)));
+      } else {
+        filtered.forEach((u) => next.add(idOf(u)));
+      }
+      return next;
+    });
   };
 
-  const editUser = async (id, status) => {
+  const toggleOne = (user) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const key = idOf(user);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const setActive = async (ids, isActive) => {
+    if (ids.length === 0) return;
+    setWorking(true);
+    setNotice(null);
     try {
-      const { data } = await axios.put(`/user/single/${id}`, {
-        isActive: !status,
-      });
-      console.log(data);
-      alert(`User is ${status ? "Unactive" : "Active"}`);
-      getAll();
+      // Awaited together so feedback reflects the real outcome. The previous
+      // version fired `.map(async …)` and alerted before any request settled.
+      const results = await Promise.allSettled(
+        ids.map((id) => axios.put(`/user/single/${id}`, { isActive })),
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      const verb = isActive ? "activated" : "blocked";
+
+      setNotice(
+        failed
+          ? {
+              tone: "warning",
+              text: `${ids.length - failed} of ${ids.length} ${verb}. ${failed} failed — try those again.`,
+            }
+          : {
+              tone: "success",
+              text: `${ids.length} ${ids.length === 1 ? "account" : "accounts"} ${verb}.`,
+            },
+      );
+      await load();
     } catch (e) {
       console.log(e);
+      setNotice({ tone: "danger", text: "That action didn't go through." });
+    } finally {
+      setWorking(false);
     }
   };
 
-  const multiBlock = (type) => {
-    console.log(allChecked);
-    if (allChecked.length >= 1) {
-      allChecked.map(async (checked) => {
-        try {
-          const { data } = await axios.put(`/user/single/${checked._id}`, {
-            isActive: false,
-          });
-          // console.log(data);
-        } catch (e) {
-          console.log(e);
-        }
-      });
-      alert(`Users Blocked successfully `);
-      getAll();
-    } else {
-      alert("Select Users");
-    }
-  };
+  const selectedIds = useMemo(() => Array.from(selected), [selected]);
+  const hasSelection = selectedIds.length > 0;
+  const filtersActive =
+    Boolean(searchValue) ||
+    role !== "All" ||
+    professionValue !== "All" ||
+    country !== "All" ||
+    statusFilter !== "all";
 
-  const multiActivate = (type) => {
-    console.log(allChecked);
-    if (allChecked.length >= 1) {
-      allChecked.map(async (checked) => {
-        try {
-          const { data } = await axios.put(`/user/single/${checked._id}`, {
-            isActive: true,
-          });
-          // console.log(data);
-        } catch (e) {
-          console.log(e);
-        }
-      });
-      alert(`Users Activated successfully `);
-      getAll();
-    } else {
-      alert("Select Users");
-    }
-  };
-
-  const conditionalAttributes = {
-    // Add attributes conditionally
-    ...(checkedAll && { checked: true }),
-    // You can add more attributes here as needed
+  const clearFilters = () => {
+    setSearchValue("");
+    setRole("All");
+    setProfessionValue("All");
+    setCountry("All");
+    setStatusFilter("all");
   };
 
   return (
-    <div>
-      <div className="flex flex-row flex-wrap justify-between items-center my-6 bg-white rounded-lg shadow p-6 gap-4">
-        <div className="flex flex-row flex-wrap gap-4 items-center justify-between w-auto">
-          <input
+    <>
+      <FilterCards
+        items={[
+          { key: "all", label: "All members", count: counts.all },
+          { key: "active", label: "Active", count: counts.active, tone: "success" },
+          { key: "blocked", label: "Blocked", count: counts.blocked, tone: "danger" },
+        ]}
+        value={statusFilter}
+        onChange={setStatusFilter}
+
+      />
+
+      {notice && (
+        <Callout tone={notice.tone} className="mb-4">
+          {notice.text}
+        </Callout>
+      )}
+
+      <Panel>
+        <Toolbar>
+          <SearchInput
             value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            type="text"
-            placeholder="Search users by name..."
-            className="p-3 rounded-md border w-full focus:outline-warning focus:ring-2 focus:ring-warning"
+            onChange={setSearchValue}
+            placeholder="Search by name, email or profession…"
+            className="w-full sm:w-80"
           />
-          <button
-            onClick={() => multiBlock()}
-            className="p-3 border border-[#C98821] rounded-md text-[#C98821] bg-[#FFF7E6] hover:bg-[#FFE0B2] transition font-semibold"
-          >
-            Block
-          </button>
-          <button
-            onClick={() => multiActivate()}
-            className="p-3 border border-[#00401C] rounded-md text-[#00401C] bg-[#E6FFF7] hover:bg-[#B2FFE0] transition font-semibold"
-          >
-            Activate
-          </button>
-          <button
-            onClick={() => setModal(true)}
-            className="p-3 border border-[#1976D2] rounded-md text-[#1976D2] bg-[#E3F2FD] hover:bg-[#BBDEFB] transition font-semibold"
-          >
-            Send Message
-          </button>
-          <select
-            onChange={(e) => setRole(e.target.value)}
-            className="border p-3 rounded-md min-w-[160px] text-gray-700 focus:outline-warning"
+          <Select
+            label="Account type"
             value={role}
-          >
-            <option className="hidden" value="">
-              Select a user category
-            </option>
-            <option value="All">All Users</option>
-            <option value="Professional">Professional / VA</option>
-            <option value="Organization">Organization</option>
-            {/* <option value="Staff">Staff</option> */}
-            <option value="Admin">Admin</option>
-            <option value="Editor">Editor</option>
-          </select>
-          <select
-            className="border p-3 rounded-md min-w-[180px] text-gray-700 focus:outline-warning"
+            onChange={setRole}
+            options={ROLES}
+          />
+          <Select
+            label="Profession"
             value={professionValue}
-            onChange={(e) => setProfessionValue(e.target.value)}
-          >
-            <option value="">All Virtual Assistants</option>
-            {PROFESSIONS.map((prof) => (
-              <option key={prof} value={prof}>
-                {prof}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <div>
-        <table className="min-w-full border rounded-lg overflow-hidden shadow-md">
-          <thead className="bg-gold text-white">
-            <tr>
-              <th className="p-3 font-semibold text-left">Select</th>
-              <th className="p-3 font-semibold text-left">Name</th>
-              <th className="p-3 font-semibold text-left">Email</th>
-              <th className="p-3 font-semibold text-left">Account Type</th>
-              <th className="p-3 font-semibold text-left">Profession</th>
-              <th className="p-3 font-semibold text-left">Status</th>
-              <th className="p-3 font-semibold text-left">Location</th>
-              <th className="p-3 font-semibold text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users
-              ?.filter((user) => {
-                // Search filter
-                if (searchValue && searchValue.trim() !== "") {
-                  const val = searchValue.trim().toLowerCase();
-                  const professionMatch = user.profession
-                    ? (Array.isArray(user.profession)
-                      ? user.profession.some(prof => prof.name?.toLowerCase().includes(val))
-                      : user.profession.toLowerCase().includes(val))
-                    : false;
-                  const matches =
-                    (user.name && user.name.toLowerCase().includes(val)) ||
-                    (user.email && user.email.toLowerCase().includes(val)) ||
-                    professionMatch;
-                  if (!matches) return false;
-                }
-                // If 'All' or empty is selected for both filters, show all users
-                const roleIsAll = !role || role === "" || role === "All";
-                const profIsAll = !professionValue || professionValue === "" || professionValue === "All";
-                const countryIsAll = !country || country === "" || country === "All";
-                if (roleIsAll && profIsAll && countryIsAll && !searchValue) return true;
-                if (!roleIsAll && user.accountType !== role) return false;
-                if (!profIsAll) {
-                  // Handle both array and string profession formats
-                  if (Array.isArray(user.profession)) {
-                    const hasMatchingProf = user.profession.some(prof => prof.name === professionValue);
-                    if (!hasMatchingProf) return false;
-                  } else if (user.profession !== professionValue) {
-                    return false;
-                  }
-                }
-                if (!countryIsAll && user.country !== country) return false;
-                return true;
-              })
-              .map((user, index) => (
-                <tr key={index} className={index % 2 === 0 ? "bg-[#F9FAFB] hover:bg-[#FFF7E6]" : "bg-white hover:bg-[#FFF7E6]"}>
-                  <td className="p-3">
+            onChange={setProfessionValue}
+            options={[
+              { value: "All", label: "All professions" },
+              ...PROFESSIONS.map((p) => ({ value: p, label: p })),
+            ]}
+          />
+          {countries.length > 0 && (
+            <Select
+              label="Country"
+              value={country}
+              onChange={setCountry}
+              options={countries}
+            />
+          )}
+          {filtersActive && (
+            <Button variant="ghost" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          )}
+        </Toolbar>
+
+        {/* Bulk actions only appear once something is selected, so the default
+            toolbar stays quiet instead of offering buttons that do nothing. */}
+        {hasSelection && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-50/80 px-4 py-2.5">
+            <span className="text-xs font-medium text-slate-600">
+              {selectedIds.length} selected
+            </span>
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <Button
+                variant="secondary"
+                loading={working}
+                onClick={() => setActive(selectedIds, true)}
+              >
+                Activate
+              </Button>
+              <Button
+                variant="danger"
+                loading={working}
+                onClick={() => setActive(selectedIds, false)}
+              >
+                Block
+              </Button>
+              <Button variant="secondary" onClick={() => setModal(true)}>
+                Message
+              </Button>
+              <Button variant="ghost" onClick={() => setSelected(new Set())}>
+                Clear
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {loading ? (
+          <TableSkeleton rows={8} cols={7} />
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            title={filtersActive ? "No members match those filters" : "No members yet"}
+            description={
+              filtersActive
+                ? "Try widening your search or clearing the filters."
+                : "Accounts will appear here as people sign up."
+            }
+            action={
+              filtersActive ? (
+                <Button variant="secondary" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              ) : null
+            }
+          />
+        ) : (
+          <>
+            <Table>
+              <THead>
+                <Tr>
+                  <Th>
                     <input
                       type="checkbox"
-                      {...conditionalAttributes}
-                      onChange={(e) => {
-                        if (e.target.checked === true) {
-                          allChecked.push(user);
-                        } else {
-                          allChecked.splice(allChecked.indexOf(user), 1);
-                        }
-                      }}
+                      aria-label="Select all visible members"
+                      className="h-4 w-4 cursor-pointer rounded border-slate-300 text-slate-900 focus:ring-2 focus:ring-slate-900/20"
+                      checked={allVisibleSelected}
+                      onChange={toggleAllVisible}
                     />
-                  </td>
-                  <td className="p-3 font-medium">
-                    <a
-                      className="text-warning hover:underline"
-                      href={`https://www.theplaint.org/user?page=${user?._id}`}
-                      target="_blank"
-                    >
-                      {user?.name}
-                    </a>
-                  </td>
-                  <td className="p-3 text-gray-700">{user?.email || "-"}</td>
-                  <td className="p-3 text-gray-700">{user?.accountType || user?.role || "-"}</td>
-                  <td className="p-3 text-gray-700">
-                      {user?.profession
-                      ? (Array.isArray(user.profession)
-                        ? user.profession.map(prof => prof.name).join(", ")
-                        : user.profession)
-                      : "-"}
-                  </td>
-                  <td className="p-3">
-                    {user?.isActive ? (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#00401C] text-white text-xs font-semibold">Active</span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#970808] text-white text-xs font-semibold">Inactive</span>
-                    )}
-                  </td>
-                  <td className="p-3 text-gray-700">{user?.city || "-"}{user?.country ? `, ${user.country}` : ""}</td>
-                  <td className="p-3">
-                    <Dropdown
-                      placement="leftStart"
-                      title={
-                        <img
-                          className="h-4 w-4"
-                          src="/images/edit.svg"
-                          alt=""
+                  </Th>
+                  <Th>Member</Th>
+                  <Th>Account type</Th>
+                  <Th>Profession</Th>
+                  <Th>Status</Th>
+                  <Th>Location</Th>
+                  <Th align="right">Actions</Th>
+                </Tr>
+              </THead>
+              <TBody>
+                {filtered.map((user) => {
+                  const key = idOf(user);
+                  const profession = professionText(user.profession);
+                  const location = [user.city, user.country].filter(Boolean).join(", ");
+
+                  return (
+                    <Tr key={key}>
+                      <Td>
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${user.name || "member"}`}
+                          className="h-4 w-4 cursor-pointer rounded border-slate-300 text-slate-900 focus:ring-2 focus:ring-slate-900/20"
+                          checked={selected.has(key)}
+                          onChange={() => toggleOne(user)}
                         />
-                      }
-                      noCaret
-                    >
-                      <Dropdown.Item>
-                        <a
-                          href={`https://www.theplaint.org/messages?page=${user?._id}`}
-                          target="_blank"
-                          className="text-warning"
-                        >
-                          Send Message
-                        </a>
-                      </Dropdown.Item>
-                      <Dropdown.Item>
-                        <p
-                          onClick={() => editUser(user._id, user.isActive)}
-                          className="cursor-pointer text-[#970808]"
-                        >
-                          Block User
-                        </p>
-                      </Dropdown.Item>
-                      <Dropdown.Item>
-                        <p
-                          onClick={() => editUser(user._id, user.isActive)}
-                          className="cursor-pointer text-[#00401C]"
-                        >
-                          Activate User
-                        </p>
-                      </Dropdown.Item>
-                    </Dropdown>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
+                      </Td>
+                      <Td>
+                        <CellStack
+                          primary={
+                            <a
+                              className="hover:underline"
+                              href={`${PUBLIC_SITE}/user?page=${user?._id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {user?.name || "Unnamed"}
+                            </a>
+                          }
+                          secondary={user?.email}
+                        />
+                      </Td>
+                      <Td>
+                        {user?.accountType || user?.role ? (
+                          <Tag>{user.accountType || user.role}</Tag>
+                        ) : (
+                          <Empty />
+                        )}
+                      </Td>
+                      <Td>{profession || <Empty />}</Td>
+                      <Td>
+                        <StatusPill tone={user?.isActive ? "success" : "danger"}>
+                          {user?.isActive ? "Active" : "Blocked"}
+                        </StatusPill>
+                      </Td>
+                      <Td>{location || <Empty />}</Td>
+                      <Td align="right">
+                        <div className="flex items-center justify-end gap-1">
+                          <RowAction
+                            href={`${PUBLIC_SITE}/messages?page=${user?._id}`}
+
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Message
+                          </RowAction>
+                          {/* One explicit action per row rather than the old
+                              Block/Activate pair that both just toggled. */}
+                          <RowAction
+                            tone={user?.isActive ? "danger" : "success"}
+                            disabled={working}
+                            onClick={() => setActive([key], !user?.isActive)}
+                          >
+                            {user?.isActive ? "Block" : "Activate"}
+                          </RowAction>
+                        </div>
+                      </Td>
+                    </Tr>
+                  );
+                })}
+              </TBody>
+            </Table>
+            <TableFooter>
+              <span>
+                Showing {filtered.length} of {users.length}
+              </span>
+              {hasSelection && <span>{selectedIds.length} selected</span>}
+            </TableFooter>
+          </>
+        )}
+      </Panel>
+
       <MessageModal open={modal} handleClose={() => setModal(false)} />
-    </div>
+    </>
   );
 };
 

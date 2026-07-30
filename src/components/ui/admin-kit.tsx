@@ -176,35 +176,64 @@ export function IconButton({
   )
 }
 
-/** Text-style row action. Keeps destructive intent visually distinct. */
+/**
+ * Text-style row action. Keeps destructive intent visually distinct.
+ *
+ * Renders an `<a>` when given an `href` so "open in new tab" style actions get
+ * real link semantics (middle-click, copy address) instead of a button that
+ * fakes navigation.
+ */
 export function RowAction({
   tone = "neutral",
   className,
   children,
+  href,
+  target,
+  rel,
   ...rest
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+}: Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "type"> & {
   tone?: "neutral" | "primary" | "warning" | "danger"
+  href?: string
+  target?: React.HTMLAttributeAnchorTarget
+  rel?: string
 }) {
+
   const tones = {
     neutral: "text-slate-600 hover:text-slate-900",
     primary: "text-sky-600 hover:text-sky-800",
     warning: "text-amber-600 hover:text-amber-800",
     danger: "text-rose-600 hover:text-rose-800",
   }
+
+  const classes = cn(
+    "rounded px-1.5 py-1 text-xs font-semibold underline-offset-2 transition-colors hover:underline",
+    "focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40",
+    "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:no-underline",
+    tones[tone],
+    className,
+  )
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target={target}
+        rel={rel ?? (target === "_blank" ? "noreferrer" : undefined)}
+        className={classes}
+      >
+        {children}
+      </a>
+    )
+  }
+
+
   return (
-    <button
-      type="button"
-      className={cn(
-        "rounded text-xs font-semibold underline-offset-2 transition-colors hover:underline",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40",
-        "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:no-underline",
-        tones[tone],
-        className,
-      )}
-      {...rest}
-    />
+    <button type="button" className={classes} {...rest}>
+      {children}
+    </button>
   )
 }
+
 
 export function Spinner({ className }: { className?: string }) {
   return (

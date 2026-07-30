@@ -1,12 +1,157 @@
-import React from "react";
-import { Dropdown, ButtonToolbar } from "rsuite";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Panel,
+  Table,
+  THead,
+  TBody,
+  Th,
+  Tr,
+  Td,
+  CellStack,
+  StatusPill,
+  RowAction,
+  Empty,
+  EmptyState,
+  TableFooter,
+} from "@/components/ui/admin-kit";
+
+const PLAINT_ORG = "https://www.theplaint.org";
+const PLAINT_COM = "https://www.theplaint.com";
+
+/** Public URL for a piece of content — petitions live under /campaigns/:slug. */
+const publicPath = (item, type) =>
+  type === "petition"
+    ? `/campaigns/${item.slug}`
+    : `/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${item._id}`;
+
+const formatDate = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+const formatCount = (n) => Number(n || 0).toLocaleString();
+
+/**
+ * Row overflow menu. Replaces the rsuite dropdown so the menu matches the rest
+ * of the admin surface and closes on outside click / Escape like a native menu.
+ */
+const RowMenu = ({ item, type, canModerate, editItem }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const path = publicPath(item, type);
+  const itemClass =
+    "block w-full px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50";
+
+  return (
+    <div className="relative inline-block" ref={ref}>
+      <RowAction
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        More
+      </RowAction>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+        >
+          <a
+            role="menuitem"
+            className={itemClass}
+            href={`${PLAINT_ORG}/promote?slug=${item._id}&view=true`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Promote
+          </a>
+          <div className="my-1 border-t border-slate-100" />
+          {/* Share was a nested submenu two clicks deep — both domains are now
+              one click away. */}
+          <p className="px-3 pb-1 pt-1 text-[11px] font-medium uppercase tracking-wide text-slate-400">
+            Open on
+          </p>
+          <a
+            role="menuitem"
+            className={itemClass}
+            href={`${PLAINT_ORG}${path}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            theplaint.org
+          </a>
+          <a
+            role="menuitem"
+            className={itemClass}
+            href={`${PLAINT_COM}${path}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            theplaint.com
+          </a>
+          {canModerate && (
+            <>
+              <div className="my-1 border-t border-slate-100" />
+              <button
+                type="button"
+                role="menuitem"
+                className={itemClass}
+                onClick={() => {
+                  editItem(item._id, "Active");
+                  setOpen(false);
+                }}
+              >
+                Mark as active
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="block w-full px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50"
+                onClick={() => {
+                  editItem(item._id, "Blocked");
+                  setOpen(false);
+                }}
+              >
+                Block content
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Content = ({ contents, users, type, editItem }) => {
   const canModerate = type === "petition";
 
   const getAuthor = (id) => {
     let name;
-    users.forEach((user) => {
+    (users || []).forEach((user) => {
       if (String(user._id) === String(id)) {
         name = user.name;
       }
@@ -14,134 +159,126 @@ const Content = ({ contents, users, type, editItem }) => {
     return name || "Unknown";
   };
 
-  return (
-    <div>
-      <div>
-        <table className="table-auto w-full ">
-          <thead className="bg-gold text-white text-left rounded-md">
-            <tr>
-              <th className="p-3">Date</th>
-              <th className="p-3">Title</th>
-              <th className="p-3">Author</th>
-              <th className="p-3">Status</th>
-              <th className="p-3 w-44 text-center">Promotion <br /> Amount | Target</th>
-              <th className="p-3">Views</th>
-              <th className="p-3">Endorsement</th>
-              <th className="p-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {contents?.map((item, index) => {
-              const itemTitle = item?.title || item?.name || item?.caption || String(item?.body || "").slice(0, 20);
-              const itemImage = item?.asset?.[0]?.url || "/logo.png";
+  const rows = contents || [];
 
-              return (
-              <tr key={index}>
-                <td className="p-3">
-                  {String(item?.createdAt || "").substring(0, 10)}
-                </td>
-                <td className="p-3">
-                  {type === "petition" ? (
-                    <a className="flex text-[#000]" href={`https://www.theplaint.org/campaigns/${item.slug}`} target="_blank" rel="noreferrer">
-                      <img className="w-10 h-10 mr-2" src={itemImage} alt="" />
-                      <span>{itemTitle}</span>
-                    </a>
-                  ) : (
-                    <a className="flex text-[#000]" href={`https://www.theplaint.org/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${item._id}`} target="_blank" rel="noreferrer">
-                      <img className="w-10 h-10 mr-2" src={itemImage} alt="" />
-                      <span>{itemTitle}</span>
-                    </a>
-                  )}
-                </td>
-                <td className="p-3">
-                  <a className="text-[#000]" target="_blank" rel="noreferrer" href={`https://www.theplaint.org/user?page=${item?.author?._id || item.author}`}>
-                    {getAuthor(item?.author?._id || item.author)}
-                  </a>
-                </td>
-                <td className="p-3">
-                  {String(item.status || "").toLowerCase() === "active" ? (
-                    <button className="rounded-full bg-[#00401C] p-1">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="#fff"
-                        className="bi bi-check"
-                        viewBox="0 0 16 16"
+  return (
+    <Panel>
+      {rows.length === 0 ? (
+        <EmptyState
+          title="Nothing published yet"
+          description={`New ${type} content will appear here as it's created.`}
+        />
+      ) : (
+        <>
+          <Table>
+            <THead>
+              <Tr>
+                <Th>Content</Th>
+                <Th>Author</Th>
+                <Th>Status</Th>
+                <Th align="right">Promoted views</Th>
+                <Th align="right">Views</Th>
+                <Th align="right">Endorsements</Th>
+                <Th align="right">Actions</Th>
+              </Tr>
+            </THead>
+            <TBody>
+              {rows.map((item, index) => {
+                const itemTitle =
+                  item?.title ||
+                  item?.name ||
+                  item?.caption ||
+                  String(item?.body || "").slice(0, 40) ||
+                  "Untitled";
+                const itemImage = item?.asset?.[0]?.url || "/logo.png";
+                const authorId = item?.author?._id || item?.author;
+                const isActive =
+                  String(item.status || "").toLowerCase() === "active";
+                const created = formatDate(item?.createdAt);
+
+                return (
+                  <Tr key={item?._id || index}>
+                    <Td>
+                      <a
+                        className="flex items-center gap-3"
+                        href={`${PLAINT_ORG}${publicPath(item, type)}`}
+                        target="_blank"
+                        rel="noreferrer"
                       >
-                        <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z" />
-                      </svg>
-                    </button>
-                  ) : (
-                    <button className="rounded-full bg-[#970808] p-3"></button>
-                  )}
-                </td>
-                <td className="p-3 text-center">
-                  {(item?.numberOfPaidViewsCount ?? 0) + "  |  " + (item?.views?.length ?? 0)}
-                </td>
-                <td className="p-3">{item?.views?.length ?? 0}</td>
-                <td className="p-3">{item?.endorsements?.length ?? 0}</td>
-                <td className="p-3">
-                  <ButtonToolbar>
-                    <Dropdown
-                      placement="rightStart"
-                      title={<img className="h-4 w-4" src="/images/edit.svg" alt="" />}
-                      noCaret
-                    >
-                      <Dropdown.Item>
-                        <a href={`https://www.theplaint.org/promote?slug=${item._id}&view=true`} target="_blank" rel="noreferrer">
-                          Promote
-                        </a>
-                      </Dropdown.Item>
-                      <Dropdown.Item>
-                        <Dropdown title="Share">
-                          <Dropdown.Item>
-                            {type === "petition" ? (
-                              <a href={`https://www.theplaint.org/campaigns/${item.slug}`} target="_blank" rel="noreferrer">
-                                theplaint.org
-                              </a>
-                            ) : (
-                              <a href={`https://www.theplaint.org/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${item._id}`} target="_blank" rel="noreferrer">
-                                theplaint.org
-                              </a>
-                            )}
-                          </Dropdown.Item>
-                          <Dropdown.Item>
-                            {type === "petition" ? (
-                              <a href={`https://www.theplaint.com/campaigns/${item.slug}`} target="_blank" rel="noreferrer">
-                                theplaint.com
-                              </a>
-                            ) : (
-                              <a href={`https://www.theplaint.com/${type.charAt(0).toUpperCase() + type.slice(1)}?page=${item._id}`} target="_blank" rel="noreferrer">
-                                theplaint.com
-                              </a>
-                            )}
-                          </Dropdown.Item>
-                        </Dropdown>
-                      </Dropdown.Item>
-                      {canModerate && (
-                        <>
-                          <Dropdown.Item>
-                            <p onClick={() => editItem(item._id, "Blocked")} className="cursor-pointer">
-                              Toggle Status
-                            </p>
-                          </Dropdown.Item>
-                          <Dropdown.Item>
-                            <p onClick={() => editItem(item._id, "Active")} className="cursor-pointer">
-                              Refresh Status
-                            </p>
-                          </Dropdown.Item>
-                        </>
+                        <img
+                          className="h-9 w-9 shrink-0 rounded-md border border-slate-200 object-cover"
+                          src={itemImage}
+                          alt=""
+                        />
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium text-slate-900 underline-offset-2 hover:underline">
+                            {itemTitle}
+                          </span>
+                          {created && (
+                            <span className="block text-xs text-slate-500">
+                              {created}
+                            </span>
+                          )}
+                        </span>
+                      </a>
+                    </Td>
+                    <Td>
+                      <a
+                        className="hover:underline"
+                        target="_blank"
+                        rel="noreferrer"
+                        href={`${PLAINT_ORG}/user?page=${authorId}`}
+                      >
+                        <CellStack primary={getAuthor(authorId)} />
+                      </a>
+                    </Td>
+                    <Td>
+                      {/* Status used to be an unlabelled coloured dot — now a
+                          readable pill, which also works for screen readers. */}
+                      <StatusPill tone={isActive ? "success" : "danger"}>
+                        {isActive ? "Active" : "Blocked"}
+                      </StatusPill>
+                    </Td>
+                    <Td align="right">
+                      <span className="tabular-nums text-slate-600">
+                        {formatCount(item?.numberOfPaidViewsCount)}
+                      </span>
+                    </Td>
+                    <Td align="right">
+                      <span className="tabular-nums text-slate-600">
+                        {formatCount(item?.views?.length)}
+                      </span>
+                    </Td>
+                    <Td align="right">
+                      {item?.endorsements?.length ? (
+                        <span className="tabular-nums text-slate-600">
+                          {formatCount(item.endorsements.length)}
+                        </span>
+                      ) : (
+                        <Empty />
                       )}
-                    </Dropdown>
-                  </ButtonToolbar>
-                </td>
-              </tr>
-            )})}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                    </Td>
+                    <Td align="right">
+                      <RowMenu
+                        item={item}
+                        type={type}
+                        canModerate={canModerate}
+                        editItem={editItem}
+                      />
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </TBody>
+          </Table>
+          <TableFooter>
+            <span>
+              Showing {rows.length} {rows.length === 1 ? "item" : "items"}
+            </span>
+          </TableFooter>
+        </>
+      )}
+    </Panel>
   );
 };
 

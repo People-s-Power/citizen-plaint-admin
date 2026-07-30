@@ -1,146 +1,364 @@
-import React, { useEffect, useState } from "react";
-import { Dropdown, } from "rsuite";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import {
+  Panel,
+  Toolbar,
+  SearchInput,
+  Select,
+  Button,
+  RowAction,
+  Table,
+  THead,
+  TBody,
+  Th,
+  Tr,
+  Td,
+  CellStack,
+  StatusPill,
+  Tag,
+  Empty,
+  TableSkeleton,
+  EmptyState,
+  Callout,
+  TableFooter,
+  FilterCards,
+} from "@/components/ui/admin-kit";
+
+const PUBLIC_SITE = "https://www.theplaint.org";
+
+const ITEM_TYPES = [
+  "User",
+  "Petition",
+  "Post",
+  "Event",
+  "Advert",
+  "Victory",
+  "Update",
+];
+
+/** Dates arrive as ISO strings, but can be missing on older records. */
+const formatDate = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+/** Petitions live under /campaigns/:id; everything else uses ?page=:id. */
+const targetUrl = (report) => {
+  if (!report?.itemId || !report?.itemType) return null;
+  if (report.itemType === "Petition") {
+    return `${PUBLIC_SITE}/campaigns/${report.itemId}`;
+  }
+  return `${PUBLIC_SITE}/${report.itemType}?page=${report.itemId}`;
+};
 
 const Reports = () => {
-  const [reports, setReports] = useState();
-  const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-  const [report, setReport] = useState()
-  const [manage, setManage] = useState("All")
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [working, setWorking] = useState(null);
+  const [notice, setNotice] = useState(null);
 
-  const getReport = () => {
+  const [searchValue, setSearchValue] = useState("");
+  const [itemType, setItemType] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("open");
+
+  // The report being previewed in the detail dialog.
+  const [active, setActive] = useState(null);
+
+  const getReports = async () => {
+    setLoading(true);
     try {
-      axios.get("/reports").then((res) => {
-        // console.log(res.data);
-        const reportsData = Array.isArray(res.data) ? res.data : res.data?.data?.reports || [];
-        setReports(reportsData);
-      });
+      const res = await axios.get("/reports");
+      const data = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data?.reports || [];
+      setReports(data);
     } catch (err) {
       console.log(err);
-    }
-  };
-
-  const resolve = (id, resolve) => {
-    try {
-      axios
-        .post(`/report/${id}`, {
-          resolved: !resolve,
-        })
-        .then((res) => {
-          // console.log(res.data);
-          getReport();
-        });
-    } catch (err) {
-      console.log(err);
+      setNotice({ tone: "danger", text: "Couldn't load reports. Try refreshing." });
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    getReport();
+    getReports();
   }, []);
 
+  // Escape closes the detail dialog — expected behaviour for any overlay.
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setActive(null);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [active]);
+
+  const toggleResolved = async (report) => {
+    const id = report?._id;
+    if (!id) return;
+    setWorking(id);
+    setNotice(null);
+    try {
+      await axios.post(`/report/${id}`, { resolved: !report.resolved });
+      setNotice({
+        tone: "success",
+        text: report.resolved
+          ? "Report reopened."
+          : "Report marked resolved.",
+      });
+      setActive(null);
+      await getReports();
+    } catch (err) {
+      console.log(err);
+      setNotice({ tone: "danger", text: "Couldn't update that report." });
+    } finally {
+      setWorking(null);
+    }
+  };
+
+  const counts = useMemo(
+    () => ({
+      all: reports.length,
+      open: reports.filter((r) => !r.resolved).length,
+      resolved: reports.filter((r) => r.resolved).length,
+    }),
+    [reports],
+  );
+
+  const filtered = useMemo(() => {
+    const q = searchValue.trim().toLowerCase();
+    return reports.filter((report) => {
+      if (statusFilter === "open" && report.resolved) return false;
+      if (statusFilter === "resolved" && !report.resolved) return false;
+      if (itemType !== "All" && report.itemType !== itemType) return false;
+      if (q) {
+        const haystack = [report.authorName, report.body, report.itemType]
+          .filter(Boolean)
+          .map((v) => String(v).toLowerCase());
+        if (!haystack.some((v) => v.includes(q))) return false;
+      }
+      return true;
+    });
+  }, [reports, searchValue, itemType, statusFilter]);
+
+  const filtersActive =
+    Boolean(searchValue) || itemType !== "All" || statusFilter !== "open";
+
+  const clearFilters = () => {
+    setSearchValue("");
+    setItemType("All");
+    setStatusFilter("open");
+  };
+
   return (
-    <div>
-      <div className="flex my-4 justify-end">
-        <select onChange={(e) => setManage(e.target.value)} className=" p-2 border rounded-md">
-          <option value="All">All</option>
-          <option value="User">User</option>
-          <option value="Petition">Petition</option>
-          <option value="Post" >Post</option>
-          <option value="Event">Events</option>
-          <option value="Advert">Advert</option>
-          <option value="Victory">Victory</option>
-          <option value="Update">Update</option>
-        </select>
-      </div>
-      <div>
-        <table className="table-auto w-full ">
-          <thead className="bg-gold text-white text-left rounded-md">
-            <tr>
-              <th className="p-3">DATE</th>
-              <th className="p-3">Author</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Report</th>
-              <th className="p-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports?.map((report, index) => report.itemType === manage || manage === "All" ? (
-              <tr key={index}>
-                <td className="p-3">{report.createdAt.substring(0, 10)}</td>
-                <td className="p-3">{report.authorName}</td>
-                <td className="p-3">
-                  {report.resolved ? (
-                    <button
-                      onClick={() => resolve(report._id, report.resolved)}
-                      className="rounded-full bg-[#00401C] p-1"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="#fff"
-                        className="bi bi-check"
-                        viewBox="0 0 16 16"
-                      >
-                        <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z" />
-                      </svg>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => resolve(report._id, report.resolved)}
-                      className="rounded-full bg-[#970808] p-3"
-                    ></button>
-                  )}
-                </td>
-                <td onClick={() => { handleOpen(), setReport(report) }} className="p-3 cursor-pointer">
-                  {report.body.substring(0, 40)}
-                  {report.body.length > 40 ? "..." : null}
-                </td>
-                <td className="p-3">
-                  <Dropdown
-                    placement="rightStart"
-                    title={
-                      <img className="h-4 w-4" src="/images/edit.svg" alt="" />
-                    }
-                    noCaret
-                  >
-                    <Dropdown.Item> <p className="cursor-pointer" onClick={() => resolve(report._id, report.resolved)}> {report.resolved ? "UnResolve" : "Resolve"}</p> </Dropdown.Item>
-                    {/* <Dropdown.Item> <p className="cursor-pointer" onClick={() => resolve(report._id, report.resolved)}>Resolve</p>  </Dropdown.Item> */}
-                    <Dropdown.Item> <a href={`https://www.theplaint.org/messages?page=${report.authorId}`} target="_blank">Send Message</a> </Dropdown.Item>
-                  </Dropdown>
-                </td>
-              </tr>
-            ) : null)}
-          </tbody>
-        </table>
-        <div>
-          {open && <div className="absolute top-40 left-[30%] right-[30%] p-8 rounded-md bg-white w-[40%]">
-            <div className="text-center">
-              <h3 className="font-bold my-4">Report</h3>
-              {report?.body}
-              <div className="flex justify-evenly my-6">
-                {
-                  report.itemType === 'Petition' ?
-                    <a href={`https://www.theplaint.org/campaigns/${report.itemId}`} target="_blank">
-                      <button className="p-2 rounded-md bg-[#F9A826] px-6">View {report.itemType}</button>
-                    </a> : report.itemType === "User" ?
-                      <a href={`https://www.theplaint.org/${report.itemType}?page=${report.itemId}`} target="_blank">
-                        <button className="p-2 rounded-md bg-[#F9A826] px-6">View {report.itemType}</button>
-                      </a>
-                      : <a href={`https://www.theplaint.org/${report.itemType}?page=${report.itemId}`} target="_blank">
-                        <button className="p-2 rounded-md bg-[#F9A826] px-6">View {report.itemType}</button>
-                      </a>
-                }
-                <button onClick={() => handleClose()} className="p-2 rounded-md border px-6">Close</button>
+    <>
+      {/* Defaults to "Open" so the queue that needs action is what admins land on. */}
+      <FilterCards
+        items={[
+          { key: "open", label: "Needs review", count: counts.open, tone: "warning" },
+          { key: "resolved", label: "Resolved", count: counts.resolved, tone: "success" },
+          { key: "all", label: "All reports", count: counts.all },
+        ]}
+        value={statusFilter}
+        onChange={setStatusFilter}
+      />
+
+      {notice && (
+        <Callout tone={notice.tone} className="mb-4">
+          {notice.text}
+        </Callout>
+      )}
+
+      <Panel>
+        <Toolbar>
+          <SearchInput
+            value={searchValue}
+            onChange={setSearchValue}
+            placeholder="Search reports by author or content…"
+            className="w-full sm:w-80"
+          />
+          <Select
+            label="Reported item type"
+            value={itemType}
+            onChange={setItemType}
+            options={[
+              { value: "All", label: "All item types" },
+              ...ITEM_TYPES.map((t) => ({ value: t, label: t })),
+            ]}
+          />
+          {filtersActive && (
+            <Button variant="ghost" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          )}
+        </Toolbar>
+
+        {loading ? (
+          <TableSkeleton rows={8} cols={5} />
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            title={
+              filtersActive
+                ? "No reports match those filters"
+                : "Nothing needs review"
+            }
+            description={
+              filtersActive
+                ? "Try a different item type or clear the filters."
+                : "New reports from the community will land here."
+            }
+            action={
+              filtersActive ? (
+                <Button variant="secondary" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              ) : null
+            }
+          />
+        ) : (
+          <>
+            <Table>
+              <THead>
+                <Tr>
+                  <Th>Reported by</Th>
+                  <Th>Type</Th>
+                  <Th>Report</Th>
+                  <Th>Status</Th>
+                  <Th align="right">Actions</Th>
+                </Tr>
+              </THead>
+              <TBody>
+                {filtered.map((report) => {
+                  const date = formatDate(report.createdAt);
+                  const url = targetUrl(report);
+                  const busy = working === report._id;
+
+                  return (
+                    <Tr key={report._id}>
+                      <Td>
+                        <CellStack
+                          primary={report.authorName || "Unknown"}
+                          secondary={date || "Date unknown"}
+                        />
+                      </Td>
+                      <Td>
+                        {report.itemType ? <Tag>{report.itemType}</Tag> : <Empty />}
+                      </Td>
+                      <Td>
+                        {/* The full text opens in a dialog; the cell stays one line
+                            so rows keep a scannable height. */}
+                        <button
+                          type="button"
+                          onClick={() => setActive(report)}
+                          className="max-w-md truncate text-left text-slate-700 underline-offset-2 hover:text-slate-900 hover:underline"
+                        >
+                          {report.body || "View report"}
+                        </button>
+                      </Td>
+                      <Td>
+                        {/* Was an unlabelled coloured dot — now readable text. */}
+                        <StatusPill tone={report.resolved ? "success" : "warning"}>
+                          {report.resolved ? "Resolved" : "Open"}
+                        </StatusPill>
+                      </Td>
+                      <Td align="right">
+                        <div className="flex items-center justify-end gap-1">
+                          {url && (
+                            <RowAction href={url} target="_blank">
+                              View {report.itemType?.toLowerCase()}
+                            </RowAction>
+                          )}
+                          <RowAction
+                            tone={report.resolved ? "neutral" : "primary"}
+                            disabled={busy}
+                            onClick={() => toggleResolved(report)}
+                          >
+                            {report.resolved ? "Reopen" : "Resolve"}
+                          </RowAction>
+                        </div>
+                      </Td>
+                    </Tr>
+                  );
+                })}
+              </TBody>
+            </Table>
+            <TableFooter>
+              <span>
+                Showing {filtered.length} of {reports.length}
+              </span>
+            </TableFooter>
+          </>
+        )}
+      </Panel>
+
+      {/* Detail dialog. The previous version was a bare absolutely-positioned
+          div: no backdrop, no Escape, and it could sit behind other content. */}
+      {active && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="report-dialog-title"
+        >
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            onClick={() => setActive(null)}
+          />
+          <div className="relative w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
+              <div className="min-w-0">
+                <h2
+                  id="report-dialog-title"
+                  className="text-sm font-semibold text-slate-900"
+                >
+                  Report details
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  {active.authorName || "Unknown"}
+                  {formatDate(active.createdAt) ? ` · ${formatDate(active.createdAt)}` : ""}
+                </p>
               </div>
+              <StatusPill tone={active.resolved ? "success" : "warning"}>
+                {active.resolved ? "Resolved" : "Open"}
+              </StatusPill>
             </div>
-          </div>}
+
+            <div className="max-h-[50vh] overflow-y-auto px-5 py-4">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                {active.body || "No details were provided."}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 bg-slate-50/60 px-5 py-3">
+              <Button variant="ghost" onClick={() => setActive(null)}>
+                Close
+              </Button>
+              {targetUrl(active) && (
+                <a href={targetUrl(active)} target="_blank" rel="noreferrer">
+                  <Button variant="secondary">
+                    View {active.itemType?.toLowerCase()}
+                  </Button>
+                </a>
+              )}
+              <Button
+                variant={active.resolved ? "secondary" : "primary"}
+                loading={working === active._id}
+                onClick={() => toggleResolved(active)}
+              >
+                {active.resolved ? "Reopen report" : "Mark resolved"}
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };
 
