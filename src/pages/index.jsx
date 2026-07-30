@@ -3,7 +3,6 @@ import { useSetAtom } from 'jotai';
 import { adminAtom } from '@/atoms/adminAtom';
 import axios from "axios";
 import { setCookie } from "cookies-next";
-import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { adminApi } from "@/lib/adminApi";
@@ -37,9 +36,9 @@ const auth = () => {
   };
   return (
     <Fragment>
-      <title>PROJECT | Login</title>
+      <title>Experthub | Admin Login</title>
       <div className="mx-auto lg:w-1/2 text-center lg:my-40">
-        <h1 className="my-4 font-bold text-xl">Login</h1>
+        <h1 className="my-4 font-bold text-xl">Admin Login</h1>
         <input
           type="text"
           className="p-3 w-full my-3 bg-[#E5E5E5]"
@@ -60,9 +59,6 @@ const auth = () => {
         >
           {loading ? 'loading...' : 'Login'}
         </button>
-        <Link href={'/professional/auth'}>
-          <p className="text-left text-warning">Become a Professional</p>
-        </Link>
       </div>
       <ToastContainer />
     </Fragment>
