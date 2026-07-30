@@ -20,9 +20,12 @@ import {
   SearchInput,
   Select,
   NoAccess,
+  TableSkeleton,
 } from "@/components/ui/admin-kit";
+
 import { useAdminSession } from "@/hooks/useAdminSession";
-import { AdminPermission, roleLabel } from "@/lib/adminPermissions";
+import { AdminPermission } from "@/lib/adminPermissions";
+
 
 import { SERVER_URL } from "./_app";
 
@@ -204,16 +207,17 @@ export default function Home() {
     [active],
   );
 
-  // The session hook returns the raw role key; the topbar wants a human label.
+  // `/api/admin/me` already returns a display-ready `roleLabel`; only fall back
+  // to deriving one if an older backend response omits it.
   const adminIdentity = useMemo(
     () =>
       admin
         ? {
             name: admin.name,
             email: admin.email,
-            roleLabel: admin.isSuperAdmin
-              ? "Super Admin"
-              : roleLabel(admin.role),
+            roleLabel:
+              admin.roleLabel ||
+              (admin.isSuperAdmin ? "Super Admin" : "Admin"),
           }
         : null,
     [admin],
@@ -328,8 +332,9 @@ export default function Home() {
     if (currentItem && !sessionLoading && !can(currentItem.permission)) {
       return (
         <Panel>
-          <NoAccess />
+          <NoAccess permission={currentItem.permission} />
         </Panel>
+
       );
     }
 
@@ -354,13 +359,19 @@ export default function Home() {
                 className="sm:ml-auto"
               />
             </Toolbar>
-            <Content
-              contents={filteredContents}
-              type={manage}
-              users={users}
-              editItem={editItem}
-              loading={loadingData}
-            />
+            {/* Content renders a raw table and has no loading state of its
+                own, so the skeleton is owned here. */}
+            {loadingData ? (
+              <TableSkeleton rows={6} cols={5} />
+            ) : (
+              <Content
+                contents={filteredContents}
+                type={manage}
+                users={users}
+                editItem={editItem}
+              />
+            )}
+
           </Panel>
         );
       case "user":
