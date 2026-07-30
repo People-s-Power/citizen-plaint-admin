@@ -1,43 +1,166 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import FrontLayout from "@/components/Layout";
+import { useRouter } from "next/router";
+import { getCookie } from "cookies-next";
 import Summary from "@/components/Summary";
 import User from "@/components/User";
 import Report from "@/components/Reports";
-import Content from "@/components/Content"
-import router, { useRouter } from "next/router"
+import Content from "@/components/Content";
 import Subscriptions from "@/components/Subscriptions";
 import Withdrawal from "@/components/Withdrawal";
 import Tasks from "@/components/Tasks";
 import HireRequests from "@/components/HireRequests";
 import RemovalLogs from "@/components/RemovalLogs";
 import Administrators from "@/components/admin/Administrators";
+import AdminShell, { NavIcons } from "@/components/admin/AdminShell";
+import {
+  PageHeader,
+  Panel,
+  Toolbar,
+  SearchInput,
+  Select,
+  NoAccess,
+} from "@/components/ui/admin-kit";
 import { useAdminSession } from "@/hooks/useAdminSession";
-import { AdminPermission } from "@/lib/adminPermissions";
+import { AdminPermission, roleLabel } from "@/lib/adminPermissions";
+
 import { SERVER_URL } from "./_app";
 
 /**
- * Sidebar definition. Each entry declares the permission required to see it,
- * so a Support admin never sees Withdrawals and an Analyst never sees
+ * Navigation is grouped by the job an admin is doing rather than by the shape
+ * of the data. Each entry declares the permission required to see it, so a
+ * Support admin never sees Withdrawals and an Analyst never sees
  * Administrators. The backend enforces the same rules on every request — this
  * is purely so people aren't shown doors they can't open.
+ *
+ * `title`/`description` live here too so every section gets a consistent
+ * header without each component re-inventing one.
  */
-const NAV_ITEMS = [
-  { key: "summary", label: "Summary", permission: AdminPermission.DashboardView },
-  { key: "content", label: "Manage Content", permission: AdminPermission.ContentView },
-  { key: "tasks", label: "Manage Tasks", permission: AdminPermission.TasksView },
-  { key: "user", label: "User", permission: AdminPermission.UsersView },
-  { key: "report", label: "Report", permission: AdminPermission.ReportsView },
-  { key: "subscriptions", label: "Subscriptions", permission: AdminPermission.SubscriptionsView },
-  { key: "withdrawal", label: "Withdrawal", permission: AdminPermission.WithdrawalsView },
-  { key: "hire-requests", label: "Hire Requests", permission: AdminPermission.HireRequestsView },
-  { key: "removal-logs", label: "Removal Logs", permission: AdminPermission.RemovalLogsView, danger: true },
-  { key: "administrators", label: "Administrators", permission: AdminPermission.AdminsView },
+const NAV_GROUPS = [
+  {
+    label: "Overview",
+    items: [
+      {
+        key: "summary",
+        label: "Dashboard",
+        permission: AdminPermission.DashboardView,
+        icon: NavIcons.overview,
+        title: "Dashboard",
+        description: "Platform health at a glance — growth, content volume and the queues that need attention.",
+      },
+    ],
+  },
+  {
+    label: "Moderation",
+    items: [
+      {
+        key: "content",
+        label: "Content",
+        permission: AdminPermission.ContentView,
+        icon: NavIcons.content,
+        title: "Manage content",
+        description: "Review petitions, posts and campaign material before it reaches the public feed.",
+      },
+      {
+        key: "report",
+        label: "Reports",
+        permission: AdminPermission.ReportsView,
+        icon: NavIcons.reports,
+        title: "Reports",
+        description: "Community reports awaiting a decision, newest first.",
+      },
+      {
+        key: "removal-logs",
+        label: "Removal logs",
+        permission: AdminPermission.RemovalLogsView,
+        icon: NavIcons.trash,
+        danger: true,
+        title: "Removal logs",
+        description: "Every takedown, who performed it and why. This audit trail is append-only.",
+      },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      {
+        key: "tasks",
+        label: "Tasks",
+        permission: AdminPermission.TasksView,
+        icon: NavIcons.tasks,
+        title: "Manage tasks",
+        description: "Work items assigned across the platform and their current state.",
+      },
+      {
+        key: "hire-requests",
+        label: "Hire requests",
+        permission: AdminPermission.HireRequestsView,
+        icon: NavIcons.hire,
+        title: "Hire requests",
+        description: "Match incoming client requests with the right professional and keep assignments moving.",
+      },
+    ],
+  },
+  {
+    label: "Revenue",
+    items: [
+      {
+        key: "subscriptions",
+        label: "Subscriptions",
+        permission: AdminPermission.SubscriptionsView,
+        icon: NavIcons.subscriptions,
+        title: "Subscriptions",
+        description: "Who is on which plan, and what is renewing or lapsing.",
+      },
+      {
+        key: "withdrawal",
+        label: "Withdrawals",
+        permission: AdminPermission.WithdrawalsView,
+        icon: NavIcons.money,
+        title: "Withdrawals",
+        description: "Payout requests waiting to be processed. Confirm the account details before releasing funds.",
+      },
+    ],
+  },
+  {
+    label: "People",
+    items: [
+      {
+        key: "user",
+        label: "Users",
+        permission: AdminPermission.UsersView,
+        icon: NavIcons.users,
+        title: "Users",
+        description: "Search the member directory, inspect an account and act on it.",
+      },
+      {
+        key: "administrators",
+        label: "Administrators",
+        permission: AdminPermission.AdminsView,
+        icon: NavIcons.shield,
+        title: "Administrators",
+        description: "Control who can access the admin console and exactly what they can do.",
+      },
+    ],
+  },
+];
+
+const ALL_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
+
+const CONTENT_TYPES = [
+  { value: "petition", label: "Petitions" },
+  { value: "post", label: "Posts" },
+  { value: "event", label: "Events" },
+  { value: "advert", label: "Adverts" },
+  { value: "victory", label: "Victories" },
+  { value: "update", label: "Updates" },
 ];
 
 export default function Home() {
   const [active, setActive] = useState("summary");
-  const { can, loading: sessionLoading } = useAdminSession();
+  const { admin, can, loading: sessionLoading } = useAdminSession();
+  const router = useRouter();
+  const { query } = router;
 
   const [counts, setCounts] = useState({
     users: 0,
@@ -51,9 +174,11 @@ export default function Home() {
   });
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
-  const [contents, setContents] = useState([])
-  const [manage, setManage] = useState("petition")
-  const { query } = useRouter()
+  const [contents, setContents] = useState([]);
+  const [manage, setManage] = useState("petition");
+  const [contentSearch, setContentSearch] = useState("");
+  const [loadingData, setLoadingData] = useState(true);
+
   const contentKeyMap = {
     petition: "petitions",
     post: "posts",
@@ -61,13 +186,60 @@ export default function Home() {
     advert: "adverts",
     victory: "victories",
     update: "updates",
-  }
+  };
+
+  // Guard: the shell replaces the old FrontLayout wrapper, so the token check
+  // lives here now.
+  useEffect(() => {
+    const token = getCookie("token") ?? localStorage.getItem("token");
+    if (!token) window.location.href = "/";
+  }, []);
 
   useEffect(() => {
-    query.page !== undefined && setActive(query.page)
-    // console.log(query.page)
-  }, [query.page])
+    if (query.page !== undefined) setActive(query.page);
+  }, [query.page]);
 
+  const currentItem = useMemo(
+    () => ALL_ITEMS.find((i) => i.key === active),
+    [active],
+  );
+
+  // The session hook returns the raw role key; the topbar wants a human label.
+  const adminIdentity = useMemo(
+    () =>
+      admin
+        ? {
+            name: admin.name,
+            email: admin.email,
+            roleLabel: admin.isSuperAdmin
+              ? "Super Admin"
+              : roleLabel(admin.role),
+          }
+        : null,
+    [admin],
+  );
+
+
+  // Only render nav groups this admin can actually use; drop empty groups.
+  const visibleGroups = useMemo(
+    () =>
+      NAV_GROUPS.map((group) => ({
+        ...group,
+        items: group.items.filter((item) => can(item.permission)),
+      })).filter((group) => group.items.length > 0),
+    [can],
+  );
+
+  const navigate = (key) => {
+    setActive(key);
+    router.push(`?page=${key}`, undefined, { shallow: true });
+  };
+
+  const signOut = () => {
+    localStorage.removeItem("token");
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    window.location.href = "/";
+  };
 
   const editItem = async (id, status) => {
     try {
@@ -76,15 +248,16 @@ export default function Home() {
         return;
       }
       await axios.post("/petition/approve", { Petition_id: id });
-      alert(`petition is ${status}`)
-      await loadDashboardData()
+      alert(`petition is ${status}`);
+      await loadDashboardData();
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-  }
+  };
 
   const loadDashboardData = async () => {
     try {
+      setLoadingData(true);
       const [usersRes, orgsRes, reportsRes, generalRes] = await Promise.all([
         axios.get("/user"),
         axios.get("/organization"),
@@ -126,89 +299,117 @@ export default function Home() {
       });
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoadingData(false);
     }
   };
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
-
-  useEffect(() => {
-    loadDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manage]);
+
+  /**
+   * Client-side filter for the content queue so typing narrows results
+   * immediately instead of waiting on a round trip.
+   */
+  const filteredContents = useMemo(() => {
+    const q = contentSearch.trim().toLowerCase();
+    if (!q) return contents;
+    return contents.filter((c) =>
+      [c.title, c.name, c.caption, c.body, c.author?.name]
+        .filter(Boolean)
+        .some((field) => String(field).toLowerCase().includes(q)),
+    );
+  }, [contents, contentSearch]);
+
+  const renderSection = () => {
+    // Deep-linking to a section you can't open shouldn't render a broken page.
+    if (currentItem && !sessionLoading && !can(currentItem.permission)) {
+      return (
+        <Panel>
+          <NoAccess />
+        </Panel>
+      );
+    }
+
+    switch (active) {
+      case "summary":
+        return <Summary summary={counts} users={users} loading={loadingData} onNavigate={navigate} />;
+      case "content":
+        return (
+          <Panel>
+            <Toolbar>
+              <SearchInput
+                value={contentSearch}
+                onChange={setContentSearch}
+                placeholder="Search by title, body or author…"
+                className="w-full sm:w-80"
+              />
+              <Select
+                label="Content type"
+                value={manage}
+                onChange={setManage}
+                options={CONTENT_TYPES}
+                className="sm:ml-auto"
+              />
+            </Toolbar>
+            <Content
+              contents={filteredContents}
+              type={manage}
+              users={users}
+              editItem={editItem}
+              loading={loadingData}
+            />
+          </Panel>
+        );
+      case "user":
+        return <User />;
+      case "report":
+        return <Report />;
+      case "tasks":
+        return <Tasks />;
+      case "subscriptions":
+        return <Subscriptions users={users} />;
+      case "withdrawal":
+        return <Withdrawal />;
+      case "hire-requests":
+        return <HireRequests users={users} />;
+      case "removal-logs":
+        return <RemovalLogs users={users} />;
+      case "administrators":
+        return <Administrators />;
+      default:
+        return (
+          <Panel>
+            <NoAccess>That section doesn&apos;t exist. Pick one from the sidebar.</NoAccess>
+          </Panel>
+        );
+    }
+  };
 
   return (
     <>
-      <FrontLayout>
-        <div className="mx-20 pt-6 flex">
-          <div className="w-[20%] space-y-6 text-lg font-medium">
-            {/* While permissions load we show nothing rather than flashing
-                links the user may not be allowed to open. */}
-            {sessionLoading
-              ? <div className="text-sm text-gray-400">Loading…</div>
-              : NAV_ITEMS.filter((item) => can(item.permission)).map((item) => (
-                <div
-                  key={item.key}
-                  onClick={() => router.push(`?page=${item.key}`)}
-                  className="cursor-pointer"
-                >
-                  <span
-                    className={
-                      active === item.key
-                        ? `inline-block border-b ${item.danger ? 'border-red-500 text-red-600' : 'border-warning'}`
-                        : ''
-                    }
-                  >
-                    {item.label}
-                  </span>
-                </div>
-              ))}
-          </div>
-          <div className="w-[80%]">
-            {(() => {
-              switch (active) {
-                case "summary":
-                  return <Summary summary={counts} users={users} />;
-                case "content":
-                  return <div>
-                    <div className="flex justify-between my-5">
-                      <input type="text" className="p-2 rounded-md border w-[30%]" placeholder="Search" />
-                      <select onChange={(e) => setManage(e.target.value)} className=" p-2 border rounded-md">
-                        <option value="petition">Petition</option>
-                        <option value="post" >Post</option>
-                        <option value="event">Events</option>
-                        <option value="advert">Advert</option>
-                        <option value="victory">Victory</option>
-                        <option value="update">Update</option>
-                      </select>
-                    </div>
-                    <Content contents={contents} type={manage} users={users} editItem={editItem} />
-                  </div>;
-                case "user":
-                  return <User />;
-                case "report":
-                  return <Report />;
-                case 'tasks':
-                  return <Tasks />;
-                case "subscriptions":
-                  return <Subscriptions users={users} />;
-                case "withdrawal":
-                  return <Withdrawal />;
-                case "social":
-                  return <div className="text-center my-8">
-                    Coming Soon
-                  </div>;
-                case "hire-requests":
-                  return <HireRequests users={users} />;
-                case "removal-logs":
-                  return <RemovalLogs users={users} />;
-                case "administrators":
-                  return <Administrators />;
-              }
-            })()}
-          </div>
-        </div>
-      </FrontLayout>
+      <title>Admin console · ExpertHub</title>
+      <AdminShell
+        groups={visibleGroups}
+        active={active}
+        onNavigate={navigate}
+        title={currentItem?.title}
+        loading={sessionLoading}
+        admin={adminIdentity}
+        onSignOut={signOut}
+
+      >
+        {/* Sections that ship their own header (Administrators) opt out here. */}
+        {currentItem && active !== "administrators" && (
+          <PageHeader
+            title={currentItem.title}
+            description={currentItem.description}
+          />
+        )}
+        {renderSection()}
+      </AdminShell>
     </>
   );
 }
