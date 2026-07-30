@@ -65,6 +65,20 @@ interface Professional {
 
 const getProfId = (prof: Professional) => String(prof._id || prof.id || "").trim()
 
+const normalizeCategory = (value: string) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\bassistants?\b/g, "assistant")
+    .replace(/\s+/g, " ")
+
+const resolveCategoryLabel = (value: string) => {
+  const normalized = normalizeCategory(value)
+  const canonical = PROFESSIONS.find((entry) => normalizeCategory(entry) === normalized)
+  return canonical || value || DEFAULT_CATEGORY
+}
+
 const getProfessionalCategoryNames = (prof: Professional) => {
   if (!prof?.profession) return []
   if (Array.isArray(prof.profession)) {
@@ -77,9 +91,10 @@ const getProfessionalCategoryNames = (prof: Professional) => {
 
 const matchesCategory = (prof: Professional, category: string) => {
   if (!category || category === "All") return true
+  const requested = normalizeCategory(category)
   return getProfessionalCategoryNames(prof)
-    .map((entry) => entry.toLowerCase())
-    .includes(String(category).trim().toLowerCase())
+    .map((entry) => normalizeCategory(entry))
+    .some((entry) => entry === requested || entry.includes(requested) || requested.includes(entry))
 }
 
 const matchesSearch = (prof: Professional, search?: string) => {
@@ -92,13 +107,14 @@ const matchesSearch = (prof: Professional, search?: string) => {
 
 const PROFESSIONS = [
   "General Administrative Assistant",
-  "Social Media Manager ",
+  "Social Media Manager",
   "Real Estate",
+  "AI Assistant",
   "Virtual Research",
   "Virtual Data Entry",
   "Virtual Book keeper",
   "Virtual ecommerce",
-  "Customer Service Provider (Phone/Chat",
+  "Customer Service Provider (Phone/Chat)",
   "Content Writer",
   "Website Management",
   "Public Relation Assistant",
@@ -220,7 +236,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     setShowAssignModal(true)
     setAdminNotes("")
     setProfSearch("")
-    const initialCategory = request.profession || DEFAULT_CATEGORY
+    const initialCategory = resolveCategoryLabel(request.profession || DEFAULT_CATEGORY)
     setSelectedCategory(initialCategory)
     loadAssignableProfessionals(initialCategory)
   }
@@ -291,7 +307,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     setReassignReason("")
     setReassignNotes("")
     setReassignSearch("")
-    const initialCategory = request.profession || DEFAULT_CATEGORY
+    const initialCategory = resolveCategoryLabel(request.profession || DEFAULT_CATEGORY)
     setReassignCategory(initialCategory)
     loadReassignableProfessionals(initialCategory, "", request.assignedProfessionalId || "")
   }
