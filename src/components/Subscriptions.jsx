@@ -47,8 +47,8 @@ const Subscriptions = ({ users }) => {
 
   const getSub = async () => {
     try {
-      const res = await axios.get("/sub/unassiged?page=1&limit=100");
-      setSubs(res.data?.data?.subscriptions || []);
+      const res = await axios.get("/admin/subscriptions/unassigned?page=1&limit=100");
+      setSubs(res.data?.data?.subscriptions || res.data?.subscriptions || []);
     } catch (err) {
       console.log(err);
     }

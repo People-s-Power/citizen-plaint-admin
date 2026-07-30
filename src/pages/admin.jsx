@@ -14,6 +14,7 @@ import RemovalLogs from "@/components/RemovalLogs";
 import Administrators from "@/components/admin/Administrators";
 import { useAdminSession } from "@/hooks/useAdminSession";
 import { AdminPermission } from "@/lib/adminPermissions";
+import { SERVER_URL } from "./_app";
 
 /**
  * Sidebar definition. Each entry declares the permission required to see it,
@@ -38,12 +39,29 @@ export default function Home() {
   const [active, setActive] = useState("summary");
   const { can, loading: sessionLoading } = useAdminSession();
 
-  const [counts, setCounts] = useState([]);
+  const [counts, setCounts] = useState({
+    users: 0,
+    orgs: 0,
+    posts: 0,
+    petitions: 0,
+    adverts: 0,
+    events: 0,
+    victories: 0,
+    updates: 0,
+  });
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
   const [contents, setContents] = useState([])
   const [manage, setManage] = useState("petition")
   const { query } = useRouter()
+  const contentKeyMap = {
+    petition: "petitions",
+    post: "posts",
+    event: "events",
+    advert: "adverts",
+    victory: "victories",
+    update: "updates",
+  }
 
   useEffect(() => {
     query.page !== undefined && setActive(query.page)
@@ -51,52 +69,73 @@ export default function Home() {
   }, [query.page])
 
 
-  const getAll = () => {
-    try {
-      axios.get("/" + manage + "?page=1&limit=100").then((res) => {
-        // console.log(res.data);
-        const data = Array.isArray(res.data) ? res.data : res.data?.data;
-        setContents(data?.petitons?.petitons || data?.[manage + 's']?.[manage + 's'] || data?.victory?.victory || data);
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  }
   const editItem = async (id, status) => {
     try {
-      const { data } = await axios.post(
-        `/${manage}/${id}`,
-        {
-          status
-        }
-      );
-      console.log(data);
-      alert(`${manage} is ${status}`)
-      getAll()
+      if (manage !== "petition") {
+        alert("Content moderation is only wired for petitions right now.");
+        return;
+      }
+      await axios.post("/petition/approve", { Petition_id: id });
+      alert(`petition is ${status}`)
+      await loadDashboardData()
     } catch (e) {
       console.log(e)
     }
   }
 
-  useEffect(() => {
-    getAll()
-  }, [manage])
-
-  useEffect(() => {
-    // Legacy endpoint: /admin/count
-    setCounts({});
+  const loadDashboardData = async () => {
     try {
-      axios.get("/user").then((res) => {
-        // console.log(res.data);
-        const users = Array.isArray(res.data) ? res.data : res.data?.data?.users || [];
-        setUsers(users);
+      const [usersRes, orgsRes, reportsRes, generalRes] = await Promise.all([
+        axios.get("/user"),
+        axios.get("/organization"),
+        axios.get("/reports"),
+        axios.post(`${SERVER_URL}/graphql`, {
+          query: `
+            query DashboardGeneral {
+              general {
+                posts { _id createdAt title name caption body asset { url type } author { _id name image } views likes endorsements }
+                petitions { _id createdAt title name caption body slug status asset { url type } author { _id name image } views numberOfPaidViewsCount numberOfPaidEndorsementCount endorsements }
+                events { _id createdAt name body description asset { url type } author { _id name image } }
+                adverts { _id createdAt caption message body asset { url type } author { _id name image } }
+                victories { _id createdAt body asset { url type } author { _id name image } }
+                updates { _id createdAt body asset { url type } author { _id name image } petition { _id title slug } }
+              }
+            }
+          `,
+        }),
+      ]);
+
+      const usersData = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.data?.users || [];
+      const orgsData = Array.isArray(orgsRes.data) ? orgsRes.data : orgsRes.data?.data?.Organizations || orgsRes.data?.data?.organizations || [];
+      const reportsData = Array.isArray(reportsRes.data) ? reportsRes.data : reportsRes.data?.data?.reports || [];
+      const general = generalRes.data?.data?.general || {};
+      const selected = general?.[contentKeyMap[manage]] || [];
+
+      setUsers(usersData);
+      setReports(reportsData);
+      setContents(selected);
+      setCounts({
+        users: usersData.length,
+        orgs: orgsData.length,
+        posts: general.posts?.length || 0,
+        petitions: general.petitions?.length || 0,
+        adverts: general.adverts?.length || 0,
+        events: general.events?.length || 0,
+        victories: general.victories?.length || 0,
+        updates: general.updates?.length || 0,
       });
     } catch (err) {
       console.log(err);
     }
-    // Legacy endpoint: /report
-    setReports([]);
+  };
+
+  useEffect(() => {
+    loadDashboardData();
   }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [manage]);
 
   return (
     <>

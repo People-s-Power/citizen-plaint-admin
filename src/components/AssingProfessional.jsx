@@ -9,7 +9,7 @@ const AssingProfessional = ({ users, sub, getSub }) => {
 
   const assign = async (id, author, sub) => {
     try {
-      axios.post("/admin/assign", {
+      axios.post("/admin/subscriptions/assign", {
         userId: id,
         orgId: author,
         subId: sub

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const TaskViewModal = ({ open, task, onClose, onTaskUpdate }) => {
+const TaskViewModal = ({ open, task, onClose, onTaskUpdate, onToggleSubtask }) => {
     const [showCompleted, setShowCompleted] = useState(true);
     const [toggleLoading, setToggleLoading] = useState(false);
     const [localTask, setLocalTask] = useState(task);
@@ -30,18 +30,11 @@ const TaskViewModal = ({ open, task, onClose, onTaskUpdate }) => {
 
         try {
             setToggleLoading(true);
-            // TODO: Add your API call here to toggle subtask
-            // Example:
-            // const { data } = await axios.post('/api/graphql', {
-            //     query: TOGGLE_SUBTASK_DONE,
-            //     variables: { taskId: localTask._id, subtaskIndex, descriptionIndex }
-            // });
-            // if (data?.data?.toggleSubtaskDone) {
-            //     setLocalTask(data.data.toggleSubtaskDone);
-            //     if (onTaskUpdate) onTaskUpdate(data.data.toggleSubtaskDone);
-            // }
-
-            console.log('Toggle subtask:', subtaskIndex, descriptionIndex);
+            const updatedTask = await onToggleSubtask?.(localTask._id, subtaskIndex, descriptionIndex);
+            if (updatedTask) {
+                setLocalTask(updatedTask);
+                if (onTaskUpdate) onTaskUpdate(updatedTask);
+            }
         } catch (error) {
             console.error("Error toggling subtask:", error);
         } finally {

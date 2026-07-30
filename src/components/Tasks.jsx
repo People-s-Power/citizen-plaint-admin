@@ -94,6 +94,71 @@ const Tasks = () => {
     }
   }
 
+  const toggleSubtask = async (taskId, subtaskIndex, descriptionIndex) => {
+    const { data } = await axios.post(`${SERVER_URL}/graphql`, {
+      query: `
+        mutation ToggleSubtaskDone($taskId: ID!, $subtaskIndex: Int!, $descriptionIndex: Int!) {
+          toggleSubtaskDone(
+            taskId: $taskId
+            subtaskIndex: $subtaskIndex
+            descriptionIndex: $descriptionIndex
+          ) {
+            _id
+            name
+            dueDate
+            dueTime
+            instruction
+            status
+            lock
+            createdAt
+            author { _id name image email }
+            prof { _id name image email }
+            assigne { _id name image email }
+            asset { url type }
+            images
+            subtasks {
+              title
+              priority
+              actions
+              attachment { url type }
+              images
+              description {
+                title
+                priority
+                actions
+                attachment { url type }
+                images
+                done
+              }
+            }
+            comments {
+              _id
+              authorId
+              authorName
+              authorImage
+              content
+              targetType
+              subtaskIndex
+              descriptionIndex
+              createdAt
+              updatedAt
+            }
+          }
+        }
+      `,
+      variables: { taskId, subtaskIndex, descriptionIndex },
+    });
+
+    const updatedTask = data?.data?.toggleSubtaskDone;
+    if (updatedTask) {
+      setTasks(prevTasks =>
+        prevTasks.map(task => (task._id === taskId ? updatedTask : task))
+      );
+      setSelectedTask(prev => (prev && prev._id === taskId ? updatedTask : prev));
+    }
+    return updatedTask;
+  }
+
 
   useEffect(() => {
     getTasks();
@@ -101,7 +166,9 @@ const Tasks = () => {
     const fetchOperators = async () => {
       try {
         // Try to get orgId from query or admin object
-        const orgId = query.page || admin?.orgId || admin?.organizationId || admin?.organization?._id;
+        const orgId = router.pathname.startsWith('/admin')
+          ? admin?.orgId || admin?.organizationId || admin?.organization?._id
+          : query.page || admin?.orgId || admin?.organizationId || admin?.organization?._id;
         if (!orgId) {
           setOperators([]);
           return;
@@ -230,6 +297,7 @@ const Tasks = () => {
       <TaskViewModal
         open={viewModalOpen}
         task={selectedTask}
+        onToggleSubtask={toggleSubtask}
         onClose={() => {
           setViewModalOpen(false);
           setSelectedTask(null);

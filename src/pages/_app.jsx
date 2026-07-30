@@ -5,7 +5,7 @@ import 'rsuite/dist/rsuite.min.css';
 import {QueryProvider} from "@/context/react-query"
 import { Toaster } from "@/components/ui/sonner"
 
-const HTTP_URI = "https://people-powapi-v5-5ifxz.ondigitalocean.app/api/v5";
+const HTTP_URI = "/api/v5";
 
 // const HTTP_URI = "http://localhost:3000/v1";
 export const SERVER_URL = "https://people-powapi-v5-5ifxz.ondigitalocean.app";
