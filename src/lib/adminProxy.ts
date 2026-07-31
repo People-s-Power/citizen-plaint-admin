@@ -14,6 +14,7 @@ const SERVER_URL =
   "https://people-powapi-v5-5ifxz.ondigitalocean.app"
 
 export const ADMIN_API_BASE = `${SERVER_URL}/api/v5/admin`
+export const ADMIN_DIRECTORY_BASE = `${SERVER_URL}/api/v5/admin-directory`
 
 /** Pull the admin's session JWT off the incoming request. */
 export function getActorToken(req: NextApiRequest): string | null {
@@ -116,6 +117,37 @@ export async function forwardToAdminApi(
       message:
         "Could not reach the admin service. Please try again in a moment.",
     })
+  }
+}
+
+/** Forward JWT-only, read-heavy admin directory requests. */
+export async function forwardToAdminDirectory(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  path: string,
+) {
+  const actorToken = getActorToken(req)
+  if (!actorToken) return res.status(401).json({ message: "Your session has expired. Please sign in again." })
+
+  const params = new URLSearchParams()
+  Object.entries(req.query).forEach(([key, value]) => {
+    if (key === "path") return
+    if (Array.isArray(value)) value.forEach((item) => params.append(key, String(item)))
+    else if (value !== undefined && value !== null && value !== "") params.set(key, String(value))
+  })
+
+  try {
+    const response = await fetch(`${ADMIN_DIRECTORY_BASE}${path}${params.toString() ? `?${params}` : ""}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${actorToken}` },
+    })
+    const text = await response.text()
+    let data: any = {}
+    try { data = text ? JSON.parse(text) : {} } catch { data = { message: text } }
+    return res.status(response.status).json(data)
+  } catch (error) {
+    console.error(`[adminDirectoryProxy] GET ${path} failed:`, error)
+    return res.status(502).json({ message: "Could not reach the admin directory service." })
   }
 }
 

@@ -110,7 +110,10 @@ const User = () => {
 
   useEffect(() => {
     if (usersQuery.error) {
-      setNotice({ tone: "danger", text: "Couldn't load the member directory. Try refreshing." });
+      setNotice({
+        tone: "danger",
+        text: `Couldn't load the member directory (${usersQuery.error?.status || "network error"}). Try refreshing.`,
+      });
     } else if (usersQuery.data) {
       setNotice(null);
     }
