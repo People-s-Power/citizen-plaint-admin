@@ -89,17 +89,44 @@ const User = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const result = await adminApi.users({
-        page: pagination.page,
-        limit: pagination.limit,
-        search: searchValue,
-        status: statusFilter,
-        accountType: role,
-        country,
-        profession: professionValue,
-      });
+      let result;
+      try {
+        result = await adminApi.users({
+          page: pagination.page,
+          limit: pagination.limit,
+          search: searchValue,
+          status: statusFilter,
+          accountType: role,
+          country,
+          profession: professionValue,
+        });
+      } catch (adminError) {
+        // Keep the console usable while the API and web deployments roll out
+        // independently. The optimized endpoint remains the normal path.
+        if (![404, 502].includes(adminError?.status)) throw adminError;
+        const [usersRes, orgsRes] = await Promise.all([
+          axios.get("/user"),
+          axios.get("/organization"),
+        ]);
+        const people = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.data?.users || [];
+        const rawOrgs = Array.isArray(orgsRes.data)
+          ? orgsRes.data
+          : orgsRes.data?.data?.Organizations || orgsRes.data?.data?.organizations || [];
+        const seen = new Set();
+        const merged = [...people, ...rawOrgs.map((org) => ({
+          ...org,
+          accountType: org.accountType || "Organization",
+          role: org.role || "Organization",
+        }))].filter((item) => {
+          const key = idOf(item);
+          if (!key || seen.has(key)) return !key;
+          seen.add(key);
+          return true;
+        });
+        result = { users: merged, pagination: { page: 1, limit: merged.length, total: merged.length, pages: 1 } };
+      }
       setUsers(result.users || []);
-      setPagination(result.pagination);
+      setPagination(result.pagination || { page: 1, limit: 50, total: 0, pages: 1 });
       setSelected(new Set());
     } catch (err) {
       console.log(err);

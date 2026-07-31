@@ -263,7 +263,39 @@ export default function Home() {
   const loadDashboardData = async () => {
     try {
       setLoadingData(true);
-      const stats = await adminApi.dashboard();
+      let stats;
+      try {
+        stats = await adminApi.dashboard();
+      } catch (dashboardError) {
+        if (![404, 502].includes(dashboardError?.status)) throw dashboardError;
+        // Compatibility fallback for an API instance being upgraded ahead of
+        // the admin web deployment.
+        const [usersRes, orgsRes, generalRes] = await Promise.all([
+          axios.get("/user"),
+          axios.get("/organization"),
+          axios.post(`${SERVER_URL}/graphql`, {
+            query: `query DashboardFallback { general {
+              posts { _id } petitions { _id } events { _id }
+              adverts { _id } victories { _id }
+            } }`,
+          }),
+        ]);
+        const users = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.data?.users || [];
+        const organisations = Array.isArray(orgsRes.data)
+          ? orgsRes.data
+          : orgsRes.data?.data?.Organizations || orgsRes.data?.data?.organizations || [];
+        const general = generalRes.data?.data?.general || {};
+        stats = {
+          users: users.length,
+          organisations: organisations.length,
+          posts: general.posts?.length || 0,
+          petitions: general.petitions?.length || 0,
+          events: general.events?.length || 0,
+          adverts: general.adverts?.length || 0,
+          victories: general.victories?.length || 0,
+          updates: 0,
+        };
+      }
       setCounts({
         users: stats.users,
         orgs: stats.organisations,
