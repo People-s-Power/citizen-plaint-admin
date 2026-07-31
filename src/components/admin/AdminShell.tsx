@@ -231,8 +231,12 @@ export default function AdminShell({
           collapsed && "justify-center px-0",
         )}
       >
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#00401C] text-sm font-bold text-[#FDC332]">
-          E
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white">
+          <img
+            src="/experthub-logo.png"
+            alt="ExpertHub"
+            className="h-8 w-8 object-contain"
+          />
         </span>
         {!collapsed && (
           <span className="min-w-0">
