@@ -55,7 +55,7 @@ const auth = () => {
         />
         <button
           onClick={() => submit()}
-          className="bg-warning p-3 w-full my-3 text-white text-lg"
+          className="bg-warning p-3 w-full my-3 text-[#00401C] text-lg font-semibold"
         >
           {loading ? 'loading...' : 'Login'}
         </button>

@@ -97,11 +97,11 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "subtle"
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "bg-warning text-slate-900 shadow-sm hover:bg-amber-400 focus-visible:ring-amber-500/40",
+    "bg-[#FDC332] text-[#00401C] shadow-sm hover:bg-[#e5ad20] focus-visible:ring-[#FDC332]/50",
   secondary:
-    "border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 focus-visible:ring-slate-400/40",
+    "border border-[#00401C]/25 bg-white text-[#00401C] shadow-sm hover:bg-[#00401C]/5 focus-visible:ring-[#00401C]/30",
   ghost:
-    "text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-slate-400/40",
+    "text-[#00401C] hover:bg-[#00401C]/5 hover:text-[#002b13] focus-visible:ring-[#00401C]/30",
   danger:
     "bg-rose-600 text-white shadow-sm hover:bg-rose-700 focus-visible:ring-rose-500/40",
   subtle:
@@ -200,7 +200,7 @@ export function RowAction({
 
   const tones = {
     neutral: "text-slate-600 hover:text-slate-900",
-    primary: "text-sky-600 hover:text-sky-800",
+    primary: "text-[#00401C] hover:text-[#002b13]",
     warning: "text-amber-600 hover:text-amber-800",
     danger: "text-rose-600 hover:text-rose-800",
   }

@@ -20,8 +20,8 @@ module.exports = {
   			xl: '1280px'
   		},
   		colors: {
-  			warning: '#FFC107',
-  			gold: '#C98821',
+  			warning: '#FDC332',
+  			gold: '#F7A60F',
   			white: '#FFFFFF',
   			'primary-new': '#FDC332',
   			background: 'hsl(var(--background))',

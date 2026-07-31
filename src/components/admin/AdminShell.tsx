@@ -143,7 +143,7 @@ export function NavLink({
         active
           ? item.danger
             ? "bg-rose-50 text-rose-700"
-            : "bg-slate-900 text-white"
+            : "bg-[#00401C] text-white"
           : item.danger
             ? "text-rose-600/90 hover:bg-rose-50 hover:text-rose-700"
             : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
@@ -231,7 +231,7 @@ export default function AdminShell({
           collapsed && "justify-center px-0",
         )}
       >
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-slate-900 text-sm font-bold text-warning">
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#00401C] text-sm font-bold text-[#FDC332]">
           E
         </span>
         {!collapsed && (
@@ -362,7 +362,7 @@ export default function AdminShell({
             <div className="ml-auto flex items-center gap-2">
               {/* identity — makes it obvious which account is acting */}
               <div className="hidden items-center gap-2.5 rounded-lg border border-slate-200 bg-white py-1.5 pl-2 pr-3 sm:flex">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-warning">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#00401C] text-[11px] font-bold text-[#FDC332]">
                   {initials}
                 </span>
                 <span className="leading-tight">
