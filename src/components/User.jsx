@@ -100,6 +100,7 @@ const User = () => {
     staleTime: 30 * 1000,
   });
   const users = usersQuery.data?.users || [];
+  const directoryCounts = usersQuery.data?.counts;
   const pagination = usersQuery.data?.pagination || { page, limit: 50, total: 0, pages: 1 };
   const loading = usersQuery.isLoading;
   const refreshing = usersQuery.isFetching;
@@ -135,11 +136,11 @@ const User = () => {
 
   const counts = useMemo(
     () => ({
-      all: users.length,
-      active: users.filter((u) => u.isActive).length,
-      blocked: users.filter((u) => !u.isActive).length,
+      all: directoryCounts?.all ?? users.length,
+      active: directoryCounts?.active ?? users.filter((u) => u.isActive).length,
+      blocked: directoryCounts?.blocked ?? users.filter((u) => !u.isActive).length,
     }),
-    [users],
+    [users, directoryCounts],
   );
 
   const filtered = useMemo(() => {
