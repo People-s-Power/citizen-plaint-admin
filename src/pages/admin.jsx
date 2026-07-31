@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { getCookie } from "cookies-next";
@@ -181,7 +182,14 @@ export default function Home() {
   const [contents, setContents] = useState([]);
   const [manage, setManage] = useState("petition");
   const [contentSearch, setContentSearch] = useState("");
-  const [loadingData, setLoadingData] = useState(true);
+  const [contentLoading, setContentLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const dashboardQuery = useQuery({
+    queryKey: ["admin", "dashboard"],
+    queryFn: () => adminApi.dashboard(),
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
   const contentKeyMap = {
     petition: "petitions",
@@ -254,74 +262,30 @@ export default function Home() {
       }
       await axios.post("/petition/approve", { Petition_id: id });
       alert(`petition is ${status}`);
-      await loadDashboardData();
+      await queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
     } catch (e) {
       console.log(e);
     }
   };
 
-  const loadDashboardData = async () => {
-    try {
-      setLoadingData(true);
-      let stats;
-      try {
-        stats = await adminApi.dashboard();
-      } catch (dashboardError) {
-        if (![401, 403, 404, 500, 502].includes(dashboardError?.status)) throw dashboardError;
-        // Compatibility fallback for an API instance being upgraded ahead of
-        // the admin web deployment.
-        const [usersRes, orgsRes, generalRes] = await Promise.all([
-          axios.get("/user"),
-          axios.get("/organization"),
-          axios.post(`${SERVER_URL}/graphql`, {
-            query: `query DashboardFallback { general {
-              posts { _id } petitions { _id } events { _id }
-              adverts { _id } victories { _id }
-            } }`,
-          }),
-        ]);
-        const users = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.data?.users || [];
-        const organisations = Array.isArray(orgsRes.data)
-          ? orgsRes.data
-          : orgsRes.data?.data?.Organizations || orgsRes.data?.data?.organizations || [];
-        const general = generalRes.data?.data?.general || {};
-        stats = {
-          users: users.length,
-          organisations: organisations.length,
-          posts: general.posts?.length || 0,
-          petitions: general.petitions?.length || 0,
-          events: general.events?.length || 0,
-          adverts: general.adverts?.length || 0,
-          victories: general.victories?.length || 0,
-          updates: 0,
-        };
-      }
-      setCounts({
-        users: stats.users,
-        orgs: stats.organisations,
-        posts: stats.posts,
-        petitions: stats.petitions,
-        adverts: stats.adverts,
-        events: stats.events,
-        victories: stats.victories,
-        updates: stats.updates,
-      });
-    } catch (err) {
-      console.error("Could not load dashboard statistics", err);
-    } finally {
-      setLoadingData(false);
-    }
-  };
-
   useEffect(() => {
-    if (active === "summary") loadDashboardData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
+    if (!dashboardQuery.data) return;
+    setCounts({
+      users: dashboardQuery.data.users,
+      orgs: dashboardQuery.data.organisations,
+      posts: dashboardQuery.data.posts,
+      petitions: dashboardQuery.data.petitions,
+      adverts: dashboardQuery.data.adverts,
+      events: dashboardQuery.data.events,
+      victories: dashboardQuery.data.victories,
+      updates: dashboardQuery.data.updates,
+    });
+  }, [dashboardQuery.data]);
 
   useEffect(() => {
     if (active !== "content") return;
     let cancelled = false;
-    setLoadingData(true);
+    setContentLoading(true);
     const fields = {
       posts: "_id createdAt title name caption body asset { url type } author { _id name image } views likes endorsements",
       petitions: "_id createdAt title name caption body slug status asset { url type } author { _id name image } views numberOfPaidViewsCount numberOfPaidEndorsementCount endorsements",
@@ -342,7 +306,7 @@ export default function Home() {
         setContents([]);
       }
     }).finally(() => {
-      if (!cancelled) setLoadingData(false);
+      if (!cancelled) setContentLoading(false);
     });
     return () => { cancelled = true; };
   }, [active, manage]);
@@ -374,7 +338,7 @@ export default function Home() {
 
     switch (active) {
       case "summary":
-        return <Summary summary={counts} users={users} loading={loadingData} onNavigate={navigate} />;
+        return <Summary summary={counts} users={users} loading={dashboardQuery.isLoading} onNavigate={navigate} />;
       case "content":
         return (
           <Panel>
@@ -395,7 +359,7 @@ export default function Home() {
             </Toolbar>
             {/* Content renders a raw table and has no loading state of its
                 own, so the skeleton is owned here. */}
-            {loadingData ? (
+            {contentLoading ? (
               <TableSkeleton rows={6} cols={5} />
             ) : (
               <Content

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { adminApi } from "@/lib/adminApi";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import MessageModal from "./MessageModal";
 import {
   Panel,
@@ -66,10 +67,8 @@ const professionText = (profession) => {
 const idOf = (user) => String(user?._id || user?.id || user?.email || "");
 
 const User = () => {
-  const [users, setUsers] = useState([]);
   const [countries, setCountries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 1 });
+  const [page, setPage] = useState(1);
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState(null);
   const [modal, setModal] = useState(false);
@@ -85,73 +84,41 @@ const User = () => {
   // into a state array, which mutated it in place and never re-rendered, so
   // the checkboxes and bulk actions silently disagreed.
   const [selected, setSelected] = useState(() => new Set());
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      let result;
-      try {
-        result = await adminApi.users({
-          page: pagination.page,
-          limit: pagination.limit,
-          search: searchValue,
-          status: statusFilter,
-          accountType: role,
-          country,
-          profession: professionValue,
-        });
-      } catch (adminError) {
-        // Keep the console usable while the API and web deployments roll out
-        // independently. The optimized endpoint remains the normal path.
-        // During a staggered deployment the API may still return 401/403
-        // until the new JWT-protected directory route is live.
-        if (![401, 403, 404, 500, 502].includes(adminError?.status)) throw adminError;
-        const [usersRes, orgsRes] = await Promise.all([
-          axios.get("/user"),
-          axios.get("/organization"),
-        ]);
-        const people = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.data?.users || [];
-        const rawOrgs = Array.isArray(orgsRes.data)
-          ? orgsRes.data
-          : orgsRes.data?.data?.Organizations || orgsRes.data?.data?.organizations || [];
-        const seen = new Set();
-        const merged = [...people, ...rawOrgs.map((org) => ({
-          ...org,
-          accountType: org.accountType || "Organization",
-          role: org.role || "Organization",
-        }))].filter((item) => {
-          const key = idOf(item);
-          if (!key || seen.has(key)) return !key;
-          seen.add(key);
-          return true;
-        });
-        const query = searchValue.trim().toLowerCase();
-        const filteredLegacy = merged.filter((item) => {
-          if (query && ![item.name, item.email, professionText(item.profession)].filter(Boolean).some((value) => String(value).toLowerCase().includes(query))) return false;
-          if (statusFilter === "active" && !item.isActive) return false;
-          if (statusFilter === "blocked" && item.isActive) return false;
-          if (role !== "All" && (item.accountType || item.role) !== role) return false;
-          if (country !== "All" && item.country !== country) return false;
-          return professionValue === "All" || professionText(item.profession).includes(professionValue);
-        });
-        result = { users: filteredLegacy, pagination: { page: 1, limit: filteredLegacy.length, total: filteredLegacy.length, pages: 1 } };
-      }
-      setUsers(result.users || []);
-      setPagination(result.pagination || { page: 1, limit: 50, total: 0, pages: 1 });
-      setSelected(new Set());
-    } catch (err) {
-      console.log(err);
-      setNotice({ tone: "danger", text: "Couldn't load the member directory. Try refreshing." });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const queryClient = useQueryClient();
+  const usersQuery = useQuery({
+    queryKey: ["admin", "users", { page, limit: 50, searchValue, statusFilter, role, country, professionValue }],
+    queryFn: () => adminApi.users({
+      page,
+      limit: 50,
+      search: searchValue.trim() || undefined,
+      status: statusFilter,
+      accountType: role,
+      country,
+      profession: professionValue,
+    }),
+    placeholderData: keepPreviousData,
+    staleTime: 30 * 1000,
+  });
+  const users = usersQuery.data?.users || [];
+  const pagination = usersQuery.data?.pagination || { page, limit: 50, total: 0, pages: 1 };
+  const loading = usersQuery.isLoading;
+  const refreshing = usersQuery.isFetching;
 
   useEffect(() => {
-    const timer = setTimeout(load, 250);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.page, searchValue, statusFilter, role, country, professionValue]);
+    setSelected(new Set());
+  }, [page, searchValue, statusFilter, role, country, professionValue]);
+
+  useEffect(() => {
+    if (usersQuery.error) {
+      setNotice({ tone: "danger", text: "Couldn't load the member directory. Try refreshing." });
+    } else if (usersQuery.data) {
+      setNotice(null);
+    }
+  }, [usersQuery.error, usersQuery.data]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchValue, statusFilter, role, country, professionValue]);
 
   useEffect(() => {
     axios
@@ -251,7 +218,7 @@ const User = () => {
               text: `${ids.length} ${ids.length === 1 ? "account" : "accounts"} ${verb}.`,
             },
       );
-      await load();
+      await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
     } catch (e) {
       console.log(e);
       setNotice({ tone: "danger", text: "That action didn't go through." });
@@ -484,9 +451,9 @@ const User = () => {
               </span>
               {hasSelection && <span>{selectedIds.length} selected</span>}
               <div className="ml-auto flex items-center gap-2">
-                <Button variant="ghost" disabled={pagination.page <= 1 || loading} onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}>Previous</Button>
+                <Button variant="ghost" disabled={pagination.page <= 1 || refreshing} onClick={() => setPage((value) => value - 1)}>Previous</Button>
                 <span>Page {pagination.page} of {pagination.pages}</span>
-                <Button variant="ghost" disabled={pagination.page >= pagination.pages || loading} onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}>Next</Button>
+                <Button variant="ghost" disabled={pagination.page >= pagination.pages || refreshing} onClick={() => setPage((value) => value + 1)}>Next</Button>
               </div>
             </TableFooter>
           </>
