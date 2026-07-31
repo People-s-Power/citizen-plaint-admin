@@ -9,6 +9,8 @@ import "react-toastify/dist/ReactToastify.css"
 const api = axios.create({ baseURL: "" })
 
 const DEFAULT_CATEGORY = "General Administrative Assistant"
+const ALL_CATEGORIES = "All categories"
+
 
 interface HireRequest {
   _id?: string
@@ -90,12 +92,17 @@ const getProfessionalCategoryNames = (prof: Professional) => {
 }
 
 const matchesCategory = (prof: Professional, category: string) => {
-  if (!category || category === "All") return true
+  if (!category || category === ALL_CATEGORIES) return true
   const requested = normalizeCategory(category)
-  return getProfessionalCategoryNames(prof)
-    .map((entry) => normalizeCategory(entry))
-    .some((entry) => entry === requested || entry.includes(requested) || requested.includes(entry))
+  const names = getProfessionalCategoryNames(prof).map((entry) => normalizeCategory(entry))
+  // Professionals who haven't declared a service yet aren't tied to a category,
+  // so keep them visible instead of hiding them from admins.
+  if (names.length === 0) return true
+  return names.some(
+    (entry) => entry === requested || entry.includes(requested) || requested.includes(entry),
+  )
 }
+
 
 const matchesSearch = (prof: Professional, search?: string) => {
   const term = String(search || "").trim().toLowerCase()
@@ -146,14 +153,15 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
   const [reassignReason, setReassignReason] = useState("")
   const [reassignNotes, setReassignNotes] = useState("")
   const [reassigningId, setReassigningId] = useState<string | null>(null)
-  const categories = PROFESSIONS
+  const categories = [ALL_CATEGORIES, ...PROFESSIONS]
 
   const loadAssignableProfessionals = useCallback(async (category: string, search = "") => {
     try {
       const res = await api.get("/api/v5/organization/available-professionals", {
         params: {
-          category: category && category !== "All" ? category : undefined,
+          category: category && category !== ALL_CATEGORIES ? category : undefined,
           search: search || undefined,
+
           limit: 100,
         },
       })
@@ -180,7 +188,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
     try {
       const res = await api.get("/api/v5/organization/available-professionals", {
         params: {
-          category: category && category !== "All" ? category : undefined,
+          category: category && category !== ALL_CATEGORIES ? category : undefined,
           search: search || undefined,
           limit: 100,
         },
@@ -194,6 +202,7 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
         []
 
       const excludeId = String(excludeProfessionalId || "").trim()
+
       const list = Array.isArray(data)
         ? data.filter((prof: Professional) => getProfId(prof) !== excludeId)
         : []
@@ -652,9 +661,18 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
             {professionals.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p className="font-medium">No {selectedCategory}s found</p>
-                <p className="text-sm mt-1">Only verified professionals in this category will appear here.</p>
+                <p className="font-medium">
+                  {selectedCategory === ALL_CATEGORIES
+                    ? "No professionals found"
+                    : `No ${selectedCategory}s found`}
+                </p>
+                <p className="text-sm mt-1">
+                  {selectedCategory === ALL_CATEGORIES
+                    ? "Try a different search term."
+                    : `Try "${ALL_CATEGORIES}" to see every professional.`}
+                </p>
               </div>
+
             ) : (
               professionals.map((prof) => (
                 <div
@@ -973,9 +991,18 @@ const HireRequests = ({ users = [] }: { users?: any[] }) => {
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
             {reassignProfessionals.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p className="font-medium">No {reassignCategory}s found</p>
-                <p className="text-sm mt-1">Only verified professionals in this category will appear here.</p>
+                <p className="font-medium">
+                  {reassignCategory === ALL_CATEGORIES
+                    ? "No professionals found"
+                    : `No ${reassignCategory}s found`}
+                </p>
+                <p className="text-sm mt-1">
+                  {reassignCategory === ALL_CATEGORIES
+                    ? "Try a different search term."
+                    : `Try "${ALL_CATEGORIES}" to see every professional.`}
+                </p>
               </div>
+
             ) : (
               reassignProfessionals.map((prof) => (
                 <div
