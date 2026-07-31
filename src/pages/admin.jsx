@@ -267,7 +267,7 @@ export default function Home() {
       try {
         stats = await adminApi.dashboard();
       } catch (dashboardError) {
-        if (![404, 502].includes(dashboardError?.status)) throw dashboardError;
+        if (![403, 404, 500, 502].includes(dashboardError?.status)) throw dashboardError;
         // Compatibility fallback for an API instance being upgraded ahead of
         // the admin web deployment.
         const [usersRes, orgsRes, generalRes] = await Promise.all([
