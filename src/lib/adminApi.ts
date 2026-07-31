@@ -64,6 +64,18 @@ export interface InviteVerification {
   requiresPassword: boolean
 }
 
+export interface DashboardStats {
+  users: number
+  organisations: number
+  posts: number
+  petitions: number
+  events: number
+  adverts: number
+  victories: number
+  updates: number
+  reports: number
+}
+
 /** Thrown for any non-2xx response, carrying a message safe to show a user. */
 export class AdminApiError extends Error {
   status: number
@@ -114,6 +126,27 @@ export const adminApi = {
   // ------------------------------- session -------------------------------
   me: () =>
     request<{ success: boolean; admin: AdminSummary }>("/api/admin/me"),
+
+  dashboard: () => request<DashboardStats>("/api/admin/dashboard"),
+
+  users: (params: {
+    page?: number
+    limit?: number
+    search?: string
+    status?: string
+    accountType?: string
+    country?: string
+    profession?: string
+  } = {}) => {
+    const qs = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") qs.set(key, String(value))
+    })
+    return request<{
+      users: any[]
+      pagination: Pagination
+    }>(`/api/admin/users${qs.toString() ? `?${qs}` : ""}`)
+  },
 
   login: (email: string, password: string) =>
     request<{ success: boolean; token: string; admin: AdminSummary }>(

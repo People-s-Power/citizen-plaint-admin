@@ -25,6 +25,7 @@ import {
 
 import { useAdminSession } from "@/hooks/useAdminSession";
 import { AdminPermission } from "@/lib/adminPermissions";
+import { adminApi } from "@/lib/adminApi";
 
 
 import { SERVER_URL } from "./_app";
@@ -262,56 +263,57 @@ export default function Home() {
   const loadDashboardData = async () => {
     try {
       setLoadingData(true);
-      const [usersRes, orgsRes, reportsRes, generalRes] = await Promise.all([
-        axios.get("/user"),
-        axios.get("/organization"),
-        axios.get("/reports"),
-        axios.post(`${SERVER_URL}/graphql`, {
-          query: `
-            query DashboardGeneral {
-              general {
-                posts { _id createdAt title name caption body asset { url type } author { _id name image } views likes endorsements }
-                petitions { _id createdAt title name caption body slug status asset { url type } author { _id name image } views numberOfPaidViewsCount numberOfPaidEndorsementCount endorsements }
-                events { _id createdAt name body description asset { url type } author { _id name image } }
-                adverts { _id createdAt caption message body asset { url type } author { _id name image } }
-                victories { _id createdAt body asset { url type } author { _id name image } }
-                updates { _id createdAt body asset { url type } author { _id name image } petition { _id title slug } }
-              }
-            }
-          `,
-        }),
-      ]);
-
-      const usersData = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.data?.users || [];
-      const orgsData = Array.isArray(orgsRes.data) ? orgsRes.data : orgsRes.data?.data?.Organizations || orgsRes.data?.data?.organizations || [];
-      const reportsData = Array.isArray(reportsRes.data) ? reportsRes.data : reportsRes.data?.data?.reports || [];
-      const general = generalRes.data?.data?.general || {};
-      const selected = general?.[contentKeyMap[manage]] || [];
-
-      setUsers(usersData);
-      setReports(reportsData);
-      setContents(selected);
+      const stats = await adminApi.dashboard();
       setCounts({
-        users: usersData.length,
-        orgs: orgsData.length,
-        posts: general.posts?.length || 0,
-        petitions: general.petitions?.length || 0,
-        adverts: general.adverts?.length || 0,
-        events: general.events?.length || 0,
-        victories: general.victories?.length || 0,
-        updates: general.updates?.length || 0,
+        users: stats.users,
+        orgs: stats.organisations,
+        posts: stats.posts,
+        petitions: stats.petitions,
+        adverts: stats.adverts,
+        events: stats.events,
+        victories: stats.victories,
+        updates: stats.updates,
       });
     } catch (err) {
-      console.log(err);
+      console.error("Could not load dashboard statistics", err);
     } finally {
       setLoadingData(false);
     }
   };
 
   useEffect(() => {
-    loadDashboardData();
+    if (active === "summary") loadDashboardData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manage]);
+  }, [active]);
+
+  useEffect(() => {
+    if (active !== "content") return;
+    let cancelled = false;
+    setLoadingData(true);
+    const fields = {
+      posts: "_id createdAt title name caption body asset { url type } author { _id name image } views likes endorsements",
+      petitions: "_id createdAt title name caption body slug status asset { url type } author { _id name image } views numberOfPaidViewsCount numberOfPaidEndorsementCount endorsements",
+      events: "_id createdAt name body description asset { url type } author { _id name image }",
+      adverts: "_id createdAt caption message body asset { url type } author { _id name image }",
+      victories: "_id createdAt body asset { url type } author { _id name image }",
+      updates: "_id createdAt body asset { url type } author { _id name image } petition { _id title slug }",
+    };
+    axios.post(`${SERVER_URL}/graphql`, {
+      query: `query AdminContent { general { ${contentKeyMap[manage]} { ${fields[contentKeyMap[manage]]} } } }`,
+    }).then((response) => {
+      if (cancelled) return;
+      const items = response.data?.data?.general?.[contentKeyMap[manage]] || [];
+      setContents(items);
+    }).catch((error) => {
+      if (!cancelled) {
+        console.error("Could not load admin content", error);
+        setContents([]);
+      }
+    }).finally(() => {
+      if (!cancelled) setLoadingData(false);
+    });
+    return () => { cancelled = true; };
+  }, [active, manage]);
 
   /**
    * Client-side filter for the content queue so typing narrows results

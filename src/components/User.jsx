@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { adminApi } from "@/lib/adminApi";
 import MessageModal from "./MessageModal";
 import {
   Panel,
@@ -68,6 +69,7 @@ const User = () => {
   const [users, setUsers] = useState([]);
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 1 });
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState(null);
   const [modal, setModal] = useState(false);
@@ -87,36 +89,17 @@ const User = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const [usersRes, orgsRes] = await Promise.all([
-        axios.get("/user"),
-        axios.get("/organization"),
-      ]);
-
-      const people = Array.isArray(usersRes.data)
-        ? usersRes.data
-        : usersRes.data?.data?.users || [];
-
-      const rawOrgs = Array.isArray(orgsRes.data)
-        ? orgsRes.data
-        : orgsRes.data?.data?.Organizations || orgsRes.data?.data?.organizations || [];
-
-      const orgs = rawOrgs.map((org) => ({
-        ...org,
-        accountType: org.accountType || "Organization",
-        role: org.role || "Organization",
-      }));
-
-      // Merge both directories, de-duplicating on id/email.
-      const seen = new Set();
-      const merged = [...people, ...orgs].filter((item) => {
-        const key = idOf(item);
-        if (!key) return true;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
+      const result = await adminApi.users({
+        page: pagination.page,
+        limit: pagination.limit,
+        search: searchValue,
+        status: statusFilter,
+        accountType: role,
+        country,
+        profession: professionValue,
       });
-
-      setUsers(merged);
+      setUsers(result.users || []);
+      setPagination(result.pagination);
       setSelected(new Set());
     } catch (err) {
       console.log(err);
@@ -127,7 +110,12 @@ const User = () => {
   };
 
   useEffect(() => {
-    load();
+    const timer = setTimeout(load, 250);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.page, searchValue, statusFilter, role, country, professionValue]);
+
+  useEffect(() => {
     axios
       .get(window.location.origin + "/api/getCountries")
       .then((res) => {
@@ -454,9 +442,14 @@ const User = () => {
             </Table>
             <TableFooter>
               <span>
-                Showing {filtered.length} of {users.length}
+                Showing {filtered.length} of {pagination.total}
               </span>
               {hasSelection && <span>{selectedIds.length} selected</span>}
+              <div className="ml-auto flex items-center gap-2">
+                <Button variant="ghost" disabled={pagination.page <= 1 || loading} onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}>Previous</Button>
+                <span>Page {pagination.page} of {pagination.pages}</span>
+                <Button variant="ghost" disabled={pagination.page >= pagination.pages || loading} onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}>Next</Button>
+              </div>
             </TableFooter>
           </>
         )}
