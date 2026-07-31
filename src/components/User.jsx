@@ -103,7 +103,9 @@ const User = () => {
       } catch (adminError) {
         // Keep the console usable while the API and web deployments roll out
         // independently. The optimized endpoint remains the normal path.
-        if (![404, 502].includes(adminError?.status)) throw adminError;
+        // During a staggered deployment the API may still return 401/403
+        // until the new JWT-protected directory route is live.
+        if (![401, 403, 404, 500, 502].includes(adminError?.status)) throw adminError;
         const [usersRes, orgsRes] = await Promise.all([
           axios.get("/user"),
           axios.get("/organization"),
@@ -123,7 +125,16 @@ const User = () => {
           seen.add(key);
           return true;
         });
-        result = { users: merged, pagination: { page: 1, limit: merged.length, total: merged.length, pages: 1 } };
+        const query = searchValue.trim().toLowerCase();
+        const filteredLegacy = merged.filter((item) => {
+          if (query && ![item.name, item.email, professionText(item.profession)].filter(Boolean).some((value) => String(value).toLowerCase().includes(query))) return false;
+          if (statusFilter === "active" && !item.isActive) return false;
+          if (statusFilter === "blocked" && item.isActive) return false;
+          if (role !== "All" && (item.accountType || item.role) !== role) return false;
+          if (country !== "All" && item.country !== country) return false;
+          return professionValue === "All" || professionText(item.profession).includes(professionValue);
+        });
+        result = { users: filteredLegacy, pagination: { page: 1, limit: filteredLegacy.length, total: filteredLegacy.length, pages: 1 } };
       }
       setUsers(result.users || []);
       setPagination(result.pagination || { page: 1, limit: 50, total: 0, pages: 1 });
