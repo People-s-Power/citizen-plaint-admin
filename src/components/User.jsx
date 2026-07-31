@@ -103,7 +103,7 @@ const User = () => {
       } catch (adminError) {
         // Keep the console usable while the API and web deployments roll out
         // independently. The optimized endpoint remains the normal path.
-        if (![403, 404, 500, 502].includes(adminError?.status)) throw adminError;
+        if (![404, 502].includes(adminError?.status)) throw adminError;
         const [usersRes, orgsRes] = await Promise.all([
           axios.get("/user"),
           axios.get("/organization"),

@@ -145,7 +145,7 @@ export const adminApi = {
     return request<{
       users: any[]
       pagination: Pagination
-    }>(`/api/admin/users${qs.toString() ? `?${qs}` : ""}`)
+    }>(`/api/v5/admin-directory/users${qs.toString() ? `?${qs}` : ""}`)
   },
 
   login: (email: string, password: string) =>
